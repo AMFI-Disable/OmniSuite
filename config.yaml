@@ -1,0 +1,13 @@
+version: "4.0.0"
+nexus_dashboard:
+  theme: "dark"
+  layout: "unified"
+timer:
+  default_format: "Public Forum"
+  alert_sound: true
+ai_module:
+  auto_summarize: false
+  tts_language: "auto"
+export:
+  pdf_theme: "tournament"
+  auto_snapshot: true

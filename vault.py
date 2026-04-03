@@ -1,664 +1,1261 @@
-import json
-import argparse
-import os
-import glob
-import time
-import sys
-import random
-import textwrap
-import shutil
-import difflib
-import re
-import datetime
+#!/usr/bin/env python3
+"""
+╔══════════════════════════════════════════════════════╗
+║       EVIDENCE VAULT  v4.0.0  "Grand Nexus"          ║
+║       High-Performance Debate Operating System       ║
+╚══════════════════════════════════════════════════════╝
+"""
 
+from __future__ import annotations
+
+import datetime
+import difflib
+import glob
+import json
+import os
+import random
+import re
+import shutil
+import sys
+import textwrap
+import time
+import threading
+from typing import Optional
+
+# ─── Optional dependencies (warn gracefully) ─────────────────────────────────
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore
+
+try:
+    import requests
+    from bs4 import BeautifulSoup
+    WEB_INGEST_OK = True
+except ImportError:
+    WEB_INGEST_OK = False
+
+# ─── Textual / Rich ──────────────────────────────────────────────────────────
+try:
+    from rich.text import Text
+    from textual import on, work
+    from textual.app import App, ComposeResult
+    from textual.binding import Binding
+    from textual.containers import Container, Horizontal, Vertical, VerticalScroll
+    from textual.reactive import reactive
+    from textual.screen import ModalScreen, Screen
+    from textual.timer import Timer
+    from textual.widgets import (
+        Button,
+        DataTable,
+        Footer,
+        Header,
+        Input,
+        Label,
+        ListItem,
+        ListView,
+        Markdown,
+        Select,
+        Static,
+        TextArea,
+    )
+except ImportError:
+    print("Missing dependencies. Run:\n  python3 -m pip install textual rich")
+    sys.exit(1)
+
+# ─── Paths ────────────────────────────────────────────────────────────────────
 DEBATES_DIR = "debates"
 BACKUPS_DIR = "backups"
 EXPORTS_DIR = "exports"
-TRASH_FILE = os.path.join(DEBATES_DIR, ".trash.json")
-DB_FILE = os.path.join(DEBATES_DIR, "default.json")
-ACTIVE_MOTION = "Default"
-SESSION_CARDS_EDITED = 0
-SESSION_MOTIONS_ARCHIVED = 0
+TRASH_FILE  = os.path.join(DEBATES_DIR, ".trash.json")
+FORMATS_FILE = "formats.json"
+CONFIG_FILE  = "config.yaml"
 
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 
-# ANSI Colors
-GREEN = '\033[92m'
-RED = '\033[91m'
-CYAN = '\033[96m'
-BOLD_WHITE = '\033[1;37m'
-HIGHLIGHT_YELLOW = '\033[1;33m'
-RESET = '\033[0m'
-BG_GREEN_BLACK_TEXT = '\033[102;30m'
-BG_RED_BLACK_TEXT = '\033[101;30m'
-UNDERLINE_CYAN = '\033[4;96m'
-
-def print_banner():
-    banner = f"""
-{CYAN}
- \ \    / /\\   | |  | | |    |__   __|
-  \ \  / /  \\  | |  | | |       | |   
-   \ \/ / /\ \\ | |  | | |       | |   
-    \  / ____ \\| |__| | |____   | |   
-     \/_/    \\_\\\\____/|______|  |_|   
-{RESET}
-"""
-    print(banner)
-
-def run_setup_dirs():
+def run_setup_dirs() -> None:
     for d in [DEBATES_DIR, BACKUPS_DIR, EXPORTS_DIR, os.path.join(DEBATES_DIR, "archives")]:
-        if not os.path.exists(d):
-            os.makedirs(d)
+        os.makedirs(d, exist_ok=True)
 
-def select_motion():
-    global DB_FILE, ACTIVE_MOTION
-    run_setup_dirs()
-    
-    files = glob.glob(os.path.join(DEBATES_DIR, "*.json"))
-    # exclude trash
-    files = [f for f in files if not f.endswith(".trash.json")]
-    
-    motions = []
-    for f in files:
-        basename = os.path.basename(f)
-        name = basename[:-5].replace("_", " ").title()
-        motions.append({"name": name, "file": f})
-        
-    print(f"\n{CYAN}--- Available Motions ---{RESET}")
-    for i, m in enumerate(motions):
-        count = len(load_vault_from_file(m['file']))
-        print(f"[{i+1}] {m['name']} ({count} cards)")
-    
-    print(f"\n[R] Rename a Motion  |  [D] Delete a Motion  |  [A] Archive a Motion")
-    
-    choice = input("\nSelect a motion by number, or type a new name to initialize a new debate vault, or choose R/D/A: ").strip()
-    
-    if choice.upper() == 'R':
-        target = input("Enter the number of the motion to rename: ").strip()
-        if target.isdigit() and 1 <= int(target) <= len(motions):
-            old_file = motions[int(target)-1]['file']
-            new_name = input("Enter new motion name: ").strip()
-            if new_name:
-                new_filename = new_name.lower().replace(" ", "_").replace("/", "") + ".json"
-                os.rename(old_file, os.path.join(DEBATES_DIR, new_filename))
-                print(f"✅ Motion renamed to {new_name}.")
-        return select_motion()
-    elif choice.upper() == 'D':
-        target = input("Enter the number of the motion to delete: ").strip()
-        if target.isdigit() and 1 <= int(target) <= len(motions):
-            old_file = motions[int(target)-1]['file']
-            confirm = input(f'{RED}Type "CONFIRM" to permanently erase this motion: {RESET}')
-            if confirm == "CONFIRM":
-                os.remove(old_file)
-                print(f"✅ Motion deleted.")
-            else:
-                print("Deletion cancelled.")
-        return select_motion()
-    elif choice.upper() == 'A':
-        target = input("Enter the number of the motion to archive: ").strip()
-        if target.isdigit() and 1 <= int(target) <= len(motions):
-            old_file = motions[int(target)-1]['file']
-            archive_dir = os.path.join(DEBATES_DIR, 'archives')
-            os.rename(old_file, os.path.join(archive_dir, os.path.basename(old_file)))
-            global SESSION_MOTIONS_ARCHIVED
-            SESSION_MOTIONS_ARCHIVED += 1
-            print(f"✅ Motion archived.")
-        return select_motion()
-        
-    if choice.isdigit() and 1 <= int(choice) <= len(motions):
-        selected = motions[int(choice)-1]
-        ACTIVE_MOTION = selected['name']
-        DB_FILE = selected['file']
-    else:
-        if choice:
-            ACTIVE_MOTION = choice.title()
-            filename = choice.lower().replace(" ", "_").replace("/", "") + ".json"
-            DB_FILE = os.path.join(DEBATES_DIR, filename)
-def load_vault_from_file(filepath):
-    """Safely reads the JSON database."""
+def load_config() -> dict:
+    defaults = {
+        "version": "4.0.0",
+        "timer": {"default_format": "Public Forum"},
+        "export": {"auto_snapshot": True},
+    }
+    if yaml and os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE) as f:
+                return {**defaults, **yaml.safe_load(f)}
+        except Exception:
+            pass
+    return defaults
+
+def load_formats() -> dict:
+    if os.path.exists(FORMATS_FILE):
+        try:
+            with open(FORMATS_FILE) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    # Fallback built-in
+    return {
+        "Public Forum": {
+            "prep_time_seconds": 180,
+            "speeches": [
+                {"name": "Opening Statement (Team A)", "duration_seconds": 240},
+                {"name": "Opening Statement (Team B)", "duration_seconds": 240},
+                {"name": "Crossfire",                  "duration_seconds": 180},
+                {"name": "Rebuttal (Team A)",           "duration_seconds": 240},
+                {"name": "Rebuttal (Team B)",           "duration_seconds": 240},
+                {"name": "Crossfire",                   "duration_seconds": 180},
+                {"name": "Summary (Team A)",            "duration_seconds": 180},
+                {"name": "Summary (Team B)",            "duration_seconds": 180},
+                {"name": "Grand Crossfire",             "duration_seconds": 180},
+                {"name": "Final Focus (Team A)",        "duration_seconds": 120},
+                {"name": "Final Focus (Team B)",        "duration_seconds": 120},
+            ],
+        },
+        "Lincoln-Douglas": {
+            "prep_time_seconds": 240,
+            "speeches": [
+                {"name": "Affirmative Constructive",        "duration_seconds": 360},
+                {"name": "Cross-Examination (Neg asking)",  "duration_seconds": 180},
+                {"name": "Negative Constructive",           "duration_seconds": 420},
+                {"name": "Cross-Examination (Aff asking)",  "duration_seconds": 180},
+                {"name": "First Affirmative Rebuttal",      "duration_seconds": 240},
+                {"name": "Negative Rebuttal",               "duration_seconds": 360},
+                {"name": "Second Affirmative Rebuttal",     "duration_seconds": 180},
+            ],
+        },
+        "Policy": {
+            "prep_time_seconds": 480,
+            "speeches": [
+                {"name": "1AC",          "duration_seconds": 480},
+                {"name": "CX (2NC asks)","duration_seconds": 180},
+                {"name": "1NC",          "duration_seconds": 480},
+                {"name": "CX (1AC asks)","duration_seconds": 180},
+                {"name": "2AC",          "duration_seconds": 480},
+                {"name": "CX (1NC asks)","duration_seconds": 180},
+                {"name": "2NC",          "duration_seconds": 480},
+                {"name": "CX (2AC asks)","duration_seconds": 180},
+                {"name": "1NR",          "duration_seconds": 300},
+                {"name": "1AR",          "duration_seconds": 300},
+                {"name": "2NR",          "duration_seconds": 300},
+                {"name": "2AR",          "duration_seconds": 300},
+            ],
+        },
+    }
+
+def read_vault(filepath: str) -> list:
     if not os.path.exists(filepath):
         return []
     try:
-        with open(filepath, 'r') as file:
-            return json.load(file)
-    except json.JSONDecodeError:
-        print(f"{RED}⚠️  Warning: {filepath} is corrupted. Returning empty array.{RESET}")
+        with open(filepath) as f:
+            return json.load(f)
+    except Exception:
         return []
 
-def load_vault():
-    return load_vault_from_file(DB_FILE)
+def write_vault(filepath: str, cards: list) -> None:
+    with open(filepath, "w") as f:
+        json.dump(cards, f, indent=2)
 
-def save_vault(cards):
-    """Writes data back to the JSON database."""
-    with open(DB_FILE, 'w') as file:
-        json.dump(cards, file, indent=2)
+def snapshot(filepath: str) -> None:
+    """Create a .bak timestamped snapshot before destructive ops."""
+    if not os.path.exists(filepath):
+        return
+    ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    dst = os.path.join(BACKUPS_DIR, f"{os.path.basename(filepath)}.{ts}.bak")
+    shutil.copy2(filepath, dst)
 
-def backup_motion():
-    if os.path.exists(DB_FILE):
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        backup_path = os.path.join(BACKUPS_DIR, f"{os.path.basename(DB_FILE)}_{timestamp}.json")
-        shutil.copy2(DB_FILE, backup_path)
-
-def get_trash():
-    if not os.path.exists(TRASH_FILE): return []
+def get_trash() -> list:
+    if not os.path.exists(TRASH_FILE):
+        return []
     try:
-        with open(TRASH_FILE, 'r') as f: return json.load(f)
-    except:
+        with open(TRASH_FILE) as f:
+            return json.load(f)
+    except Exception:
         return []
 
-def save_trash(trash):
-    with open(TRASH_FILE, 'w') as f: json.dump(trash, f, indent=2)
+def save_trash(trash: list) -> None:
+    with open(TRASH_FILE, "w") as f:
+        json.dump(trash, f, indent=2)
 
-def fuzzy_highlight(text, keyword):
-    if not keyword: 
-        return text
-        
-    if keyword.lower() in text.lower():
-        pattern = re.compile(re.escape(keyword), re.IGNORECASE)
-        tmp = pattern.sub(f"HIGHLIGHT_START\g<0>HIGHLIGHT_END", text)
-        tmp = tmp.replace("HIGHLIGHT_START", HIGHLIGHT_YELLOW).replace("HIGHLIGHT_END", RESET)
-        return tmp
-        
-    words = re.findall(r'\b\w+\b', text)
-    matches = difflib.get_close_matches(keyword.lower(), [w.lower() for w in words], cutoff=0.7)
-    
-    if matches:
-        match_words = set(matches)
-        def repl(m):
-            w = m.group(0)
-            if w.lower() in match_words:
-                return f"{HIGHLIGHT_YELLOW}{w}{RESET}"
-            return w
-        return re.sub(r'\b\w+\b', repl, text)
-        
-    return text
-    
-def fuzzy_match(text, keyword):
-    if keyword.lower() in text.lower():
-        return True
-    words = re.findall(r'\b\w+\b', text)
-    return len(difflib.get_close_matches(keyword.lower(), [w.lower() for w in words], cutoff=0.7)) > 0
-
-def print_card(c, motion_name="", keyword=""):
-    border_color = GREEN if c['side'] == 'AFF' else RED
-    bg_color = BG_GREEN_BLACK_TEXT if c['side'] == 'AFF' else BG_RED_BLACK_TEXT
-    width = 80
-    
-    print(f"{border_color}┏" + "━"*(width-2) + f"┓{RESET}")
-    
-    # Tag Line with Background
-    tag_clean = f"[{c['side']}] {c['tag'].upper()}"
-    tag_lines = textwrap.wrap(tag_clean, width-4)
-    for line in tag_lines:
-        padding = " " * (width - 4 - len(line))
-        print(f"{border_color}┃ {bg_color} {line}{padding} {RESET}{border_color} ┃{RESET}")
-        
-    # Citation / Meta Line
-    star = "[⭐] " if c.get('tier') == 3 else ""
-    cite_str = f"{star}Source: {c['citation']}"
-    meta = f"ID: {c['id']} | Date: {c.get('timestamp', 'Legacy')} | Tier: {c.get('tier', 1)}"
-    space_between = width - 4 - len(cite_str) - len(meta)
-    if space_between > 0:
-        print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color}" + " "*space_between + f"{meta} ┃{RESET}")
-    elif space_between == 0:
-        print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color}{meta} ┃{RESET}")
-    else:
-        print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color} ┃{RESET}")
-        print(f"{border_color}┃ {meta}{border_color} ┃{RESET}")
-    
-    if motion_name:
-        m_line = f"[From: {motion_name}]"
-        print(f"{border_color}┃ {m_line}" + " "*(width - 4 - len(m_line)) + f" ┃{RESET}")
-        
-    print(f"{border_color}┣" + "━"*(width-2) + f"┫{RESET}")
-    
-    # Evidence Text
-    clean_lines = textwrap.wrap(c['text'], width-4) 
-    for line in clean_lines:
-        hl_line = fuzzy_highlight(line, keyword)
-        padding = " " * (width - 4 - len(line))
-        print(f"{border_color}┃ {RESET}{hl_line}{padding} {border_color}┃{RESET}")
-        
-    print(f"{border_color}┗" + "━"*(width-2) + f"┛{RESET}")
-
-def add_card(tag, citation, side, text, language, tier=1):
-    """Adds a new evidence card to the vault."""
-    cards = load_vault()
-    new_id = max([c.get('id', 0) for c in cards], default=0) + 1
-    
-    new_card = {
-        "id": new_id,
-        "tag": tag,
-        "citation": citation,
-        "side": side.upper(),
-        "text": text,
-        "language": language.upper(),
-        "mastery": 0,
-        "tier": int(tier),
-        "timestamp": datetime.date.today().strftime("%Y-%m-%d")
-    }
-    
-    cards.append(new_card)
-    save_vault(cards)
-    print(f"✅ Card added successfully! ({CYAN}Vault ID: {new_id}{RESET})")
-
-def search_cards(side=None, keyword=None, lang=None, global_search=False):
-    """Filters and retrieves cards based on parameters."""
-    start_time = time.time()
-    def match_card(c):
-        if side and c['side'] != side.upper(): return False
-        if lang and c.get('language', 'EN') != lang.upper(): return False
-        if keyword:
-            if not (fuzzy_match(c['tag'], keyword) or fuzzy_match(c['text'], keyword)):
-                return False
-        return True
-
+def list_motions(include_archives: bool = False) -> list[dict]:
+    patterns = [os.path.join(DEBATES_DIR, "*.json")]
+    if include_archives:
+        patterns.append(os.path.join(DEBATES_DIR, "archives", "*.json"))
+    files = []
+    for p in patterns:
+        files += glob.glob(p)
     results = []
-    motions_searched = set()
-    
-    if global_search:
-        files = glob.glob(os.path.join(DEBATES_DIR, "*.json")) + glob.glob(os.path.join(DEBATES_DIR, "archives", "*.json"))
-        files = [f for f in files if not f.endswith(".trash.json")]
-        for f in files:
-            basename = os.path.basename(f)
-            motion_name = basename[:-5].replace("_", " ").title()
-            motions_searched.add(motion_name)
-            cards = load_vault_from_file(f)
-            matched = [c for c in cards if match_card(c)]
-            for m in matched:
-                results.append((m, motion_name))
-    else:
-        motions_searched.add(ACTIVE_MOTION)
-        cards = load_vault()
-        matched = [c for c in cards if match_card(c)]
-        
-        if len(matched) == 0:
-            print(f"{CYAN}No local results found. Searching globally...{RESET}")
-            return search_cards(side, keyword, lang, global_search=True)
-            
-        for m in matched:
-            results.append((m, ""))
-            
-    elapsed = time.time() - start_time
-    
-    if len(results) == 0:
-        print(f"\n📊 Found 0 matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
-        if keyword:
-            all_tags = []
-            files = [DB_FILE] if not global_search else [f for f in glob.glob(os.path.join(DEBATES_DIR, "*.json")) + glob.glob(os.path.join(DEBATES_DIR, "archives", "*.json")) if not f.endswith(".trash.json")]
-            for f in files:
-                all_tags.extend([c['tag'] for c in load_vault_from_file(f)])
-            close_matches = difflib.get_close_matches(keyword, all_tags, n=1, cutoff=0.3)
-            if close_matches:
-                print(f"💡 {HIGHLIGHT_YELLOW}Did you mean: '{close_matches[0]}'?{RESET}")
-    else:
-        scope_name = "Global Vault" if global_search else ACTIVE_MOTION
-        print(f"\n🔍 Found {len(results)} card(s) in {CYAN}{scope_name}{RESET}:")
-        for c, m_name in results:
-            print_card(c, m_name if global_search and m_name != ACTIVE_MOTION else "", keyword)
-        print(f"\n📊 Found {len(results)} matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
+    for fp in sorted(files):
+        if fp.endswith(".trash.json"):
+            continue
+        name = os.path.basename(fp)[:-5].replace("_", " ").title()
+        archived = "archives" in fp
+        results.append({"name": name, "file": fp, "archived": archived})
+    return results
 
+def bool_search(cards: list, query: str) -> list:
+    """Supports AND / OR / NOT boolean logic across tag + text."""
+    query = query.strip()
+    if not query:
+        return cards
 
-def edit_card(card_id):
-    cards = load_vault()
-    card = next((c for c in cards if c.get('id') == card_id), None)
-    if not card:
-        print(f"❌ Error: No card found with ID {card_id}.")
-        return
-        
-    print(f"Editing Card {card_id}: {card['tag']}")
-    tag = input(f"Tag [{card['tag']}]: ") or card['tag']
-    cite = input(f"Citation [{card['citation']}]: ") or card['citation']
-    side = input(f"Side [{card['side']}]: ") or card['side']
-    text = input(f"Text [{card['text'][:20]}...]: ") or card['text']
-    tier = input(f"Tier [{card.get('tier', 1)}]: ") or card.get('tier', 1)
-    
-    card['tag'] = tag
-    card['citation'] = cite
-    card['side'] = side.upper()
-    card['text'] = text
-    card['tier'] = int(tier)
-    card['timestamp'] = datetime.date.today().strftime("%Y-%m-%d")
-    
-    save_vault(cards)
-    global SESSION_CARDS_EDITED
-    SESSION_CARDS_EDITED += 1
-    print(f"✅ Card {card_id} updated successfully!")
+    def token_match(card: dict, token: str) -> bool:
+        haystack = (card.get("tag", "") + " " + card.get("text", "") + " " +
+                    card.get("citation", "")).lower()
+        token = token.lower().strip()
+        if not token:
+            return True
+        words = re.findall(r"\w+", haystack)
+        if token in haystack:
+            return True
+        return bool(difflib.get_close_matches(token, words, n=1, cutoff=0.75))
 
-def delete_card(card_id):
-    """Soft Deletes an evidence card by its ID."""
-    cards = load_vault()
-    card_to_del = next((c for c in cards if c.get('id') == card_id), None)
-    
-    if card_to_del:
-        cards.remove(card_to_del)
-        backup_motion()  # strict backup
-        trash = get_trash()
-        trash.append({"motion_file": DB_FILE, "card": card_to_del})
-        save_trash(trash)
-        save_vault(cards)
-        print(f"✅ Card {CYAN}{card_id}{RESET} successfully moved to trash.")
-    else:
-        print(f"❌ Error: No card found with ID {card_id}.")
+    # Split on OR first (lowest precedence)
+    or_parts = re.split(r"\bOR\b", query, flags=re.IGNORECASE)
 
-def undo_delete():
-    trash = get_trash()
-    if not trash:
-        print("❌ No recently deleted cards found in trash.")
-        return
-        
-    last_item = trash.pop()
-    save_trash(trash)
-    
-    target_file = last_item["motion_file"]
-    card = last_item["card"]
-    
-    cards = load_vault_from_file(target_file)
-    cards.append(card)
-    
-    with open(target_file, 'w') as file:
-        json.dump(cards, file, indent=2)
-        
-    print(f"✅ Undo successful! Recovered '{card['tag']}' to {os.path.basename(target_file)}.")
+    def match_or_clause(card: dict, clause: str) -> bool:
+        # Split on AND
+        and_parts = re.split(r"\bAND\b", clause, flags=re.IGNORECASE)
+        for part in and_parts:
+            part = part.strip()
+            if part.upper().startswith("NOT "):
+                token = part[4:].strip()
+                if token_match(card, token):
+                    return False
+            else:
+                if not token_match(card, part):
+                    return False
+        return True
 
-def export_cards(side, filename):
-    """Exports filtered cards to a formatted brief text file with TOC."""
-    cards = load_vault()
-    
-    if side:
-        cards = [c for c in cards if c['side'] == side.upper()]
-        
-    if not filename:
-        filename = os.path.join(EXPORTS_DIR, f"brief_{ACTIVE_MOTION.lower().replace(' ', '_')}.txt")
-        
-    aff_cards = [c for c in cards if c['side'] == 'AFF']
-    neg_cards = [c for c in cards if c['side'] == 'NEG']
-    
-    is_md = filename.endswith('.md')
-    
-    with open(filename, 'w') as file:
-        if is_md:
-            file.write(f"# DEBATE BRIEF: {ACTIVE_MOTION}\n\n")
-            file.write("## TABLE OF CONTENTS\n\n")
-            file.write("### AFFIRMATIVE\n")
-            for i, c in enumerate(aff_cards):
-                file.write(f"- {c['tag'].upper()} ({c['citation']})\n")
-            file.write("\n### NEGATIVE\n")
-            for i, c in enumerate(neg_cards):
-                file.write(f"- {c['tag'].upper()} ({c['citation']})\n")
-            
-            file.write("\n---\n\n")
-            for c in aff_cards + neg_cards:
-                star = "⭐ " if c.get('tier') == 3 else ""
-                file.write(f"## [{c['side']}] {c['tag'].upper()}\n")
-                file.write(f"**Source:** {star}{c['citation']} | **Date:** {c.get('timestamp', 'Legacy')} | **Tier:** {c.get('tier', 1)}\n\n")
-                file.write(f"> {c['text']}\n\n")
-        else:
-            file.write("=" * 60 + "\n")
-            file.write(f"DEBATE BRIEF: {ACTIVE_MOTION}\n")
-            file.write("=" * 60 + "\n\n")
-            
-            file.write("--- TABLE OF CONTENTS ---\n\n")
-            file.write("AFFIRMATIVE:\n")
-            for i, c in enumerate(aff_cards):
-                file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
-            file.write("\nNEGATIVE:\n")
-            for i, c in enumerate(neg_cards):
-                file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
-                
-            file.write("\n" + "=" * 60 + "\n\n")
-            
-            for c in aff_cards + neg_cards:
-                star = "[⭐] " if c.get('tier') == 3 else ""
-                file.write("—" * 60 + "\n")
-                file.write(f"[{c['side']}] {c['tag'].upper()}\n")
-                file.write(f"{star}Source: {c['citation']}  |  Language: {c.get('language', 'EN')} | Date: {c.get('timestamp', 'Legacy')} | Tier: {c.get('tier', 1)}\n")
-                file.write("—" * 60 + "\n")
-                file.write(f"{c['text']}\n\n")
-            
-    print(f"📂 Export Complete: {filename} generated with {len(cards)} cards.")
+    return [c for c in cards if any(match_or_clause(c, clause) for clause in or_parts)]
 
-def run_timer(seconds):
-    total = seconds
-    try:
-        while seconds > 0:
-            mins, secs = divmod(seconds, 60)
-            timer = f"{mins:02d}:{secs:02d}"
-            
-            bar_len = 20
-            filled = int((seconds / total) * bar_len) if total else 0
-            bar = "#" * filled + "-" * (bar_len - filled)
-            
-            sys.stdout.write(f"\r{CYAN}⏳ [{timer}] [{bar}] {RESET} ")
-            sys.stdout.flush()
-            time.sleep(1)
-            seconds -= 1
-            
-        sys.stdout.write(f"\r\a{RED}⚠️  TIME EXPIRED ⚠️                             {RESET}\n")
-        sys.stdout.flush()
-        
-        for _ in range(3):
-            time.sleep(0.5)
-            sys.stdout.write(f"\r{BOLD_WHITE}⚠️  TIME EXPIRED ⚠️                             {RESET}")
-            sys.stdout.flush()
-            time.sleep(0.5)
-            sys.stdout.write(f"\r{RED}⚠️  TIME EXPIRED ⚠️                             {RESET}")
-            sys.stdout.flush()
-        print()
-    except KeyboardInterrupt:
-        print(f"\n{CYAN}Timer paused/cancelled.{RESET}")
+def smart_cite(author: str, year: str, title: str, source: str) -> str:
+    """Generate a standardised citation string."""
+    parts = []
+    if author:
+        parts.append(author.strip())
+    if year:
+        parts.append(f"({year.strip()})")
+    if title:
+        parts.append(f'"{title.strip()}"')
+    if source:
+        parts.append(f"— {source.strip()}")
+    return ", ".join(parts) if parts else "Unknown Source"
 
-def timer_menu():
-    print(f"\n{CYAN}--- CHRONOS TIMER ---{RESET}")
-    print("[1] Constructive (4:00)")
-    print("[2] Rebuttal (2:00)")
-    print("[3] Crossfire (3:00)")
-    print("[4] Custom")
-    
-    choice = input("Select preset: ").strip()
-    seconds = 0
-    if choice == '1':
-        seconds = 4 * 60
-    elif choice == '2':
-        seconds = 2 * 60
-    elif choice == '3':
-        seconds = 3 * 60
-    elif choice == '4':
-        min_in = input("Enter minutes: ").strip()
-        sec_in = input("Enter seconds: ").strip()
-        if min_in.isdigit() and sec_in.isdigit():
-            seconds = int(min_in) * 60 + int(sec_in)
-        else:
-            print("Invalid input.")
+def impact_tree(card: dict) -> str:
+    """Generate a simple ASCII impact map from card text."""
+    text = card.get("text", "").lower()
+    nodes = []
+    if any(w in text for w in ["gdp", "economy", "trade", "market", "jobs", "cost", "billion"]):
+        nodes.append("💰 Economic Impact")
+    if any(w in text for w in ["health", "death", "disease", "poverty", "rights", "welfare", "mental"]):
+        nodes.append("🧑 Social Impact")
+    if any(w in text for w in ["climate", "carbon", "environment", "ocean", "biodiversity", "emission"]):
+        nodes.append("🌍 Environmental Impact")
+    if not nodes:
+        nodes.append("❓ Unmapped — Add keywords to classify")
+
+    tag = card.get("tag", "Claim")
+    lines = [f"┌── [{card['side']}] {tag}"]
+    for i, n in enumerate(nodes):
+        prefix = "└──" if i == len(nodes) - 1 else "├──"
+        lines.append(f"│   {prefix} {n}")
+    return "\n".join(lines)
+
+def scrape_url(url: str) -> tuple[str, str]:
+    """Returns (title, body_text). Raises on failure."""
+    resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+    title = soup.title.string.strip() if soup.title else url
+    # Get meaningful paragraphs
+    paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text()) > 60]
+    body = " ".join(paras[:8])  # First 8 paragraphs
+    return title, body
+
+def export_brief_markdown(filepath: str, motion_name: str) -> str:
+    cards = read_vault(filepath)
+    aff   = [c for c in cards if c["side"] == "AFF"]
+    neg   = [c for c in cards if c["side"] == "NEG"]
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    fname = os.path.join(EXPORTS_DIR, f"brief_{motion_name.lower().replace(' ', '_')}_{today}.md")
+
+    with open(fname, "w") as out:
+        out.write(f"# 🏛️ DEBATE BRIEF — {motion_name.upper()}\n")
+        out.write(f"> Generated: {today} | Evidence Vault v4.0.0 Grand Nexus\n\n")
+        out.write("---\n\n## 📋 TABLE OF CONTENTS\n\n")
+        out.write("### AFFIRMATIVE\n")
+        for i, c in enumerate(aff, 1):
+            star = "⭐ " if c.get("tier") == 3 else ""
+            out.write(f"{i}. {star}**{c['tag'].upper()}** — *{c['citation']}*\n")
+        out.write("\n### NEGATIVE\n")
+        for i, c in enumerate(neg, 1):
+            star = "⭐ " if c.get("tier") == 3 else ""
+            out.write(f"{i}. {star}**{c['tag'].upper()}** — *{c['citation']}*\n")
+        out.write("\n---\n\n")
+
+        for section_label, section_cards in [("AFFIRMATIVE", aff), ("NEGATIVE", neg)]:
+            out.write(f"## ⚖️ {section_label}\n\n")
+            for c in sorted(section_cards, key=lambda x: -x.get("tier", 1)):
+                star = "⭐ " if c.get("tier") == 3 else ""
+                out.write(f"### {star}[{c['side']}] {c['tag'].upper()}\n")
+                out.write(f"**Source:** {c['citation']}  \n")
+                out.write(f"**Tier:** {'⭐' * c.get('tier', 1)} | **Language:** {c.get('language','EN')} | **Date Added:** {c.get('timestamp','—')}\n\n")
+                out.write(f"> {c['text']}\n\n")
+                out.write(f"```\n{impact_tree(c)}\n```\n\n---\n\n")
+
+    return fname
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MODAL SCREENS
+# ══════════════════════════════════════════════════════════════════════════════
+
+class AddCardScreen(ModalScreen):
+    """Full-screen modal for adding / editing a card."""
+
+    DEFAULT_CSS = """
+    AddCardScreen {
+        align: center middle;
+    }
+    #add-card-dialog {
+        width: 72;
+        height: auto;
+        background: $surface;
+        border: double $primary;
+        padding: 1 2;
+    }
+    #add-card-dialog Label { margin-bottom: 0; color: $text-muted; }
+    #add-card-dialog Input { margin-bottom: 1; }
+    #add-card-dialog TextArea { height: 6; margin-bottom: 1; }
+    #btn-row { align: center middle; height: 3; }
+    #btn-row Button { margin: 0 1; }
+    """
+
+    def __init__(self, vault_path: str, card: Optional[dict] = None):
+        super().__init__()
+        self.vault_path = vault_path
+        self.card = card  # None = add mode, dict = edit mode
+
+    def compose(self) -> ComposeResult:
+        c = self.card or {}
+        with Container(id="add-card-dialog"):
+            yield Label("─── Add / Edit Evidence Card ───")
+            yield Label("Tag  (short claim)")
+            yield Input(value=c.get("tag", ""),       placeholder="e.g. Economic growth outweighs", id="inp-tag")
+            yield Label("Citation  (Author, Year, Source)")
+            yield Input(value=c.get("citation", ""),  placeholder='e.g. Smith (2023), "Trade Wars"', id="inp-cite")
+            yield Label("Author  |  Year  (for Smart Cite builder — optional)")
+            with Horizontal():
+                yield Input(value="", placeholder="Author", id="inp-author", classes="half")
+                yield Input(value="", placeholder="Year",   id="inp-year",   classes="half")
+            yield Label("Side")
+            yield Select(
+                [("AFF – Affirmative", "AFF"), ("NEG – Negative", "NEG")],
+                value=c.get("side", "AFF"),
+                id="sel-side",
+            )
+            yield Label("Language")
+            yield Select(
+                [("English", "EN"), ("German", "DE"), ("Spanish", "ES")],
+                value=c.get("language", "EN"),
+                id="sel-lang",
+            )
+            yield Label("Tier  (1 = normal · 3 = ⭐ priority)")
+            yield Select(
+                [("1 – Standard", "1"), ("2 – Important", "2"), ("3 – ⭐ Priority", "3")],
+                value=str(c.get("tier", 1)),
+                id="sel-tier",
+            )
+            yield Label("Evidence Text")
+            yield TextArea(c.get("text", ""), id="inp-text")
+            with Horizontal(id="btn-row"):
+                yield Button("💾 Save",   variant="success", id="btn-save")
+                yield Button("🔑 Smart Cite", variant="primary", id="btn-cite")
+                yield Button("✖ Cancel",  variant="error",   id="btn-cancel")
+
+    @on(Button.Pressed, "#btn-cancel")
+    def cancel(self) -> None:
+        self.dismiss(None)
+
+    @on(Button.Pressed, "#btn-cite")
+    def build_cite(self) -> None:
+        author = self.query_one("#inp-author", Input).value
+        year   = self.query_one("#inp-year",   Input).value
+        tag    = self.query_one("#inp-tag",     Input).value
+        result = smart_cite(author, year, tag, "")
+        self.query_one("#inp-cite", Input).value = result
+
+    @on(Button.Pressed, "#btn-save")
+    def save_card(self) -> None:
+        tag  = self.query_one("#inp-tag",  Input).value.strip()
+        cite = self.query_one("#inp-cite", Input).value.strip()
+        text = self.query_one("#inp-text", TextArea).text.strip()
+        side = self.query_one("#sel-side", Select).value or "AFF"
+        lang = self.query_one("#sel-lang", Select).value or "EN"
+        tier = int(self.query_one("#sel-tier", Select).value or "1")
+
+        if not tag or not text:
+            self.app.notify("Tag and evidence text are required.", severity="warning")
             return
-    else:
-        print("Invalid choice.")
-        return
 
-    run_timer(seconds)
+        cards = read_vault(self.vault_path)
 
-def drill_mode(weak_points=False):
-    cards = load_vault()
-    if weak_points:
-        cards = [c for c in cards if c.get('mastery', 0) <= 3]
+        if self.card:
+            # Edit mode
+            for existing in cards:
+                if existing["id"] == self.card["id"]:
+                    existing.update({"tag": tag, "citation": cite, "text": text,
+                                     "side": side, "language": lang, "tier": tier,
+                                     "timestamp": datetime.date.today().strftime("%Y-%m-%d")})
+                    break
+        else:
+            # Add mode
+            new_id = max((c.get("id", 0) for c in cards), default=0) + 1
+            cards.append({
+                "id": new_id, "tag": tag, "citation": cite, "side": side,
+                "text": text, "language": lang, "mastery": 0, "tier": tier,
+                "timestamp": datetime.date.today().strftime("%Y-%m-%d"),
+            })
+
+        write_vault(self.vault_path, cards)
+        self.dismiss(True)
+
+
+class AddMotionScreen(ModalScreen):
+    """Modal for creating a new debate motion."""
+
+    DEFAULT_CSS = """
+    AddMotionScreen { align: center middle; }
+    #motion-dialog {
+        width: 60; height: auto;
+        background: $surface; border: double $accent;
+        padding: 1 2;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Container(id="motion-dialog"):
+            yield Label("🗂️  Create New Motion")
+            yield Input(placeholder="e.g. Universal Basic Income", id="inp-motion-name")
+            with Horizontal(id="btn-row"):
+                yield Button("✅ Create", variant="success", id="btn-ok")
+                yield Button("✖ Cancel", variant="error",   id="btn-cancel")
+
+    @on(Button.Pressed, "#btn-cancel")
+    def cancel(self) -> None:
+        self.dismiss(None)
+
+    @on(Button.Pressed, "#btn-ok")
+    def create(self) -> None:
+        name = self.query_one("#inp-motion-name", Input).value.strip()
+        if not name:
+            self.app.notify("Motion name cannot be empty.", severity="warning")
+            return
+        filename = name.lower().replace(" ", "_").replace("/", "") + ".json"
+        filepath = os.path.join(DEBATES_DIR, filename)
+        if not os.path.exists(filepath):
+            write_vault(filepath, [])
+        self.dismiss(filepath)
+
+
+class SearchScreen(ModalScreen):
+    """Boolean Omni-Search across all loaded cards."""
+
+    DEFAULT_CSS = """
+    SearchScreen { align: center middle; }
+    #search-dialog {
+        width: 80; height: 36;
+        background: $surface; border: double $primary;
+        padding: 1 2;
+    }
+    #search-results { height: 1fr; border: solid $boost; padding: 1; overflow-y: auto; }
+    """
+
+    def __init__(self, vault_path: str):
+        super().__init__()
+        self.vault_path = vault_path
+
+    def compose(self) -> ComposeResult:
+        with Container(id="search-dialog"):
+            yield Label("🔍 Boolean Omni-Search  (AND / OR / NOT supported)")
+            with Horizontal():
+                yield Input(placeholder='e.g.  "economic growth" AND NOT recession', id="inp-query")
+                yield Button("Search", variant="primary", id="btn-search")
+            yield Select(
+                [("Current Motion Only", "local"), ("Global (all motions + archives)", "global")],
+                value="local", id="sel-scope",
+            )
+            yield Static("", id="search-results")
+            yield Button("✖ Close", variant="error", id="btn-close")
+
+    @on(Button.Pressed, "#btn-close")
+    def close(self) -> None:
+        self.dismiss(None)
+
+    @on(Button.Pressed, "#btn-search")
+    def do_search(self) -> None:
+        query   = self.query_one("#inp-query",  Input).value
+        scope   = self.query_one("#sel-scope",  Select).value
+
+        if scope == "global":
+            files = glob.glob(os.path.join(DEBATES_DIR, "*.json")) + \
+                    glob.glob(os.path.join(DEBATES_DIR, "archives", "*.json"))
+            files = [f for f in files if not f.endswith(".trash.json")]
+            all_cards = []
+            for fp in files:
+                for c in read_vault(fp):
+                    c["_motion"] = os.path.basename(fp)[:-5].replace("_", " ").title()
+                    all_cards.append(c)
+        else:
+            all_cards = read_vault(self.vault_path)
+            for c in all_cards:
+                c["_motion"] = ""
+
+        results = bool_search(all_cards, query)
+
+        lines = [f"Found **{len(results)}** card(s)\n"]
+        for c in results:
+            star  = "⭐ " if c.get("tier") == 3 else ""
+            badge = f"[{c['side']}]"
+            motion_info = f"  _({c['_motion']})_" if c.get("_motion") else ""
+            lines.append(f"**{badge} {star}{c['tag']}**{motion_info}")
+            lines.append(f"> {c['text'][:120]}{'…' if len(c['text'])>120 else ''}")
+            lines.append("")
+
+        self.query_one("#search-results", Static).update("\n".join(lines))
+
+
+class DrillScreen(ModalScreen):
+    """Gladiator Drill Mode — spaced-repetition card quiz."""
+
+    DEFAULT_CSS = """
+    DrillScreen { align: center middle; }
+    #drill-dialog {
+        width: 78; height: 34;
+        background: $surface; border: double $warning;
+        padding: 1 2;
+    }
+    #drill-card { border: solid $primary; padding: 1; height: 12; overflow-y: auto; }
+    #drill-rating { align: center middle; height: 3; }
+    """
+
+    def __init__(self, vault_path: str, weak_only: bool = False):
+        super().__init__()
+        self.vault_path = vault_path
+        self.weak_only  = weak_only
+        self.current_card: Optional[dict] = None
+        self.revealed = False
+
+    def compose(self) -> ComposeResult:
+        with Container(id="drill-dialog"):
+            yield Label("⚔️  GLADIATOR DRILL MODE" + ("  ·  WEAK POINTS ONLY" if self.weak_only else ""))
+            yield Static("Loading...", id="drill-tag")
+            yield Static("", id="drill-cite")
+            yield Static("", id="drill-card")
+            with Horizontal(id="drill-rating"):
+                for i in range(1, 6):
+                    yield Button(str(i), id=f"btn-rate-{i}", variant="primary")
+            with Horizontal():
+                yield Button("👁  Reveal", variant="success",  id="btn-reveal")
+                yield Button("➡  Next",   variant="primary",  id="btn-next")
+                yield Button("✖  Exit",   variant="error",    id="btn-exit")
+
+    def on_mount(self) -> None:
+        self._load_card()
+
+    def _load_card(self) -> None:
+        cards = read_vault(self.vault_path)
+        if self.weak_only:
+            cards = [c for c in cards if c.get("mastery", 0) <= 2]
         if not cards:
-            print(f"🚀 {CYAN}You have mastered all rated cards! No weak points found.{RESET}")
+            self.query_one("#drill-tag", Static).update("🏆 All cards mastered! No cards remaining.")
             return
-            
-    if not cards:
-        print(f"❌ {ACTIVE_MOTION} is empty. Add cards before drilling!")
-        return
-        
-    c = random.choice(cards)
-    print(f"\n{CYAN}⚔️  MASTERY DRILL {'(WEAK POINTS)' if weak_points else ''} ⚔️{RESET}")
-    border_color = GREEN if c['side'] == 'AFF' else RED
-    bg_color = BG_GREEN_BLACK_TEXT if c['side'] == 'AFF' else BG_RED_BLACK_TEXT
-    width = 80
-    
-    print(f"{border_color}┏" + "━"*(width-2) + f"┓{RESET}")
-    tag_clean = f"[{c['side']}] {c['tag'].upper()}"
-    for line in textwrap.wrap(tag_clean, width-4):
-        print(f"{border_color}┃ {bg_color} {line}{' ' * (width - 4 - len(line))} {RESET}{border_color} ┃{RESET}")
-    cite_line = f"Source: {c['citation']}"
-    print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_line}{RESET}{border_color}{' ' * (width - 4 - len(cite_line))} ┃{RESET}")
-    print(f"{border_color}┗" + "━"*(width-2) + f"┛{RESET}")
-    
-    input(f"\n{BOLD_WHITE}[Press Enter to reveal evidence]{RESET}")
-    print(f"\n{c['text']}\n")
-    
-    rate = input(f"{CYAN}How well did you know this? (1-5): {RESET}").strip()
-    if rate.isdigit() and 1 <= int(rate) <= 5:
-        all_cards = load_vault()
-        for oc in all_cards:
-            if oc['id'] == c['id']:
-                oc['mastery'] = int(rate)
-                break
-        save_vault(all_cards)
-        print(f"✅ Mastery rating {rate}/5 saved.")
-    else:
-        print("Rating skipped.")
+        self.current_card = random.choice(cards)
+        self.revealed = False
+        c = self.current_card
+        side_icon = "🟢" if c["side"] == "AFF" else "🔴"
+        self.query_one("#drill-tag",  Static).update(f"{side_icon} [{c['side']}] {c['tag'].upper()}")
+        self.query_one("#drill-cite", Static).update(f"Source: {c['citation']}")
+        self.query_one("#drill-card", Static).update("[ Press REVEAL to display evidence ]")
 
-def print_header():
-    cards = load_vault()
-    print(f"\n{HIGHLIGHT_YELLOW}>>> [ MOTION: {ACTIVE_MOTION} | {len(cards)} Cards ] <<<{RESET}")
+    @on(Button.Pressed, "#btn-reveal")
+    def reveal(self) -> None:
+        if self.current_card and not self.revealed:
+            self.revealed = True
+            self.query_one("#drill-card", Static).update(self.current_card["text"])
 
-def interactive_loop():
-    while True:
-        print_header()
-        print(f"\n{CYAN}--- DEBATE COMMAND CENTER ---{RESET}")
-        print("[1] Search Evidence (Fuzzy Omni-Search)")
-        print("[2] Add Evidence")
-        print("[3] Edit Evidence")
-        print("[4] Delete Evidence")
-        print("[5] Undo Delete")
-        print("[6] Chronos Timer")
-        print("[7] Gladiator Drill Mode")
-        print("[8] Weak Point Drill")
-        print("[9] Export Brief")
-        print("[10] Change Motion")
-        print("[11] Exit")
-        
-        choice = input("Select action: ").strip()
-        
-        if choice == '1':
-            scope = input("Search scope [1] Current Motion [2] Global: ").strip()
-            side = input("Filter Side (AFF/NEG) or Enter to skip: ").strip()
-            lang = input("Filter Language (e.g. EN) or Enter to skip: ").strip()
-            keyword = input("Search keyword or Enter to skip: ").strip()
-            search_cards(side if side else None, keyword if keyword else None, lang if lang else None, global_search=(scope=='2'))
-        elif choice == '2':
-            tag = input("Tag: ")
-            cite = input("Citation: ")
-            side = input("Side (AFF/NEG): ").upper()
-            lang = input("Language [Default EN]: ").strip() or "EN"
-            text = input("Evidence Text: ")
-            tier = input("Tier (1-3) [Default 1]: ").strip() or "1"
-            add_card(tag, cite, side, text, lang, tier)
-        elif choice == '3':
-            try:
-                card_id = int(input("Enter the ID of the card to edit: "))
-                edit_card(card_id)
-            except ValueError:
-                print("❌ Error: Invalid ID format.")
-        elif choice == '4':
-            try:
-                card_id = int(input("Enter the ID of the card to purge: "))
-                delete_card(card_id)
-            except ValueError:
-                print("❌ Error: Invalid ID format.")
-        elif choice == '5':
-            undo_delete()
-        elif choice == '6':
-            timer_menu()
-        elif choice == '7':
-            drill_mode(weak_points=False)
-        elif choice == '8':
-            drill_mode(weak_points=True)
-        elif choice == '9':
-            side = input("Filter Side (AFF/NEG) or Enter to export all: ").strip()
-            filename = input("Custom filename or Enter for default: ").strip()
-            export_cards(side if side else None, filename if filename else None)
-        elif choice == '10':
-            select_motion()
-        elif choice == '11':
-            print(f"{CYAN}Exiting Vault. Good luck!{RESET}")
-            print(f"\n📊 Session Debrief:")
-            print(f"Cards Edited: {SESSION_CARDS_EDITED} | Motions Archived: {SESSION_MOTIONS_ARCHIVED}\n")
-            break
+    @on(Button.Pressed, "#btn-next")
+    def next_card(self) -> None:
+        self._load_card()
+
+    @on(Button.Pressed, "#btn-exit")
+    def exit_drill(self) -> None:
+        self.dismiss(None)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id and event.button.id.startswith("btn-rate-"):
+            rating = int(event.button.id.split("-")[-1])
+            if self.current_card:
+                cards = read_vault(self.vault_path)
+                for c in cards:
+                    if c["id"] == self.current_card["id"]:
+                        c["mastery"] = rating
+                        break
+                write_vault(self.vault_path, cards)
+                self.app.notify(f"Mastery {rating}/5 saved.", severity="information")
+                self._load_card()
+
+
+class WebIngestScreen(ModalScreen):
+    """Scrape a URL and ingest its content as a new evidence card."""
+
+    DEFAULT_CSS = """
+    WebIngestScreen { align: center middle; }
+    #wi-dialog {
+        width: 74; height: auto;
+        background: $surface; border: double $success;
+        padding: 1 2;
+    }
+    #wi-preview { height: 8; border: solid $boost; padding: 1; overflow-y: auto; }
+    """
+
+    def __init__(self, vault_path: str):
+        super().__init__()
+        self.vault_path = vault_path
+        self._scraped_title = ""
+        self._scraped_body  = ""
+
+    def compose(self) -> ComposeResult:
+        with Container(id="wi-dialog"):
+            yield Label("🌐 Web Ingest  —  Scrape URL into Vault")
+            yield Input(placeholder="https://...", id="wi-url")
+            with Horizontal():
+                yield Button("🔍 Fetch", variant="primary", id="wi-fetch")
+                yield Button("✖ Cancel", variant="error",  id="wi-cancel")
+            yield Static("", id="wi-status")
+            yield Label("Preview (first 500 chars):")
+            yield Static("No content fetched yet.", id="wi-preview")
+            yield Label("Tag for this evidence:")
+            yield Input(placeholder="e.g. Trade deficit argument", id="wi-tag")
+            yield Label("Side:")
+            yield Select([("AFF", "AFF"), ("NEG", "NEG")], value="AFF", id="wi-side")
+            yield Label("Tier:")
+            yield Select(
+                [("1 – Standard", "1"), ("2 – Important", "2"), ("3 – ⭐ Priority", "3")],
+                value="1", id="wi-tier",
+            )
+            with Horizontal():
+                yield Button("💾 Ingest to Vault", variant="success", id="wi-save")
+
+    @on(Button.Pressed, "#wi-cancel")
+    def cancel(self) -> None:
+        self.dismiss(None)
+
+    @on(Button.Pressed, "#wi-fetch")
+    def fetch(self) -> None:
+        if not WEB_INGEST_OK:
+            self.app.notify("Install requests + beautifulsoup4 for web ingest.", severity="error")
+            return
+        url = self.query_one("#wi-url", Input).value.strip()
+        if not url:
+            self.app.notify("Enter a URL first.", severity="warning")
+            return
+        self.query_one("#wi-status", Static).update("⏳ Fetching…")
+        try:
+            title, body = scrape_url(url)
+            self._scraped_title = title
+            self._scraped_body  = body
+            self.query_one("#wi-status",  Static).update(f"✅ Fetched: {title}")
+            self.query_one("#wi-preview", Static).update(body[:500] + ("…" if len(body) > 500 else ""))
+            self.query_one("#wi-tag",     Input).value = title[:80]
+        except Exception as e:
+            self.query_one("#wi-status", Static).update(f"❌ Error: {e}")
+
+    @on(Button.Pressed, "#wi-save")
+    def save(self) -> None:
+        if not self._scraped_body:
+            self.app.notify("Fetch a URL first.", severity="warning")
+            return
+        tag     = self.query_one("#wi-tag",   Input).value.strip() or self._scraped_title
+        side    = self.query_one("#wi-side",  Select).value or "AFF"
+        tier    = int(self.query_one("#wi-tier", Select).value or "1")
+        url_val = self.query_one("#wi-url",   Input).value.strip()
+
+        cards  = read_vault(self.vault_path)
+        new_id = max((c.get("id", 0) for c in cards), default=0) + 1
+        cards.append({
+            "id": new_id, "tag": tag,
+            "citation": f"Web Ingest — {url_val}",
+            "side": side, "text": self._scraped_body[:2000],
+            "language": "EN", "mastery": 0, "tier": tier,
+            "timestamp": datetime.date.today().strftime("%Y-%m-%d"),
+        })
+        write_vault(self.vault_path, cards)
+        self.app.notify(f"✅ Ingested: '{tag}'", severity="information")
+        self.dismiss(True)
+
+
+class ImpactMapScreen(ModalScreen):
+    """Show ASCII impact tree for the selected card."""
+
+    DEFAULT_CSS = """
+    ImpactMapScreen { align: center middle; }
+    #impact-dialog {
+        width: 60; height: auto;
+        background: $surface; border: double $secondary;
+        padding: 1 2;
+    }
+    #impact-tree { font-family: monospace; padding: 1; border: solid $boost; }
+    """
+
+    def __init__(self, card: dict):
+        super().__init__()
+        self.card = card
+
+    def compose(self) -> ComposeResult:
+        with Container(id="impact-dialog"):
+            yield Label("🗺️  Impact Map")
+            yield Static(impact_tree(self.card), id="impact-tree")
+            yield Button("✖ Close", variant="error", id="btn-close")
+
+    @on(Button.Pressed, "#btn-close")
+    def close(self) -> None:
+        self.dismiss(None)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  TIMER HUD WIDGET
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TimerHUD(Static):
+    """Self-contained Live Prep HUD with speech timer and prep reservoir."""
+
+    DEFAULT_CSS = """
+    TimerHUD { height: auto; }
+    .hud-label   { text-align: center; text-style: bold; color: $text-muted; }
+    .hud-time    { text-align: center; text-style: bold; font-size: 2; }
+    .hud-bar     { text-align: center; color: $success; }
+    .hud-prep    { text-align: center; color: $warning; text-style: bold; }
+    .hud-running { color: $success; }
+    .hud-expired { color: $error; text-style: bold; }
+    """
+
+    _speech_secs: int   = reactive(0)
+    _prep_secs:   int   = reactive(0)
+    _speech_total:int   = 0
+    _timer_running:bool = False
+    _prep_running: bool = False
+    _tick_handle: Optional[Timer] = None
+
+    def __init__(self, formats: dict, default_format: str = "Public Forum"):
+        super().__init__()
+        self.formats = formats
+        self.format_name = default_format
+        self._speech_idx = 0
+        self._reset_format()
+
+    def _reset_format(self) -> None:
+        fmt = self.formats.get(self.format_name, {})
+        self._speeches    = fmt.get("speeches", [])
+        self._prep_secs   = fmt.get("prep_time_seconds", 180)
+        self._prep_total  = self._prep_secs
+        self._speech_idx  = 0
+        self._load_current_speech()
+
+    def _load_current_speech(self) -> None:
+        if self._speeches and self._speech_idx < len(self._speeches):
+            sp = self._speeches[self._speech_idx]
+            self._speech_secs  = sp["duration_seconds"]
+            self._speech_total = sp["duration_seconds"]
+            self._speech_name  = sp["name"]
         else:
-            print("Invalid choice.")
+            self._speech_secs  = 0
+            self._speech_total = 0
+            self._speech_name  = "Round Complete"
 
-def main():
-    print_banner()
-    run_setup_dirs()
-    select_motion()
-    
-    parser = argparse.ArgumentParser(description="🏛️ Evidence Vault CLI v3.3.0 - Debate Command Center")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    def compose(self) -> ComposeResult:
+        fmt_options = [(name, name) for name in self.formats]
+        yield Label("⏱️  CHRONOS ENGINE", classes="hud-label")
+        yield Select(fmt_options, value=self.format_name, id="sel-format")
+        yield Label("", id="lbl-speech-name",  classes="hud-label")
+        yield Label("00:00", id="lbl-speech-time", classes="hud-time")
+        yield Label("", id="lbl-speech-bar",   classes="hud-bar")
+        yield Label("──── PREP RESERVOIR ────", classes="hud-label")
+        yield Label("03:00", id="lbl-prep-time",   classes="hud-prep")
+        with Horizontal(id="timer-btns"):
+            yield Button("▶ Speech",  id="btn-speech-start", variant="success")
+            yield Button("■ Stop",    id="btn-speech-stop",  variant="error")
+            yield Button("⏭ Next",    id="btn-speech-next",  variant="primary")
+        with Horizontal(id="prep-btns"):
+            yield Button("▶ Prep",   id="btn-prep-start", variant="warning")
+            yield Button("■ Stop",   id="btn-prep-stop",  variant="error")
+        yield Button("↺ Reset Format", id="btn-reset-fmt",  variant="default")
 
-    subparsers.add_parser("add", help="Add a new evidence card interactively")
-    subparsers.add_parser("edit", help="Edit an evidence card by ID")
-    
-    search_parser = subparsers.add_parser("search", help="Search the vault")
-    search_parser.add_argument("--side", choices=["AFF", "NEG", "aff", "neg"], help="Filter by AFF or NEG")
-    search_parser.add_argument("--keyword", help="Search for specific words in tag or text")
+    def on_mount(self) -> None:
+        self._refresh_labels()
+        self._tick_handle = self.set_interval(1, self._tick)
 
-    subparsers.add_parser("delete", help="Delete a card by ID interactively")
-    
-    subparsers.add_parser("undo", help="Undo the last card deletion")
-    
-    export_parser = subparsers.add_parser("export", help="Export cards to a tournament brief")
-    export_parser.add_argument("--side", choices=["AFF", "NEG", "aff", "neg"], help="Filter by AFF or NEG")
-    export_parser.add_argument("--filename", help="Output text file")
-    
-    subparsers.add_parser("timer", help="Launch the Chronos Timer")
-    subparsers.add_parser("drill", help="Start Gladiator Drill Mode")
+    def _tick(self) -> None:
+        if self._timer_running and self._speech_secs > 0:
+            self._speech_secs -= 1
+            if self._speech_secs == 0:
+                self._timer_running = False
+                self.app.notify("⚠️  TIME EXPIRED!", severity="warning")
+        if self._prep_running and self._prep_secs > 0:
+            self._prep_secs -= 1
+            if self._prep_secs == 0:
+                self._prep_running = False
+                self.app.notify("⚠️  PREP TIME EXHAUSTED!", severity="error")
+        self._refresh_labels()
 
-    args = parser.parse_args()
+    def _fmt_time(self, secs: int) -> str:
+        m, s = divmod(max(secs, 0), 60)
+        return f"{m:02d}:{s:02d}"
 
-    if not args.command:
-        interactive_loop()
-    elif args.command == "add":
-        tag = input("Tag: ")
-        cite = input("Citation: ")
-        side = input("Side (AFF/NEG): ").upper()
-        text = input("Evidence Text: ")
-        tier = input("Tier (1-3) [Default 1]: ").strip() or "1"
-        add_card(tag, cite, side, text, "EN", tier)
-        interactive_loop()
-    elif args.command == "edit":
-        try:
-            card_id = int(input("Enter the ID of the card to edit: "))
-            edit_card(card_id)
-        except ValueError:
-            print("❌ Error: Invalid ID format.")
-        interactive_loop()
-    elif args.command == "search":
-        search_cards(args.side, args.keyword)
-        interactive_loop()
-    elif args.command == "delete":
-        try:
-            card_id = int(input("Enter the ID of the card to purge: "))
-            delete_card(card_id)
-        except ValueError:
-            print("❌ Error: Invalid ID format.")
-        interactive_loop()
-    elif args.command == "undo":
-        undo_delete()
-        interactive_loop()
-    elif args.command == "export":
-        export_cards(args.side, args.filename)
-    elif args.command == "timer":
-        timer_menu()
-        interactive_loop()
-    elif args.command == "drill":
-        drill_mode()
-        interactive_loop()
+    def _progress_bar(self, current: int, total: int, width: int = 20) -> str:
+        if total == 0:
+            return "─" * width
+        filled = int((current / total) * width)
+        return "█" * filled + "░" * (width - filled)
+
+    def _refresh_labels(self) -> None:
+        self.query_one("#lbl-speech-name",  Label).update(
+            f"  {self._speech_name}"
+            if hasattr(self, "_speech_name") else "")
+        st = self.query_one("#lbl-speech-time", Label)
+        st.update(self._fmt_time(self._speech_secs))
+        st.set_class(self._timer_running, "hud-running")
+        st.set_class(self._speech_secs == 0 and self._speech_total > 0, "hud-expired")
+        self.query_one("#lbl-speech-bar",  Label).update(
+            self._progress_bar(self._speech_secs, self._speech_total))
+        self.query_one("#lbl-prep-time",   Label).update(
+            f"PREP  {self._fmt_time(self._prep_secs)}")
+
+    @on(Select.Changed, "#sel-format")
+    def format_changed(self, event: Select.Changed) -> None:
+        if event.value:
+            self.format_name   = event.value
+            self._timer_running = False
+            self._prep_running  = False
+            self._reset_format()
+            self._refresh_labels()
+            self.app.notify(f"Format: {self.format_name}", severity="information")
+
+    @on(Button.Pressed, "#btn-speech-start")
+    def speech_start(self) -> None:
+        if self._speech_secs > 0:
+            self._timer_running = True
+
+    @on(Button.Pressed, "#btn-speech-stop")
+    def speech_stop(self) -> None:
+        self._timer_running = False
+
+    @on(Button.Pressed, "#btn-speech-next")
+    def speech_next(self) -> None:
+        self._timer_running = False
+        self._speech_idx    = min(self._speech_idx + 1, len(self._speeches) - 1)
+        self._load_current_speech()
+        self._refresh_labels()
+
+    @on(Button.Pressed, "#btn-prep-start")
+    def prep_start(self) -> None:
+        if self._prep_secs > 0:
+            self._prep_running = True
+
+    @on(Button.Pressed, "#btn-prep-stop")
+    def prep_stop(self) -> None:
+        self._prep_running = False
+
+    @on(Button.Pressed, "#btn-reset-fmt")
+    def reset_fmt(self) -> None:
+        self._timer_running = False
+        self._prep_running  = False
+        self._reset_format()
+        self._refresh_labels()
+        self.app.notify("Format reset.", severity="information")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MAIN APPLICATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+class GrandNexus(App):
+    """Evidence Vault v4.0.0 — Grand Nexus Debate Operating System."""
+
+    TITLE = "Evidence Vault  v4.0.0  ╠  Grand Nexus"
+
+    CSS = """
+    /* ── Layout ──────────────────────────────────────────────── */
+    Screen { layers: base overlay; }
+
+    #main-layout { height: 1fr; }
+
+    #left-pane {
+        width: 22;
+        border-right: solid $primary;
+        background: $surface-darken-1;
+        padding: 0 1;
+    }
+    #center-pane {
+        width: 1fr;
+        padding: 0 1;
+    }
+    #right-pane {
+        width: 30;
+        border-left: solid $primary;
+        background: $surface-darken-1;
+        padding: 0 1;
+    }
+
+    /* ── Pane headers ─────────────────────────────────────────── */
+    .pane-title {
+        text-align: center;
+        text-style: bold;
+        background: $primary-darken-1;
+        color: $text;
+        padding: 0 1;
+        margin-bottom: 1;
+        width: 100%;
+    }
+
+    /* ── Motion list ──────────────────────────────────────────── */
+    #motion-list { height: 1fr; }
+    .motion-item Label { color: $text; }
+    .archived-item Label { color: $text-muted; text-style: italic; }
+
+    /* ── Evidence list ────────────────────────────────────────── */
+    #evidence-list { height: 40%; }
+
+    /* ── Card detail ──────────────────────────────────────────── */
+    #card-detail {
+        height: 1fr;
+        border: solid $boost;
+        padding: 1;
+        margin-top: 1;
+        overflow-y: auto;
+    }
+
+    /* ── Footer toolbar ───────────────────────────────────────── */
+    #toolbar {
+        height: 3;
+        background: $surface-darken-2;
+        align: center middle;
+        padding: 0 1;
+    }
+    #toolbar Button { margin: 0 1; min-width: 12; height: 1; }
+
+    /* ── Motion action buttons ────────────────────────────────── */
+    #motion-actions { height: 9; }
+    #motion-actions Button { width: 100%; height: 1; margin-bottom: 0; }
+
+    /* ── Timer pane ───────────────────────────────────────────── */
+    TimerHUD { height: 1fr; }
+    #timer-btns Button,
+    #prep-btns  Button { height: 1; margin: 0; min-width: 6; }
+    #timer-btns,
+    #prep-btns  { height: 3; margin-top: 1; }
+    """
+
+    BINDINGS = [
+        Binding("q",     "quit",         "Quit"),
+        Binding("n",     "new_card",      "New Card"),
+        Binding("s",     "open_search",   "Search"),
+        Binding("d",     "start_drill",   "Drill"),
+        Binding("w",     "web_ingest",    "Web Ingest"),
+        Binding("e",     "export_brief",  "Export Brief"),
+        Binding("m",     "new_motion",    "New Motion"),
+        Binding("ctrl+z","undo_delete",   "Undo Delete"),
+        Binding("i",     "impact_map",    "Impact Map"),
+    ]
+
+    active_filepath:  reactive[str]  = reactive("")
+    active_motion:    reactive[str]  = reactive("— None Selected —")
+    selected_card:    reactive[Optional[dict]] = reactive(None)
+
+    def __init__(self):
+        super().__init__()
+        run_setup_dirs()
+        self._config  = load_config()
+        self._formats = load_formats()
+
+    # ── Compose ───────────────────────────────────────────────────────────────
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+
+        with Horizontal(id="main-layout"):
+
+            # ── LEFT: Motion Navigator ──────────────────────────────────────
+            with Vertical(id="left-pane"):
+                yield Label("📂 Motions", classes="pane-title")
+                yield ListView(id="motion-list")
+                with Vertical(id="motion-actions"):
+                    yield Button("➕ New Motion",  id="btn-new-motion",   variant="success")
+                    yield Button("🗄 Archive",      id="btn-archive",      variant="default")
+                    yield Button("✏ Rename",       id="btn-rename-motion",variant="default")
+                    yield Button("🗑 Delete Motion",id="btn-del-motion",   variant="error")
+
+            # ── CENTER: Evidence Feed ──────────────────────────────────────
+            with Vertical(id="center-pane"):
+                yield Label("📜 Evidence Feed", classes="pane-title")
+                yield ListView(id="evidence-list")
+                yield Markdown("_Select a motion, then pick a card to view details._", id="card-detail")
+
+            # ── RIGHT: Timer HUD ───────────────────────────────────────────
+            with Vertical(id="right-pane"):
+                yield TimerHUD(
+                    formats=self._formats,
+                    default_format=self._config.get("timer", {}).get("default_format", "Public Forum"),
+                )
+
+        # ── Toolbar ────────────────────────────────────────────────────────
+        with Horizontal(id="toolbar"):
+            yield Button("➕ Card [N]",    id="btn-add-card",    variant="success")
+            yield Button("✏ Edit Card",   id="btn-edit-card",   variant="primary")
+            yield Button("🗑 Delete Card", id="btn-del-card",    variant="error")
+            yield Button("↩ Undo [^Z]",   id="btn-undo",        variant="warning")
+            yield Button("🔍 Search [S]", id="btn-search",      variant="primary")
+            yield Button("🌐 Ingest [W]", id="btn-ingest",      variant="primary")
+            yield Button("⚔ Drill [D]",  id="btn-drill",       variant="warning")
+            yield Button("🗺 Impact [I]", id="btn-impact",      variant="default")
+            yield Button("📤 Export [E]", id="btn-export",      variant="default")
+
+        yield Footer()
+
+    # ── Mount: populate motion list ──────────────────────────────────────────
+
+    def on_mount(self) -> None:
+        self._reload_motions()
+
+    def _reload_motions(self, select_path: str = "") -> None:
+        ml = self.query_one("#motion-list", ListView)
+        ml.clear()
+        for m in list_motions(include_archives=True):
+            count    = len(read_vault(m["file"]))
+            suffix   = " [arch]" if m["archived"] else ""
+            li = ListItem(Label(f"{'📁' if not m['archived'] else '🗂'} {m['name']}{suffix}  ({count})"))
+            li._motion_data = m  # type: ignore[attr-defined]
+            if m["archived"]:
+                li.add_class("archived-item")
+            else:
+                li.add_class("motion-item")
+            ml.append(li)
+            if select_path and m["file"] == select_path:
+                pass  # future: auto-select
+
+    # ── Motion selection ─────────────────────────────────────────────────────
+
+    @on(ListView.Selected, "#motion-list")
+    def motion_selected(self, event: ListView.Selected) -> None:
+        item = event.item
+        m: dict = getattr(item, "_motion_data", None)
+        if m:
+            self.active_filepath = m["file"]
+            self.active_motion   = m["name"]
+            self._reload_evidence()
+            self.sub_title = f"Motion: {m['name']}"
+
+    # ── Evidence population ──────────────────────────────────────────────────
+
+    def _reload_evidence(self) -> None:
+        el = self.query_one("#evidence-list", ListView)
+        el.clear()
+        if not self.active_filepath:
+            return
+        for c in read_vault(self.active_filepath):
+            star  = "⭐" if c.get("tier") == 3 else "  "
+            icon  = "🟢" if c["side"] == "AFF" else "🔴"
+            label = f"{icon} {star} [{c['id']:>3}] {c['tag'][:40]}"
+            li    = ListItem(Label(label))
+            li._card_data = c  # type: ignore[attr-defined]
+            el.append(li)
+
+    @on(ListView.Selected, "#evidence-list")
+    def card_selected(self, event: ListView.Selected) -> None:
+        c: dict = getattr(event.item, "_card_data", None)
+        if c:
+            self.selected_card = c
+            self._show_card(c)
+
+    def _show_card(self, c: dict) -> None:
+        tier_stars = "⭐" * c.get("tier", 1)
+        md_text = (
+            f"## [{c['side']}] {c['tag']}\n\n"
+            f"**Source:** {c['citation']}  \n"
+            f"**Tier:** {tier_stars} | **Lang:** {c.get('language','EN')} "
+            f"| **Mastery:** {c.get('mastery',0)}/5 | **Added:** {c.get('timestamp','—')}\n\n"
+            f"---\n\n{c['text']}"
+        )
+        self.query_one("#card-detail", Markdown).update(md_text)
+
+    # ── Toolbar button routing ───────────────────────────────────────────────
+
+    @on(Button.Pressed, "#btn-add-card")
+    def action_new_card(self) -> None:
+        if not self.active_filepath:
+            self.notify("Select or create a motion first.", severity="warning"); return
+        self.push_screen(AddCardScreen(self.active_filepath), self._after_card_edit)
+
+    @on(Button.Pressed, "#btn-edit-card")
+    def btn_edit_card(self) -> None:
+        if not self.selected_card:
+            self.notify("Select a card to edit.", severity="warning"); return
+        self.push_screen(AddCardScreen(self.active_filepath, self.selected_card), self._after_card_edit)
+
+    @on(Button.Pressed, "#btn-del-card")
+    def btn_del_card(self) -> None:
+        self._delete_selected_card()
+
+    @on(Button.Pressed, "#btn-undo")
+    def btn_undo(self) -> None:
+        self.action_undo_delete()
+
+    @on(Button.Pressed, "#btn-search")
+    def btn_search(self) -> None:
+        self.action_open_search()
+
+    @on(Button.Pressed, "#btn-ingest")
+    def btn_ingest(self) -> None:
+        self.action_web_ingest()
+
+    @on(Button.Pressed, "#btn-drill")
+    def btn_drill(self) -> None:
+        self.action_start_drill()
+
+    @on(Button.Pressed, "#btn-impact")
+    def btn_impact(self) -> None:
+        self.action_impact_map()
+
+    @on(Button.Pressed, "#btn-export")
+    def btn_export(self) -> None:
+        self.action_export_brief()
+
+    # ── Motion management buttons ────────────────────────────────────────────
+
+    @on(Button.Pressed, "#btn-new-motion")
+    def action_new_motion(self) -> None:
+        self.push_screen(AddMotionScreen(), self._after_new_motion)
+
+    def _after_new_motion(self, result) -> None:
+        if result:
+            self._reload_motions(select_path=result)
+            self.notify("Motion created!", severity="information")
+
+    @on(Button.Pressed, "#btn-archive")
+    def btn_archive(self) -> None:
+        if not self.active_filepath:
+            self.notify("No motion selected.", severity="warning"); return
+        if "archives" in self.active_filepath:
+            self.notify("Already archived.", severity="warning"); return
+        snapshot(self.active_filepath)
+        dst = os.path.join(DEBATES_DIR, "archives", os.path.basename(self.active_filepath))
+        shutil.move(self.active_filepath, dst)
+        self.active_filepath = ""
+        self.active_motion   = "— None Selected —"
+        self._reload_motions()
+        self.notify("Motion archived.", severity="information")
+
+    @on(Button.Pressed, "#btn-rename-motion")
+    def btn_rename_motion(self) -> None:
+        if not self.active_filepath:
+            self.notify("No motion selected.", severity="warning"); return
+        # Reuse AddMotion for name prompt
+        def _do_rename(new_name) -> None:
+            if new_name and isinstance(new_name, str):
+                # new_name here is a filepath — derive name from it
+                base = os.path.basename(new_name)[:-5].replace("_","  ").title()
+                self.notify(f"Renamed to {base}")
+        # We'll just prompt inline via notify for now — a rename modal is a future iteration
+        self.notify("Rename: Create a new motion and use Archive on the old one.", severity="information")
+
+    @on(Button.Pressed, "#btn-del-motion")
+    def btn_del_motion(self) -> None:
+        if not self.active_filepath:
+            self.notify("No motion selected.", severity="warning"); return
+        snapshot(self.active_filepath)
+        os.remove(self.active_filepath)
+        self.active_filepath = ""
+        self.active_motion   = "— None Selected —"
+        self._reload_motions()
+        self.query_one("#evidence-list", ListView).clear()
+        self.query_one("#card-detail",   Markdown).update("_Motion deleted._")
+        self.notify("Motion deleted. Snapshot saved to backups/", severity="warning")
+
+    # ── Card CRUD ─────────────────────────────────────────────────────────────
+
+    def _after_card_edit(self, result) -> None:
+        if result:
+            self._reload_evidence()
+            self.notify("Card saved!", severity="information")
+
+    def _delete_selected_card(self) -> None:
+        if not self.selected_card or not self.active_filepath:
+            self.notify("Select a card to delete.", severity="warning"); return
+        snapshot(self.active_filepath)
+        cards = read_vault(self.active_filepath)
+        to_del = next((c for c in cards if c["id"] == self.selected_card["id"]), None)
+        if to_del:
+            cards.remove(to_del)
+            write_vault(self.active_filepath, cards)
+            trash = get_trash()
+            trash.append({"motion_file": self.active_filepath, "card": to_del})
+            save_trash(trash)
+            self.selected_card = None
+            self._reload_evidence()
+            self.query_one("#card-detail", Markdown).update("_Card moved to trash. Press Ctrl+Z to undo._")
+            self.notify("Card deleted (soft). Ctrl+Z to undo.", severity="warning")
+
+    def action_undo_delete(self) -> None:
+        trash = get_trash()
+        if not trash:
+            self.notify("Nothing in trash.", severity="warning"); return
+        item = trash.pop()
+        save_trash(trash)
+        fp   = item["motion_file"]
+        card = item["card"]
+        cards = read_vault(fp)
+        cards.append(card)
+        write_vault(fp, cards)
+        self._reload_evidence()
+        self.notify(f"Recovered: '{card['tag']}'", severity="information")
+
+    # ── Screen actions ────────────────────────────────────────────────────────
+
+    def action_open_search(self) -> None:
+        if not self.active_filepath:
+            self.notify("Select a motion first.", severity="warning"); return
+        self.push_screen(SearchScreen(self.active_filepath))
+
+    def action_start_drill(self) -> None:
+        if not self.active_filepath:
+            self.notify("Select a motion first.", severity="warning"); return
+        self.push_screen(DrillScreen(self.active_filepath, weak_only=False))
+
+    def action_web_ingest(self) -> None:
+        if not self.active_filepath:
+            self.notify("Select a motion first.", severity="warning"); return
+        self.push_screen(WebIngestScreen(self.active_filepath), self._after_card_edit)
+
+    def action_impact_map(self) -> None:
+        if not self.selected_card:
+            self.notify("Select a card to map.", severity="warning"); return
+        self.push_screen(ImpactMapScreen(self.selected_card))
+
+    def action_export_brief(self) -> None:
+        if not self.active_filepath:
+            self.notify("Select a motion first.", severity="warning"); return
+        fname = export_brief_markdown(self.active_filepath, self.active_motion)
+        self.notify(f"📤 Brief exported: {fname}", severity="information")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  ENTRY POINT
+# ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(f"\n{CYAN}Exiting Vault. Good luck!{RESET}")
-        print(f"\n📊 Session Debrief:")
-        print(f"Cards Edited: {SESSION_CARDS_EDITED} | Motions Archived: {SESSION_MOTIONS_ARCHIVED}\n")
-        sys.exit(0)
+    run_setup_dirs()
+    GrandNexus().run()

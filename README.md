@@ -1,92 +1,106 @@
-# 🏛️ Evidence Vault CLI (v3.3.0)
+# 🏛️ Evidence Vault — v4.0.0 "Grand Nexus"
+> **High-Performance Debate Operating System**  
+> A full-screen TUI cockpit for the competitive debate circuit.
 
-A dynamic, high-visibility command-line interface specially engineered to manage debate evidence at tournament speed. Never scramble to find a card during crossfire again.or prep time. 
+---
 
-## ⚙️ Setup
-Ensure you have Python installed. This tool uses only built-in libraries, so no external dependencies or `pip installs` are required. Just clone the repo and run it.
+## ✨ Features
 
-## 🚀 Usage Guide
+| Module | Feature |
+|---|---|
+| **Nexus Dashboard** | 3-pane TUI — Motion Navigator · Evidence Feed · Live Prep HUD |
+| **Chronos Engine** | Format profiles: Public Forum · Lincoln-Douglas · Policy |
+| **Timer** | Per-speech countdown + real-time Prep Reservoir with next/reset |
+| **Evidence CRUD** | Add · Edit · Soft Delete · Undo with auto-snapshot `.bak` files |
+| **Boolean Search** | `AND / OR / NOT` omni-search across active + archived motions |
+| **Smart Cite** | Auto-generate standardised citations from author/year inputs |
+| **Spaced Repetition** | Gladiator Drill mode with 1–5 Mastery ratings |
+| **Web Ingest** | Scrape any URL → auto-fill evidence card |
+| **Impact Mapping** | ASCII tree: Economic · Social · Environmental classification |
+| **Export** | Markdown brief with TOC, Tier-3 ⭐ prioritisation, impact maps |
+| **Soft Delete / Trash** | Recover deleted cards with `Ctrl+Z` |
+| **Auto-Snapshot** | `.bak` files created before every destructive operation |
 
-## 🎨 High-Visibility Architecture
-The Vault is now a **Debate Command Center**. All cards rendered dynamically adapt ANSI coloring: **AFF** cards display in stark bold Green, and **NEG** cards display in red. 
+---
 
-### The "Motion First" Workflow
-This tool is built on a **Multi-Tenant System**. Instead of clumping all debate evidence into one massive file, the vault organizes your cards into independent JSON databases located in the `debates/` folder. This means you can maintain separate, logical isolation between wildly different tournament topics!
-
-Upon executing any command, the vault will prompt you to initialize or select a motion.
-
-**Example selection screen:**
-```text
---- Available Motions ---
-[1] Climate Change Policy (15 cards)
-[2] Universal Basic Income (8 cards)
-
-[R] Rename a Motion  |  [D] Delete a Motion  |  [A] Archive a Motion
-
-Select a motion by number, or type a new name to initialize a new debate vault, or choose R/D/A: 
-```
-
-You can now rename, delete, and archive motions directly from the selection menu!
-- **Rename (`R`)**: Clean up typos or rename topics.
-- **Delete (`D`)**: Delete a full topic file *permanently* with a "CONFIRM" safety lock.
-- **Archive (`A`)**: Keep your "Active" list clean. The target motion will be sent to the `debates/archives/` sub-directory. Global Search will still find it!
-
-Once your motion is established, all `add`, `search`, `delete`, `edit`, and `export` functions are **temporarily locked** strictly to that motion's corresponding storage file inside `debates/`.
-
-### Adding Evidence
-Ingest new cards directly into your local database using the interactive `add` command. Every card is automatically timestamped to track when the evidence was added to your vault.
+## 🚀 Quick Start
 
 ```bash
-$ python3 vault.py add
-> Tag: Standardized testing flaws
-> Citation: Miller 2026
-> Side: AFF
-> Text: [Paste Evidence Here]
-> Tier (1-3) [Default 1]: 3
+# 1. Clone the repo
+git clone https://github.com/YOUR_HANDLE/Evidence-Vault-CLI.git
+cd Evidence-Vault-CLI
+
+# 2. Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate      # macOS / Linux
+# .venv\Scripts\activate       # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Launch
+python3 vault.py
 ```
 
-### Editing Evidence
-Make typos while prepping? Clean up your cards dynamically with the `edit` feature.
-```bash
-python3 vault.py edit
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Key | Action |
+|---|---|
+| `N` | New evidence card |
+| `S` | Boolean Omni-Search |
+| `D` | Gladiator Drill mode |
+| `W` | Web Ingest (scrape URL) |
+| `I` | Impact Map for selected card |
+| `E` | Export Markdown brief |
+| `M` | New debate motion |
+| `Ctrl+Z` | Undo last card deletion |
+| `Q` | Quit |
+
+---
+
+## 📂 Project Structure
+
 ```
-Prompt for a Card ID and adjust whichever fields you need to (Tag, Cite, Side, Text, or Quality Tier). Hitting `Enter` keeps the original data intact.
-
-### Quality Tiering & Strategist Upgrades
-Cards now have a Quality Tier (1-3). Game-Changer "Tier 3" cards will display a special `[⭐]` icon in search views. In addition, when you export your evidence file, providing an `.md` extension automatically formats everything via beautifully styled blockquotes!
-
-### The Omni-Search Protocol
-Find exactly what you need in the heat of a debate. You can choose to search your current active motion, or deploy a **Global Search** to scrape every single motion file in your `debates/` folder.
-```bash
-$ python3 vault.py search
-> Search scope [1] Current Motion [2] Global: 2
+Evidence-Vault-CLI/
+├── vault.py          # Main TUI application
+├── formats.json      # Debate format profiles (PF · LD · Policy)
+├── config.yaml       # User preferences
+├── requirements.txt  # Python dependencies
+├── debates/          # Motion JSON files
+│   └── archives/     # Archived motions
+├── backups/          # Auto-snapshot .bak files
+└── exports/          # Generated Markdown briefs
 ```
 
-### Deleting Evidence & Soft Delete Safety
-Purge outdated or incorrect cards from your active motion without writing complex flags. Simply input the ID:
-```bash
-python3 vault.py delete
-```
-> **V3.2.0 Update:** Deleted cards are now tracked via a Soft Delete safety net. If you accidentally execute a delete you didn't mean to, you can recover it instantly using the `[4] Undo Delete` command in the interactive center, or directly via `python3 vault.py undo`.
+---
 
-### Exporting for Tournaments
-The vault will automatically name your output file based on your currently active motion (e.g., `export_school_uniforms.txt`) unless you provide a custom one.
+## 🗂️ Data Schema (v4.0 — backward compatible with v3.x)
 
-```bash
-python3 vault.py export --side AFF
+```json
+{
+  "id": 1,
+  "tag": "Trade deficits reduce GDP",
+  "citation": "Smith (2023), \"Trade Wars\" — Brookings",
+  "side": "AFF",
+  "text": "...",
+  "language": "EN",
+  "mastery": 3,
+  "tier": 2,
+  "timestamp": "2026-04-03"
+}
 ```
 
-### ⏱️ Chronos Timer Module
-Keep track of your speech and prep time without ever leaving your brief! Launch the timer either straight from the setup menu or via terminal:
-```bash
-python3 vault.py timer
-```
-The timer runs visibly in your terminal without clogging history. Once finished, it will beep (`\\a`) and flash an alert! 
-**Shortcut:** Press `Ctrl+C` at any time to immediately cancel or pause a running timer and return safely back to the Command Center menu.
+---
 
-### ⚔️ Gladiator Drill Mode
-Test your memory and lock in your strategy during prep time. Run Drill Mode to randomly pull up the tag and source of an evidence card from your active motion without showing the text:
-```bash
-python3 vault.py drill
-```
-Hit **Enter** to reveal the actual evidence text to check if you successfully recalled the arguments by heart!
+## 📦 Dependencies
+
+- [`textual`](https://github.com/Textualize/textual) — Full-screen TUI framework  
+- [`rich`](https://github.com/Textualize/rich) — Terminal rendering  
+- [`requests`](https://docs.python-requests.org/) + [`beautifulsoup4`](https://www.crummy.com/software/BeautifulSoup/) — Web Ingest  
+- [`pyyaml`](https://pyyaml.org/) — Config file parsing
+
+---
+
+*Evidence Vault v4.0.0 "Grand Nexus" — Built for champions.*
