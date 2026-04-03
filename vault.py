@@ -90,11 +90,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # The 'add' command configuration
-    add_parser = subparsers.add_parser("add", help="Add a new evidence card")
-    add_parser.add_argument("--tag", required=True, help="Main claim or tag")
-    add_parser.add_argument("--cite", required=True, help="Citation (e.g., Smith 24)")
-    add_parser.add_argument("--side", required=True, choices=["AFF", "NEG", "aff", "neg"], help="Side (AFF or NEG)")
-    add_parser.add_argument("--text", required=True, help="The actual quote or evidence text")
+    add_parser = subparsers.add_parser("add", help="Add a new evidence card interactively")
 
     # The 'search' command configuration
     search_parser = subparsers.add_parser("search", help="Search the vault")
@@ -102,8 +98,7 @@ def main():
     search_parser.add_argument("--keyword", help="Search for specific words in tag or text")
 
     # The 'delete' command configuration
-    delete_parser = subparsers.add_parser("delete", help="Delete a card by ID")
-    delete_parser.add_argument("--id", type=int, required=True, help="ID of the card to delete")
+    delete_parser = subparsers.add_parser("delete", help="Delete a card by ID interactively")
 
     # The 'export' command configuration
     export_parser = subparsers.add_parser("export", help="Export cards to a tournament brief")
@@ -114,11 +109,19 @@ def main():
 
     # Route the command to the correct function
     if args.command == "add":
-        add_card(args.tag, args.cite, args.side, args.text)
+        tag = input("Tag: ")
+        cite = input("Citation: ")
+        side = input("Side (AFF/NEG): ").upper()
+        text = input("Evidence Text: ")
+        add_card(tag, cite, side, text)
     elif args.command == "search":
         search_cards(args.side, args.keyword)
     elif args.command == "delete":
-        delete_card(args.id)
+        try:
+            card_id = int(input("Enter the ID of the card to purge: "))
+            delete_card(card_id)
+        except ValueError:
+            print("❌ Error: Invalid ID format. Must be an integer.")
     elif args.command == "export":
         export_cards(args.side, args.filename)
     else:

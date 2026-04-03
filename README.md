@@ -8,10 +8,14 @@ Ensure you have Python installed. This tool uses only built-in libraries, so no 
 ## 🚀 Usage Guide
 
 ### Adding Evidence
-Ingest new cards directly into your local database using the `add` command. You must provide the tag, citation, side, and text.
+Ingest new cards directly into your local database using the interactive `add` command.
 
 ```bash
-python vault.py add --tag "Standardized tests fail to predict success" --cite "Smith 25" --side "AFF" --text "Soft skills outpace academic scores by 40%."
+$ python3 vault.py add
+> Tag: Standardized testing flaws
+> Citation: Miller 2026
+> Side: AFF
+> Text: [Paste Evidence Here]
 ```
 
 ### Finding Evidence for Debates
@@ -22,7 +26,8 @@ python3 vault.py search --side AFF --keyword "predict"
 
 ### Deleting Evidence
 ```bash
-python3 vault.py delete --id 1
+$ python3 vault.py delete
+> Enter the ID of the card to purge: 1
 ```
 
 ### Exporting for Tournaments
