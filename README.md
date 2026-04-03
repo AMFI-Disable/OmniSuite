@@ -12,3 +12,14 @@ Ingest new cards directly into your local database using the `add` command. You 
 
 ```bash
 python vault.py add --tag "Standardized tests fail to predict success" --cite "Smith 25" --side "AFF" --text "Soft skills outpace academic scores by 40%."
+```
+
+### Deleting Evidence
+```bash
+python3 vault.py delete --id 1
+```
+
+### Exporting for Tournaments
+```bash
+python3 vault.py export --side AFF --filename aff_brief.txt
+```
