@@ -7,6 +7,9 @@ Ensure you have Python installed. This tool uses only built-in libraries, so no 
 
 ## 🚀 Usage Guide
 
+## 🎨 High-Visibility Architecture
+The Vault is now a **Debate Command Center**. All cards rendered dynamically adapt ANSI coloring: **AFF** cards display in stark bold Green, and **NEG** cards display in red. 
+
 ### The "Motion First" Workflow
 This tool is built on a **Multi-Tenant System**. Instead of clumping all debate evidence into one massive file, the vault organizes your cards into independent JSON databases located in the `debates/` folder. This means you can maintain separate, logical isolation between wildly different tournament topics!
 
@@ -51,3 +54,11 @@ The vault will automatically name your output file based on your currently activ
 ```bash
 python3 vault.py export --side AFF
 ```
+
+### ⏱️ Chronos Timer Module
+Keep track of your speech and prep time without ever leaving your brief! Launch the timer either straight from the setup menu or via terminal:
+```bash
+python3 vault.py timer
+```
+The timer runs visibly in your terminal without clogging history. Once finished, it will beep (`\\a`) and flash an alert! 
+**Shortcut:** Press `Ctrl+C` at any time to immediately cancel or pause a running timer and return safely back to the Command Center menu.
