@@ -4,6 +4,8 @@ import os
 import glob
 import time
 import sys
+import random
+import textwrap
 
 DEBATES_DIR = "debates"
 DB_FILE = "database.json"
@@ -60,17 +62,48 @@ def select_motion():
 
     print(f"\n{BOLD_WHITE}[ACTIVE MOTION: {ACTIVE_MOTION}]{RESET}")
 
-def load_vault():
-    """Reads the JSON database."""
-    if not os.path.exists(DB_FILE):
+def load_vault_from_file(filepath):
+    """Safely reads the JSON database."""
+    if not os.path.exists(filepath):
         return []
-    with open(DB_FILE, 'r') as file:
-        return json.load(file)
+    try:
+        with open(filepath, 'r') as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+        print(f"{RED}⚠️  Warning: {filepath} is corrupted. Returning empty array.{RESET}")
+        return []
+
+def load_vault():
+    return load_vault_from_file(DB_FILE)
 
 def save_vault(cards):
     """Writes data back to the JSON database."""
     with open(DB_FILE, 'w') as file:
         json.dump(cards, file, indent=2)
+
+def print_card(c, motion_name=""):
+    """Prints a card within an ASCII box"""
+    color = GREEN if c['side'] == 'AFF' else RED
+    width = 80
+    print(f"{color}┌" + "─"*(width-2) + "┐")
+    
+    tag_line = f"[{c['side']}] {c['tag']}"
+    for line in textwrap.wrap(tag_line, width-4):
+        print(f"│ {BOLD_WHITE}{line}{color}" + " "* (width - 4 - len(line)) + " │")
+    
+    cite_line = f"Source: {c['citation']}  |  ID: {c['id']}"
+    print(f"│ {cite_line}" + " "*(width - 4 - len(cite_line)) + " │")
+    
+    if motion_name:
+        m_line = f"[From: {motion_name}]"
+        print(f"│ {m_line}" + " "*(width - 4 - len(m_line)) + " │")
+        
+    print("├" + "─"*(width-2) + "┤")
+    
+    for line in textwrap.wrap(c['text'], width-4):
+        print(f"│ {line}" + " "*(width - 4 - len(line)) + " │")
+        
+    print("└" + "─"*(width-2) + f"┘{RESET}")
 
 def add_card(tag, citation, side, text):
     """Adds a new evidence card to the vault."""
@@ -89,28 +122,41 @@ def add_card(tag, citation, side, text):
     save_vault(cards)
     print(f"✅ Card added successfully! ({CYAN}Vault ID: {new_id}{RESET})")
 
-def search_cards(side=None, keyword=None):
+def search_cards(side=None, keyword=None, global_search=False):
     """Filters and retrieves cards based on parameters."""
-    cards = load_vault()
-    results = cards
+    def match_card(c):
+        if side and c['side'] != side.upper(): return False
+        if keyword:
+            k = keyword.lower()
+            if k not in c['tag'].lower() and k not in c['text'].lower(): return False
+        return True
+
+    results = []
     
-    if side:
-        results = [c for c in results if c['side'] == side.upper()]
-    
-    if keyword:
-        keyword = keyword.lower()
-        results = [c for c in results if keyword in c['tag'].lower() or keyword in c['text'].lower()]
+    if global_search:
+        files = glob.glob(os.path.join(DEBATES_DIR, "*.json"))
+        for f in files:
+            basename = os.path.basename(f)
+            motion_name = basename[:-5].replace("_", " ").title()
+            cards = load_vault_from_file(f)
+            matched = [c for c in cards if match_card(c)]
+            for m in matched:
+                results.append((m, motion_name))
+    else:
+        cards = load_vault()
+        matched = [c for c in cards if match_card(c)]
         
-    print(f"\n🔍 Found {len(results)} card(s) in {CYAN}{ACTIVE_MOTION}{RESET}:")
-    for c in results:
-        color = GREEN if c['side'] == 'AFF' else RED
-        print(f"{color}==================================================")
-        print(f"[{c['side']}] {BOLD_WHITE}{c['tag']}{color}")
-        print(f"Source: {c['citation']}")
-        print(f"ID: {CYAN}{c['id']}{color}")
-        print(f"--------------------------------------------------")
-        print(f"{c['text']}")
-        print(f"=================================================={RESET}")
+        if len(matched) == 0:
+            print(f"{CYAN}No local results found. Searching globally...{RESET}")
+            return search_cards(side, keyword, global_search=True)
+            
+        for m in matched:
+            results.append((m, ""))
+            
+    scope_name = "Global Vault" if global_search else ACTIVE_MOTION
+    print(f"\n🔍 Found {len(results)} card(s) in {CYAN}{scope_name}{RESET}:")
+    for c, m_name in results:
+        print_card(c, m_name if global_search and m_name != ACTIVE_MOTION else "")
 
 def delete_card(card_id):
     """Deletes an evidence card by its ID."""
@@ -156,7 +202,6 @@ def run_timer(seconds):
         sys.stdout.write(f"\r\a{RED}⚠️  TIME EXPIRED ⚠️                             {RESET}\n")
         sys.stdout.flush()
         
-        # Blink effect
         for _ in range(3):
             time.sleep(0.5)
             sys.stdout.write(f"\r{BOLD_WHITE}⚠️  TIME EXPIRED ⚠️                             {RESET}")
@@ -193,22 +238,51 @@ def timer_menu():
 
     run_timer(seconds)
 
+def drill_mode():
+    cards = load_vault()
+    if not cards:
+        print(f"❌ {ACTIVE_MOTION} is empty. Add cards before drilling!")
+        return
+        
+    c = random.choice(cards)
+    print(f"\n{CYAN}⚔️  GLADIATOR DRILL MODE ⚔️{RESET}")
+    color = GREEN if c['side'] == 'AFF' else RED
+    width = 80
+    
+    print(f"{color}┌" + "─"*(width-2) + "┐")
+    tag_line = f"[{c['side']}] {c['tag']}"
+    for line in textwrap.wrap(tag_line, width-4):
+        print(f"│ {BOLD_WHITE}{line}{color}" + " "* (width - 4 - len(line)) + " │")
+        
+    cite_line = f"Source: {c['citation']}  |  ID: {c['id']}"
+    print(f"│ {cite_line}" + " "*(width - 4 - len(cite_line)) + " │")
+    print("└" + "─"*(width-2) + f"┘{RESET}")
+    
+    input(f"\n{BOLD_WHITE}[Press Enter to reveal evidence]{RESET}")
+    
+    print(f"{color}┌" + "─"*(width-2) + "┐")
+    for line in textwrap.wrap(c['text'], width-4):
+        print(f"│ {line}" + " "*(width - 4 - len(line)) + " │")
+    print("└" + "─"*(width-2) + f"┘{RESET}")
+
 def interactive_loop():
     while True:
         print(f"\n{CYAN}--- DEBATE COMMAND CENTER ---{RESET}")
-        print("[1] Search Evidence")
+        print("[1] Search Evidence (Omni-Search)")
         print("[2] Add Evidence")
         print("[3] Delete Evidence")
         print("[4] Chronos Timer")
-        print("[5] Change Motion")
-        print("[6] Exit")
+        print("[5] Gladiator Drill Mode")
+        print("[6] Change Motion")
+        print("[7] Exit")
         
         choice = input("Select action: ").strip()
         
         if choice == '1':
+            scope = input("Search scope [1] Current Motion [2] Global: ").strip()
             side = input("Filter Side (AFF/NEG) or Enter to skip: ").strip()
             keyword = input("Search keyword or Enter to skip: ").strip()
-            search_cards(side if side else None, keyword if keyword else None)
+            search_cards(side if side else None, keyword if keyword else None, global_search=(scope=='2'))
         elif choice == '2':
             tag = input("Tag: ")
             cite = input("Citation: ")
@@ -224,8 +298,10 @@ def interactive_loop():
         elif choice == '4':
             timer_menu()
         elif choice == '5':
-            select_motion()
+            drill_mode()
         elif choice == '6':
+            select_motion()
+        elif choice == '7':
             print(f"{CYAN}Exiting Vault. Good luck!{RESET}")
             break
         else:
@@ -250,15 +326,13 @@ def main():
     export_parser.add_argument("--filename", help="Output text file")
     
     subparsers.add_parser("timer", help="Launch the Chronos Timer")
+    subparsers.add_parser("drill", help="Start Gladiator Drill Mode")
 
     args = parser.parse_args()
 
-    # Trigger motion selection first
     select_motion()
 
-    # Route the command
     if not args.command:
-        # Launch Interactive REPL if no command provided
         interactive_loop()
     elif args.command == "add":
         tag = input("Tag: ")
@@ -281,6 +355,9 @@ def main():
         export_cards(args.side, args.filename)
     elif args.command == "timer":
         timer_menu()
+        interactive_loop()
+    elif args.command == "drill":
+        drill_mode()
         interactive_loop()
 
 if __name__ == "__main__":

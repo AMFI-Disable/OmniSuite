@@ -36,10 +36,11 @@ $ python3 vault.py add
 > Text: [Paste Evidence Here]
 ```
 
-### Finding Evidence for Debates
-Find exactly what you need in the heat of a debate using the `search` command. You can filter by side and target specific keywords:
+### The Omni-Search Protocol
+Find exactly what you need in the heat of a debate. You can choose to search your current active motion, or deploy a **Global Search** to scrape every single motion file in your `debates/` folder.
 ```bash
-python3 vault.py search --side AFF --keyword "predict"
+$ python3 vault.py search
+> Search scope [1] Current Motion [2] Global: 2
 ```
 
 ### Deleting Evidence
@@ -62,3 +63,10 @@ python3 vault.py timer
 ```
 The timer runs visibly in your terminal without clogging history. Once finished, it will beep (`\\a`) and flash an alert! 
 **Shortcut:** Press `Ctrl+C` at any time to immediately cancel or pause a running timer and return safely back to the Command Center menu.
+
+### ⚔️ Gladiator Drill Mode
+Test your memory and lock in your strategy during prep time. Run Drill Mode to randomly pull up the tag and source of an evidence card from your active motion without showing the text:
+```bash
+python3 vault.py drill
+```
+Hit **Enter** to reveal the actual evidence text to check if you successfully recalled the arguments by heart!
