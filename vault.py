@@ -9,12 +9,15 @@ import textwrap
 import shutil
 import difflib
 import re
+import datetime
 
 DEBATES_DIR = "debates"
 BACKUPS_DIR = "backups"
 EXPORTS_DIR = "exports"
-DB_FILE = "database.json"
+TRASH_FILE = os.path.join(DEBATES_DIR, ".trash.json")
+DB_FILE = os.path.join(DEBATES_DIR, "default.json")
 ACTIVE_MOTION = "Default"
+
 
 # ANSI Colors
 GREEN = '\033[92m'
@@ -49,6 +52,9 @@ def select_motion():
     run_setup_dirs()
     
     files = glob.glob(os.path.join(DEBATES_DIR, "*.json"))
+    # exclude trash
+    files = [f for f in files if not f.endswith(".trash.json")]
+    
     motions = []
     for f in files:
         basename = os.path.basename(f)
@@ -57,7 +63,8 @@ def select_motion():
         
     print(f"\n{CYAN}--- Available Motions ---{RESET}")
     for i, m in enumerate(motions):
-        print(f"[{i+1}] {m['name']}")
+        count = len(load_vault_from_file(m['file']))
+        print(f"[{i+1}] {m['name']} ({count} cards)")
     
     choice = input("\nSelect a motion by number, or type a new name to initialize a new debate vault: ").strip()
     
@@ -66,9 +73,10 @@ def select_motion():
         ACTIVE_MOTION = selected['name']
         DB_FILE = selected['file']
     else:
-        ACTIVE_MOTION = choice.title()
-        filename = choice.lower().replace(" ", "_").replace("/", "") + ".json"
-        DB_FILE = os.path.join(DEBATES_DIR, filename)
+        if choice:
+            ACTIVE_MOTION = choice.title()
+            filename = choice.lower().replace(" ", "_").replace("/", "") + ".json"
+            DB_FILE = os.path.join(DEBATES_DIR, filename)
 
 def load_vault_from_file(filepath):
     """Safely reads the JSON database."""
@@ -94,7 +102,16 @@ def backup_motion():
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         backup_path = os.path.join(BACKUPS_DIR, f"{os.path.basename(DB_FILE)}_{timestamp}.json")
         shutil.copy2(DB_FILE, backup_path)
-        print(f"{CYAN}Data backed up to {backup_path}{RESET}")
+
+def get_trash():
+    if not os.path.exists(TRASH_FILE): return []
+    try:
+        with open(TRASH_FILE, 'r') as f: return json.load(f)
+    except:
+        return []
+
+def save_trash(trash):
+    with open(TRASH_FILE, 'w') as f: json.dump(trash, f, indent=2)
 
 def fuzzy_highlight(text, keyword):
     if not keyword: 
@@ -142,10 +159,15 @@ def print_card(c, motion_name="", keyword=""):
         
     # Citation / Meta Line
     cite_str = f"Source: {c['citation']}"
-    meta = f"ID: {c['id']} | Lang: {c.get('language', 'EN')} | Mastery: {c.get('mastery', 'Unrated')}"
+    meta = f"ID: {c['id']} | Date: {c.get('timestamp', 'Legacy')} | Mastery: {c.get('mastery', 'Unrated')}"
     space_between = width - 4 - len(cite_str) - len(meta)
     if space_between > 0:
         print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color}" + " "*space_between + f"{meta} ┃{RESET}")
+    elif space_between == 0:
+        print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color}{meta} ┃{RESET}")
+    else:
+        print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color} ┃{RESET}")
+        print(f"{border_color}┃ {meta}{border_color} ┃{RESET}")
     
     if motion_name:
         m_line = f"[From: {motion_name}]"
@@ -154,13 +176,9 @@ def print_card(c, motion_name="", keyword=""):
     print(f"{border_color}┣" + "━"*(width-2) + f"┫{RESET}")
     
     # Evidence Text
-    evidence = fuzzy_highlight(c['text'], keyword)
     clean_lines = textwrap.wrap(c['text'], width-4) 
-    # Highlighting wrapped text correctly is tricky with ANSI inside textwrap. 
-    # We will wrap first, then highlight each line independently.
     for line in clean_lines:
         hl_line = fuzzy_highlight(line, keyword)
-        # padding based on original length
         padding = " " * (width - 4 - len(line))
         print(f"{border_color}┃ {RESET}{hl_line}{padding} {border_color}┃{RESET}")
         
@@ -178,7 +196,8 @@ def add_card(tag, citation, side, text, language):
         "side": side.upper(),
         "text": text,
         "language": language.upper(),
-        "mastery": 0
+        "mastery": 0,
+        "timestamp": datetime.date.today().strftime("%Y-%m-%d")
     }
     
     cards.append(new_card)
@@ -187,6 +206,7 @@ def add_card(tag, citation, side, text, language):
 
 def search_cards(side=None, keyword=None, lang=None, global_search=False):
     """Filters and retrieves cards based on parameters."""
+    start_time = time.time()
     def match_card(c):
         if side and c['side'] != side.upper(): return False
         if lang and c.get('language', 'EN') != lang.upper(): return False
@@ -196,17 +216,21 @@ def search_cards(side=None, keyword=None, lang=None, global_search=False):
         return True
 
     results = []
+    motions_searched = set()
     
     if global_search:
         files = glob.glob(os.path.join(DEBATES_DIR, "*.json"))
+        files = [f for f in files if not f.endswith(".trash.json")]
         for f in files:
             basename = os.path.basename(f)
             motion_name = basename[:-5].replace("_", " ").title()
+            motions_searched.add(motion_name)
             cards = load_vault_from_file(f)
             matched = [c for c in cards if match_card(c)]
             for m in matched:
                 results.append((m, motion_name))
     else:
+        motions_searched.add(ACTIVE_MOTION)
         cards = load_vault()
         matched = [c for c in cards if match_card(c)]
         
@@ -217,24 +241,60 @@ def search_cards(side=None, keyword=None, lang=None, global_search=False):
         for m in matched:
             results.append((m, ""))
             
-    scope_name = "Global Vault" if global_search else ACTIVE_MOTION
-    print(f"\n🔍 Found {len(results)} card(s) in {CYAN}{scope_name}{RESET}:")
-    for c, m_name in results:
-        print_card(c, m_name if global_search and m_name != ACTIVE_MOTION else "", keyword)
+    elapsed = time.time() - start_time
+    
+    if len(results) == 0:
+        print(f"\n📊 Found 0 matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
+        if keyword:
+            all_tags = []
+            files = [DB_FILE] if not global_search else [f for f in glob.glob(os.path.join(DEBATES_DIR, "*.json")) if not f.endswith(".trash.json")]
+            for f in files:
+                all_tags.extend([c['tag'] for c in load_vault_from_file(f)])
+            close_matches = difflib.get_close_matches(keyword, all_tags, n=1, cutoff=0.3)
+            if close_matches:
+                print(f"💡 {HIGHLIGHT_YELLOW}Did you mean: '{close_matches[0]}'?{RESET}")
+    else:
+        scope_name = "Global Vault" if global_search else ACTIVE_MOTION
+        print(f"\n🔍 Found {len(results)} card(s) in {CYAN}{scope_name}{RESET}:")
+        for c, m_name in results:
+            print_card(c, m_name if global_search and m_name != ACTIVE_MOTION else "", keyword)
+        print(f"\n📊 Found {len(results)} matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
 
 def delete_card(card_id):
-    """Deletes an evidence card by its ID."""
+    """Soft Deletes an evidence card by its ID."""
     cards = load_vault()
-    initial_length = len(cards)
+    card_to_del = next((c for c in cards if c.get('id') == card_id), None)
     
-    cards = [c for c in cards if c.get('id') != card_id]
-    
-    if len(cards) < initial_length:
-        backup_motion()
+    if card_to_del:
+        cards.remove(card_to_del)
+        backup_motion()  # strict backup
+        trash = get_trash()
+        trash.append({"motion_file": DB_FILE, "card": card_to_del})
+        save_trash(trash)
         save_vault(cards)
-        print(f"✅ Card {CYAN}{card_id}{RESET} successfully purged from the vault.")
+        print(f"✅ Card {CYAN}{card_id}{RESET} successfully moved to trash.")
     else:
         print(f"❌ Error: No card found with ID {card_id}.")
+
+def undo_delete():
+    trash = get_trash()
+    if not trash:
+        print("❌ No recently deleted cards found in trash.")
+        return
+        
+    last_item = trash.pop()
+    save_trash(trash)
+    
+    target_file = last_item["motion_file"]
+    card = last_item["card"]
+    
+    cards = load_vault_from_file(target_file)
+    cards.append(card)
+    
+    with open(target_file, 'w') as file:
+        json.dump(cards, file, indent=2)
+        
+    print(f"✅ Undo successful! Recovered '{card['tag']}' to {os.path.basename(target_file)}.")
 
 def export_cards(side, filename):
     """Exports filtered cards to a formatted brief text file with TOC."""
@@ -267,21 +327,28 @@ def export_cards(side, filename):
         for c in aff_cards + neg_cards:
             file.write("—" * 60 + "\n")
             file.write(f"[{c['side']}] {c['tag'].upper()}\n")
-            file.write(f"Source: {c['citation']}  |  Language: {c.get('language', 'EN')}\n")
+            file.write(f"Source: {c['citation']}  |  Language: {c.get('language', 'EN')} | Date: {c.get('timestamp', 'Legacy')}\n")
             file.write("—" * 60 + "\n")
             file.write(f"{c['text']}\n\n")
             
     print(f"📂 Export Complete: {filename} generated with {len(cards)} cards.")
 
 def run_timer(seconds):
+    total = seconds
     try:
         while seconds > 0:
             mins, secs = divmod(seconds, 60)
             timer = f"{mins:02d}:{secs:02d}"
-            sys.stdout.write(f"\r{CYAN}⏳ Time Remaining: {BOLD_WHITE}{timer}{RESET} ")
+            
+            bar_len = 20
+            filled = int((seconds / total) * bar_len) if total else 0
+            bar = "#" * filled + "-" * (bar_len - filled)
+            
+            sys.stdout.write(f"\r{CYAN}⏳ [{timer}] [{bar}] {RESET} ")
             sys.stdout.flush()
             time.sleep(1)
             seconds -= 1
+            
         sys.stdout.write(f"\r\a{RED}⚠️  TIME EXPIRED ⚠️                             {RESET}\n")
         sys.stdout.flush()
         
@@ -377,12 +444,13 @@ def interactive_loop():
         print("[1] Search Evidence (Fuzzy Omni-Search)")
         print("[2] Add Evidence")
         print("[3] Delete Evidence")
-        print("[4] Chronos Timer")
-        print("[5] Gladiator Drill Mode")
-        print("[6] Weak Point Drill (Mastery <= 3)")
-        print("[7] Export Brief")
-        print("[8] Change Motion")
-        print("[9] Exit")
+        print("[4] Undo Delete")
+        print("[5] Chronos Timer")
+        print("[6] Gladiator Drill Mode")
+        print("[7] Weak Point Drill")
+        print("[8] Export Brief")
+        print("[9] Change Motion")
+        print("[10] Exit")
         
         choice = input("Select action: ").strip()
         
@@ -406,18 +474,20 @@ def interactive_loop():
             except ValueError:
                 print("❌ Error: Invalid ID format.")
         elif choice == '4':
-            timer_menu()
+            undo_delete()
         elif choice == '5':
-            drill_mode(weak_points=False)
+            timer_menu()
         elif choice == '6':
-            drill_mode(weak_points=True)
+            drill_mode(weak_points=False)
         elif choice == '7':
+            drill_mode(weak_points=True)
+        elif choice == '8':
             side = input("Filter Side (AFF/NEG) or Enter to export all: ").strip()
             filename = input("Custom filename or Enter for default: ").strip()
             export_cards(side if side else None, filename if filename else None)
-        elif choice == '8':
-            select_motion()
         elif choice == '9':
+            select_motion()
+        elif choice == '10':
             print(f"{CYAN}Exiting Vault. Good luck!{RESET}")
             break
         else:
@@ -427,7 +497,59 @@ def main():
     print_banner()
     run_setup_dirs()
     select_motion()
-    interactive_loop()
+    
+    parser = argparse.ArgumentParser(description="🏛️ Evidence Vault CLI v3.2.0 - Debate Command Center")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    subparsers.add_parser("add", help="Add a new evidence card interactively")
+    
+    search_parser = subparsers.add_parser("search", help="Search the vault")
+    search_parser.add_argument("--side", choices=["AFF", "NEG", "aff", "neg"], help="Filter by AFF or NEG")
+    search_parser.add_argument("--keyword", help="Search for specific words in tag or text")
+
+    subparsers.add_parser("delete", help="Delete a card by ID interactively")
+    
+    subparsers.add_parser("undo", help="Undo the last card deletion")
+    
+    export_parser = subparsers.add_parser("export", help="Export cards to a tournament brief")
+    export_parser.add_argument("--side", choices=["AFF", "NEG", "aff", "neg"], help="Filter by AFF or NEG")
+    export_parser.add_argument("--filename", help="Output text file")
+    
+    subparsers.add_parser("timer", help="Launch the Chronos Timer")
+    subparsers.add_parser("drill", help="Start Gladiator Drill Mode")
+
+    args = parser.parse_args()
+
+    if not args.command:
+        interactive_loop()
+    elif args.command == "add":
+        tag = input("Tag: ")
+        cite = input("Citation: ")
+        side = input("Side (AFF/NEG): ").upper()
+        text = input("Evidence Text: ")
+        add_card(tag, cite, side, text, "EN")
+        interactive_loop()
+    elif args.command == "search":
+        search_cards(args.side, args.keyword)
+        interactive_loop()
+    elif args.command == "delete":
+        try:
+            card_id = int(input("Enter the ID of the card to purge: "))
+            delete_card(card_id)
+        except ValueError:
+            print("❌ Error: Invalid ID format.")
+        interactive_loop()
+    elif args.command == "undo":
+        undo_delete()
+        interactive_loop()
+    elif args.command == "export":
+        export_cards(args.side, args.filename)
+    elif args.command == "timer":
+        timer_menu()
+        interactive_loop()
+    elif args.command == "drill":
+        drill_mode()
+        interactive_loop()
 
 if __name__ == "__main__":
     try:

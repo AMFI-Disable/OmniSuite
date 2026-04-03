@@ -1,6 +1,6 @@
-# Evidence Vault CLI 🏛️
+# 🏛️ Evidence Vault CLI (v3.2.0)
 
-A command-line interface designed to store, filter, and instantly retrieve AFF and NEG debate cards during crossfire or prep time. 
+A dynamic, high-visibility command-line interface specially engineered to manage debate evidence at tournament speed. Never scramble to find a card during crossfire again.or prep time. 
 
 ## ⚙️ Setup
 Ensure you have Python installed. This tool uses only built-in libraries, so no external dependencies or `pip installs` are required. Just clone the repo and run it.
@@ -26,7 +26,7 @@ Select a motion by number, or type a new name to initialize a new debate vault:
 Once your motion is established, all `add`, `search`, `delete`, and `export` functions are **temporarily locked** strictly to that motion's corresponding storage file inside `debates/`.
 
 ### Adding Evidence
-Ingest new cards directly into your local database using the interactive `add` command.
+Ingest new cards directly into your local database using the interactive `add` command. Every card is automatically timestamped to track when the evidence was added to your vault.
 
 ```bash
 $ python3 vault.py add
@@ -43,11 +43,12 @@ $ python3 vault.py search
 > Search scope [1] Current Motion [2] Global: 2
 ```
 
-### Deleting Evidence
+### Deleting Evidence & Soft Delete Safety
+Purge outdated or incorrect cards from your active motion without writing complex flags. Simply input the ID:
 ```bash
-$ python3 vault.py delete
-> Enter the ID of the card to purge: 1
+python3 vault.py delete
 ```
+> **V3.2.0 Update:** Deleted cards are now tracked via a Soft Delete safety net. If you accidentally execute a delete you didn't mean to, you can recover it instantly using the `[4] Undo Delete` command in the interactive center, or directly via `python3 vault.py undo`.
 
 ### Exporting for Tournaments
 The vault will automatically name your output file based on your currently active motion (e.g., `export_school_uniforms.txt`) unless you provide a custom one.
