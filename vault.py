@@ -17,6 +17,8 @@ EXPORTS_DIR = "exports"
 TRASH_FILE = os.path.join(DEBATES_DIR, ".trash.json")
 DB_FILE = os.path.join(DEBATES_DIR, "default.json")
 ACTIVE_MOTION = "Default"
+SESSION_CARDS_EDITED = 0
+SESSION_MOTIONS_ARCHIVED = 0
 
 
 # ANSI Colors
@@ -43,7 +45,7 @@ def print_banner():
     print(banner)
 
 def run_setup_dirs():
-    for d in [DEBATES_DIR, BACKUPS_DIR, EXPORTS_DIR]:
+    for d in [DEBATES_DIR, BACKUPS_DIR, EXPORTS_DIR, os.path.join(DEBATES_DIR, "archives")]:
         if not os.path.exists(d):
             os.makedirs(d)
 
@@ -66,8 +68,42 @@ def select_motion():
         count = len(load_vault_from_file(m['file']))
         print(f"[{i+1}] {m['name']} ({count} cards)")
     
-    choice = input("\nSelect a motion by number, or type a new name to initialize a new debate vault: ").strip()
+    print(f"\n[R] Rename a Motion  |  [D] Delete a Motion  |  [A] Archive a Motion")
     
+    choice = input("\nSelect a motion by number, or type a new name to initialize a new debate vault, or choose R/D/A: ").strip()
+    
+    if choice.upper() == 'R':
+        target = input("Enter the number of the motion to rename: ").strip()
+        if target.isdigit() and 1 <= int(target) <= len(motions):
+            old_file = motions[int(target)-1]['file']
+            new_name = input("Enter new motion name: ").strip()
+            if new_name:
+                new_filename = new_name.lower().replace(" ", "_").replace("/", "") + ".json"
+                os.rename(old_file, os.path.join(DEBATES_DIR, new_filename))
+                print(f"✅ Motion renamed to {new_name}.")
+        return select_motion()
+    elif choice.upper() == 'D':
+        target = input("Enter the number of the motion to delete: ").strip()
+        if target.isdigit() and 1 <= int(target) <= len(motions):
+            old_file = motions[int(target)-1]['file']
+            confirm = input(f'{RED}Type "CONFIRM" to permanently erase this motion: {RESET}')
+            if confirm == "CONFIRM":
+                os.remove(old_file)
+                print(f"✅ Motion deleted.")
+            else:
+                print("Deletion cancelled.")
+        return select_motion()
+    elif choice.upper() == 'A':
+        target = input("Enter the number of the motion to archive: ").strip()
+        if target.isdigit() and 1 <= int(target) <= len(motions):
+            old_file = motions[int(target)-1]['file']
+            archive_dir = os.path.join(DEBATES_DIR, 'archives')
+            os.rename(old_file, os.path.join(archive_dir, os.path.basename(old_file)))
+            global SESSION_MOTIONS_ARCHIVED
+            SESSION_MOTIONS_ARCHIVED += 1
+            print(f"✅ Motion archived.")
+        return select_motion()
+        
     if choice.isdigit() and 1 <= int(choice) <= len(motions):
         selected = motions[int(choice)-1]
         ACTIVE_MOTION = selected['name']
@@ -77,7 +113,6 @@ def select_motion():
             ACTIVE_MOTION = choice.title()
             filename = choice.lower().replace(" ", "_").replace("/", "") + ".json"
             DB_FILE = os.path.join(DEBATES_DIR, filename)
-
 def load_vault_from_file(filepath):
     """Safely reads the JSON database."""
     if not os.path.exists(filepath):
@@ -158,8 +193,9 @@ def print_card(c, motion_name="", keyword=""):
         print(f"{border_color}┃ {bg_color} {line}{padding} {RESET}{border_color} ┃{RESET}")
         
     # Citation / Meta Line
-    cite_str = f"Source: {c['citation']}"
-    meta = f"ID: {c['id']} | Date: {c.get('timestamp', 'Legacy')} | Mastery: {c.get('mastery', 'Unrated')}"
+    star = "[⭐] " if c.get('tier') == 3 else ""
+    cite_str = f"{star}Source: {c['citation']}"
+    meta = f"ID: {c['id']} | Date: {c.get('timestamp', 'Legacy')} | Tier: {c.get('tier', 1)}"
     space_between = width - 4 - len(cite_str) - len(meta)
     if space_between > 0:
         print(f"{border_color}┃ {UNDERLINE_CYAN}{cite_str}{RESET}{border_color}" + " "*space_between + f"{meta} ┃{RESET}")
@@ -184,7 +220,7 @@ def print_card(c, motion_name="", keyword=""):
         
     print(f"{border_color}┗" + "━"*(width-2) + f"┛{RESET}")
 
-def add_card(tag, citation, side, text, language):
+def add_card(tag, citation, side, text, language, tier=1):
     """Adds a new evidence card to the vault."""
     cards = load_vault()
     new_id = max([c.get('id', 0) for c in cards], default=0) + 1
@@ -197,6 +233,7 @@ def add_card(tag, citation, side, text, language):
         "text": text,
         "language": language.upper(),
         "mastery": 0,
+        "tier": int(tier),
         "timestamp": datetime.date.today().strftime("%Y-%m-%d")
     }
     
@@ -219,7 +256,7 @@ def search_cards(side=None, keyword=None, lang=None, global_search=False):
     motions_searched = set()
     
     if global_search:
-        files = glob.glob(os.path.join(DEBATES_DIR, "*.json"))
+        files = glob.glob(os.path.join(DEBATES_DIR, "*.json")) + glob.glob(os.path.join(DEBATES_DIR, "archives", "*.json"))
         files = [f for f in files if not f.endswith(".trash.json")]
         for f in files:
             basename = os.path.basename(f)
@@ -247,7 +284,7 @@ def search_cards(side=None, keyword=None, lang=None, global_search=False):
         print(f"\n📊 Found 0 matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
         if keyword:
             all_tags = []
-            files = [DB_FILE] if not global_search else [f for f in glob.glob(os.path.join(DEBATES_DIR, "*.json")) if not f.endswith(".trash.json")]
+            files = [DB_FILE] if not global_search else [f for f in glob.glob(os.path.join(DEBATES_DIR, "*.json")) + glob.glob(os.path.join(DEBATES_DIR, "archives", "*.json")) if not f.endswith(".trash.json")]
             for f in files:
                 all_tags.extend([c['tag'] for c in load_vault_from_file(f)])
             close_matches = difflib.get_close_matches(keyword, all_tags, n=1, cutoff=0.3)
@@ -259,6 +296,33 @@ def search_cards(side=None, keyword=None, lang=None, global_search=False):
         for c, m_name in results:
             print_card(c, m_name if global_search and m_name != ACTIVE_MOTION else "", keyword)
         print(f"\n📊 Found {len(results)} matches across {len(motions_searched)} motions in {elapsed:.3f} seconds.")
+
+
+def edit_card(card_id):
+    cards = load_vault()
+    card = next((c for c in cards if c.get('id') == card_id), None)
+    if not card:
+        print(f"❌ Error: No card found with ID {card_id}.")
+        return
+        
+    print(f"Editing Card {card_id}: {card['tag']}")
+    tag = input(f"Tag [{card['tag']}]: ") or card['tag']
+    cite = input(f"Citation [{card['citation']}]: ") or card['citation']
+    side = input(f"Side [{card['side']}]: ") or card['side']
+    text = input(f"Text [{card['text'][:20]}...]: ") or card['text']
+    tier = input(f"Tier [{card.get('tier', 1)}]: ") or card.get('tier', 1)
+    
+    card['tag'] = tag
+    card['citation'] = cite
+    card['side'] = side.upper()
+    card['text'] = text
+    card['tier'] = int(tier)
+    card['timestamp'] = datetime.date.today().strftime("%Y-%m-%d")
+    
+    save_vault(cards)
+    global SESSION_CARDS_EDITED
+    SESSION_CARDS_EDITED += 1
+    print(f"✅ Card {card_id} updated successfully!")
 
 def delete_card(card_id):
     """Soft Deletes an evidence card by its ID."""
@@ -309,27 +373,47 @@ def export_cards(side, filename):
     aff_cards = [c for c in cards if c['side'] == 'AFF']
     neg_cards = [c for c in cards if c['side'] == 'NEG']
     
+    is_md = filename.endswith('.md')
+    
     with open(filename, 'w') as file:
-        file.write("=" * 60 + "\n")
-        file.write(f"DEBATE BRIEF: {ACTIVE_MOTION}\n")
-        file.write("=" * 60 + "\n\n")
-        
-        file.write("--- TABLE OF CONTENTS ---\n\n")
-        file.write("AFFIRMATIVE:\n")
-        for i, c in enumerate(aff_cards):
-            file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
-        file.write("\nNEGATIVE:\n")
-        for i, c in enumerate(neg_cards):
-            file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
+        if is_md:
+            file.write(f"# DEBATE BRIEF: {ACTIVE_MOTION}\n\n")
+            file.write("## TABLE OF CONTENTS\n\n")
+            file.write("### AFFIRMATIVE\n")
+            for i, c in enumerate(aff_cards):
+                file.write(f"- {c['tag'].upper()} ({c['citation']})\n")
+            file.write("\n### NEGATIVE\n")
+            for i, c in enumerate(neg_cards):
+                file.write(f"- {c['tag'].upper()} ({c['citation']})\n")
             
-        file.write("\n" + "=" * 60 + "\n\n")
-        
-        for c in aff_cards + neg_cards:
-            file.write("—" * 60 + "\n")
-            file.write(f"[{c['side']}] {c['tag'].upper()}\n")
-            file.write(f"Source: {c['citation']}  |  Language: {c.get('language', 'EN')} | Date: {c.get('timestamp', 'Legacy')}\n")
-            file.write("—" * 60 + "\n")
-            file.write(f"{c['text']}\n\n")
+            file.write("\n---\n\n")
+            for c in aff_cards + neg_cards:
+                star = "⭐ " if c.get('tier') == 3 else ""
+                file.write(f"## [{c['side']}] {c['tag'].upper()}\n")
+                file.write(f"**Source:** {star}{c['citation']} | **Date:** {c.get('timestamp', 'Legacy')} | **Tier:** {c.get('tier', 1)}\n\n")
+                file.write(f"> {c['text']}\n\n")
+        else:
+            file.write("=" * 60 + "\n")
+            file.write(f"DEBATE BRIEF: {ACTIVE_MOTION}\n")
+            file.write("=" * 60 + "\n\n")
+            
+            file.write("--- TABLE OF CONTENTS ---\n\n")
+            file.write("AFFIRMATIVE:\n")
+            for i, c in enumerate(aff_cards):
+                file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
+            file.write("\nNEGATIVE:\n")
+            for i, c in enumerate(neg_cards):
+                file.write(f"  [{i+1}] {c['tag'].upper()} ({c['citation']})\n")
+                
+            file.write("\n" + "=" * 60 + "\n\n")
+            
+            for c in aff_cards + neg_cards:
+                star = "[⭐] " if c.get('tier') == 3 else ""
+                file.write("—" * 60 + "\n")
+                file.write(f"[{c['side']}] {c['tag'].upper()}\n")
+                file.write(f"{star}Source: {c['citation']}  |  Language: {c.get('language', 'EN')} | Date: {c.get('timestamp', 'Legacy')} | Tier: {c.get('tier', 1)}\n")
+                file.write("—" * 60 + "\n")
+                file.write(f"{c['text']}\n\n")
             
     print(f"📂 Export Complete: {filename} generated with {len(cards)} cards.")
 
@@ -443,14 +527,15 @@ def interactive_loop():
         print(f"\n{CYAN}--- DEBATE COMMAND CENTER ---{RESET}")
         print("[1] Search Evidence (Fuzzy Omni-Search)")
         print("[2] Add Evidence")
-        print("[3] Delete Evidence")
-        print("[4] Undo Delete")
-        print("[5] Chronos Timer")
-        print("[6] Gladiator Drill Mode")
-        print("[7] Weak Point Drill")
-        print("[8] Export Brief")
-        print("[9] Change Motion")
-        print("[10] Exit")
+        print("[3] Edit Evidence")
+        print("[4] Delete Evidence")
+        print("[5] Undo Delete")
+        print("[6] Chronos Timer")
+        print("[7] Gladiator Drill Mode")
+        print("[8] Weak Point Drill")
+        print("[9] Export Brief")
+        print("[10] Change Motion")
+        print("[11] Exit")
         
         choice = input("Select action: ").strip()
         
@@ -466,29 +551,38 @@ def interactive_loop():
             side = input("Side (AFF/NEG): ").upper()
             lang = input("Language [Default EN]: ").strip() or "EN"
             text = input("Evidence Text: ")
-            add_card(tag, cite, side, text, lang)
+            tier = input("Tier (1-3) [Default 1]: ").strip() or "1"
+            add_card(tag, cite, side, text, lang, tier)
         elif choice == '3':
+            try:
+                card_id = int(input("Enter the ID of the card to edit: "))
+                edit_card(card_id)
+            except ValueError:
+                print("❌ Error: Invalid ID format.")
+        elif choice == '4':
             try:
                 card_id = int(input("Enter the ID of the card to purge: "))
                 delete_card(card_id)
             except ValueError:
                 print("❌ Error: Invalid ID format.")
-        elif choice == '4':
-            undo_delete()
         elif choice == '5':
-            timer_menu()
+            undo_delete()
         elif choice == '6':
-            drill_mode(weak_points=False)
+            timer_menu()
         elif choice == '7':
-            drill_mode(weak_points=True)
+            drill_mode(weak_points=False)
         elif choice == '8':
+            drill_mode(weak_points=True)
+        elif choice == '9':
             side = input("Filter Side (AFF/NEG) or Enter to export all: ").strip()
             filename = input("Custom filename or Enter for default: ").strip()
             export_cards(side if side else None, filename if filename else None)
-        elif choice == '9':
-            select_motion()
         elif choice == '10':
+            select_motion()
+        elif choice == '11':
             print(f"{CYAN}Exiting Vault. Good luck!{RESET}")
+            print(f"\n📊 Session Debrief:")
+            print(f"Cards Edited: {SESSION_CARDS_EDITED} | Motions Archived: {SESSION_MOTIONS_ARCHIVED}\n")
             break
         else:
             print("Invalid choice.")
@@ -498,10 +592,11 @@ def main():
     run_setup_dirs()
     select_motion()
     
-    parser = argparse.ArgumentParser(description="🏛️ Evidence Vault CLI v3.2.0 - Debate Command Center")
+    parser = argparse.ArgumentParser(description="🏛️ Evidence Vault CLI v3.3.0 - Debate Command Center")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     subparsers.add_parser("add", help="Add a new evidence card interactively")
+    subparsers.add_parser("edit", help="Edit an evidence card by ID")
     
     search_parser = subparsers.add_parser("search", help="Search the vault")
     search_parser.add_argument("--side", choices=["AFF", "NEG", "aff", "neg"], help="Filter by AFF or NEG")
@@ -527,7 +622,15 @@ def main():
         cite = input("Citation: ")
         side = input("Side (AFF/NEG): ").upper()
         text = input("Evidence Text: ")
-        add_card(tag, cite, side, text, "EN")
+        tier = input("Tier (1-3) [Default 1]: ").strip() or "1"
+        add_card(tag, cite, side, text, "EN", tier)
+        interactive_loop()
+    elif args.command == "edit":
+        try:
+            card_id = int(input("Enter the ID of the card to edit: "))
+            edit_card(card_id)
+        except ValueError:
+            print("❌ Error: Invalid ID format.")
         interactive_loop()
     elif args.command == "search":
         search_cards(args.side, args.keyword)
@@ -556,4 +659,6 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print(f"\n{CYAN}Exiting Vault. Good luck!{RESET}")
+        print(f"\n📊 Session Debrief:")
+        print(f"Cards Edited: {SESSION_CARDS_EDITED} | Motions Archived: {SESSION_MOTIONS_ARCHIVED}\n")
         sys.exit(0)

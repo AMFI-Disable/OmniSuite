@@ -1,4 +1,4 @@
-# 🏛️ Evidence Vault CLI (v3.2.0)
+# 🏛️ Evidence Vault CLI (v3.3.0)
 
 A dynamic, high-visibility command-line interface specially engineered to manage debate evidence at tournament speed. Never scramble to find a card during crossfire again.or prep time. 
 
@@ -18,12 +18,20 @@ Upon executing any command, the vault will prompt you to initialize or select a 
 **Example selection screen:**
 ```text
 --- Available Motions ---
-[1] Climate Change Policy
-[2] Universal Basic Income
+[1] Climate Change Policy (15 cards)
+[2] Universal Basic Income (8 cards)
 
-Select a motion by number, or type a new name to initialize a new debate vault: 
+[R] Rename a Motion  |  [D] Delete a Motion  |  [A] Archive a Motion
+
+Select a motion by number, or type a new name to initialize a new debate vault, or choose R/D/A: 
 ```
-Once your motion is established, all `add`, `search`, `delete`, and `export` functions are **temporarily locked** strictly to that motion's corresponding storage file inside `debates/`.
+
+You can now rename, delete, and archive motions directly from the selection menu!
+- **Rename (`R`)**: Clean up typos or rename topics.
+- **Delete (`D`)**: Delete a full topic file *permanently* with a "CONFIRM" safety lock.
+- **Archive (`A`)**: Keep your "Active" list clean. The target motion will be sent to the `debates/archives/` sub-directory. Global Search will still find it!
+
+Once your motion is established, all `add`, `search`, `delete`, `edit`, and `export` functions are **temporarily locked** strictly to that motion's corresponding storage file inside `debates/`.
 
 ### Adding Evidence
 Ingest new cards directly into your local database using the interactive `add` command. Every card is automatically timestamped to track when the evidence was added to your vault.
@@ -34,7 +42,18 @@ $ python3 vault.py add
 > Citation: Miller 2026
 > Side: AFF
 > Text: [Paste Evidence Here]
+> Tier (1-3) [Default 1]: 3
 ```
+
+### Editing Evidence
+Make typos while prepping? Clean up your cards dynamically with the `edit` feature.
+```bash
+python3 vault.py edit
+```
+Prompt for a Card ID and adjust whichever fields you need to (Tag, Cite, Side, Text, or Quality Tier). Hitting `Enter` keeps the original data intact.
+
+### Quality Tiering & Strategist Upgrades
+Cards now have a Quality Tier (1-3). Game-Changer "Tier 3" cards will display a special `[⭐]` icon in search views. In addition, when you export your evidence file, providing an `.md` extension automatically formats everything via beautifully styled blockquotes!
 
 ### The Omni-Search Protocol
 Find exactly what you need in the heat of a debate. You can choose to search your current active motion, or deploy a **Global Search** to scrape every single motion file in your `debates/` folder.
