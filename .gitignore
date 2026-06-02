@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+
+# Build & distribution
+build/
+dist/
+*.egg-info/
+*.spec.log
+
+# Testing & caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Runtime data (local only, not for version control)
+data/debates/
+data/backups/
+data/exports/
+
+# Fossil VCS
+.fslckout
+*.fossil
+
+# Wrangler (Cloudflare)
+.wrangler/
+
+# macOS metadata
+.DS_Store
+*.localized
+
+# Editor
+.vscode/
+.idea/

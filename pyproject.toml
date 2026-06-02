@@ -1,0 +1,11 @@
+[project]
+name = "omnisuite"
+version = "1.0.0"
+description = "OmniSuite monorepo for elite forensic tools"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "src/*"
+]

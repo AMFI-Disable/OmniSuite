@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omnidebate"
+version = "1.0.0"
+description = "The primary Debate Workstation app for OmniSuite"
+requires-python = ">=3.9"
+dependencies = [
+    "omnishared",
+]
+
+[tool.uv.sources]
+omnishared = { workspace = true }

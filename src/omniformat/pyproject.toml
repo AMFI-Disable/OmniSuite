@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omniformat"
+version = "1.0.0"
+description = "The document styling and formatting app for OmniSuite"
+requires-python = ">=3.9"
+dependencies = [
+    "omnishared",
+]
+
+[tool.uv.sources]
+omnishared = { workspace = true }
