@@ -1,0 +1,11 @@
+version: "1.0.0"
+timer:
+  default_format: "Public Forum"
+export:
+  auto_snapshot: true
+ui:
+  dark_mode: true
+  screen_reader_mode: false
+ai:
+  ollama_endpoint: "http://localhost:11434"
+  ollama_model: "llama3"
