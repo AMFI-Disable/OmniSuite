@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""
+OmniSuite v1.0.0
+Autonomous Entry Point and Workspace Orchestrator
+"""
+
+import sys
+import os
+import subprocess
+import argparse
+import shutil
+
+
+def install_aliases():
+    """Checks and automatically installs shell aliases for omnidebate and omniformat."""
+    is_frozen = getattr(sys, "frozen", False)
+    if is_frozen:
+        alias_debate = "alias omnidebate='omnisuite --app debate'"
+        alias_format = "alias omniformat='omnisuite --app format'"
+    else:
+        script_path = os.path.abspath(__file__)
+        alias_debate = f"alias omnidebate='python3 \"{script_path}\" --app debate'"
+        alias_format = f"alias omniformat='python3 \"{script_path}\" --app format'"
+    
+    home = os.path.expanduser("~")
+    profiles = [
+        os.path.join(home, ".zshrc"),
+        os.path.join(home, ".bashrc"),
+    ]
+    
+    modified = False
+    for profile in profiles:
+        # Create profile file if it doesn't exist
+        if not os.path.exists(profile):
+            try:
+                with open(profile, "w"): pass
+            except Exception:
+                continue
+                
+        try:
+            with open(profile, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            continue
+            
+        needed_aliases = []
+        if "alias omnidebate=" not in content:
+            needed_aliases.append(alias_debate)
+        if "alias omniformat=" not in content:
+            needed_aliases.append(alias_format)
+            
+        if needed_aliases:
+            try:
+                with open(profile, "a", encoding="utf-8") as f:
+                    f.write("\n# OmniSuite CLI Workstation Aliases\n")
+                    for alias in needed_aliases:
+                        f.write(alias + "\n")
+                print(f"✅ Installed command shortcuts in {os.path.basename(profile)}")
+                modified = True
+            except Exception as e:
+                print(f"⚠️  Could not write to {profile}: {e}")
+                
+    if modified:
+        print("\n" + "="*60)
+        print("🎉 FIRST STARTUP INSTALLATION COMPLETE!")
+        print("Please reload your shell to activate the command shortcuts:")
+        print("   source ~/.zshrc    (or open a new terminal tab)")
+        print("Then you can run:")
+        print("   omnidebate")
+        print("   omniformat")
+        print("="*60 + "\n")
+
+
+def bootstrap():
+    """Autonomous Environment Synthesis and Package Sync Engine."""
+    if getattr(sys, "frozen", False):
+        return
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    venv_dir = os.path.join(base_dir, ".venv")
+
+    # 1. Detect if we are already inside a virtual environment
+    is_venv = hasattr(sys, "real_prefix") or (
+        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+    )
+
+    if is_venv:
+        python_exe = sys.executable
+    else:
+        python_exe = (
+            os.path.join(venv_dir, "bin", "python3")
+            if os.name != "nt"
+            else os.path.join(venv_dir, "Scripts", "python.exe")
+        )
+
+    # 2. Detect uv availability
+    has_uv = shutil.which("uv") is not None
+
+    if not is_venv and not os.path.exists(venv_dir):
+        print("🏛️  INITIALIZING AUTONOMOUS OMNISUITE ENVIRONMENT...")
+        if has_uv:
+            subprocess.run(["uv", "venv", venv_dir], check=True)
+        else:
+            subprocess.run([sys.executable, "-m", "venv", venv_dir], check=True)
+        print("> Environment synthesized.")
+
+    # 3. Synchronize workspace packages and external dependencies
+    try:
+        if not is_venv:
+            subprocess.run(
+                [python_exe, "-c", "import omnishared; import omnidebate"],
+                check=True,
+                capture_output=True,
+            )
+            need_sync = False
+        else:
+            import omnishared  # noqa: F401
+            import omnidebate  # noqa: F401
+
+            need_sync = False
+    except (subprocess.CalledProcessError, ImportError):
+        need_sync = True
+
+    if need_sync:
+        print("> Synchronizing intelligence dependencies and workspace packages...")
+        if has_uv:
+            subprocess.run(["uv", "sync"], cwd=base_dir, check=True)
+        else:
+            subprocess.run(
+                [python_exe, "-m", "pip", "install", "--upgrade", "pip"],
+                check=True,
+                capture_output=True,
+            )
+            packages = [
+                os.path.join(base_dir, "src", "omnishared"),
+                os.path.join(base_dir, "src", "omnidebate"),
+                os.path.join(base_dir, "src", "omniformat"),
+            ]
+            for pkg in packages:
+                subprocess.run(
+                    [python_exe, "-m", "pip", "install", "-e", pkg], check=True
+                )
+
+    # 4. Seamless Re-execution if we are not currently in the virtual environment
+    if not is_venv:
+        os.execv(python_exe, [python_exe] + sys.argv)
+
+
+if __name__ == "__main__":
+    # Install aliases on startup if needed
+    install_aliases()
+
+    parser = argparse.ArgumentParser(description="OmniSuite Launcher")
+    parser.add_argument(
+        "--app",
+        choices=["debate", "format"],
+        default="debate",
+        help="Launch 'debate' (OmniDebate) or 'format' (OmniFormat)",
+    )
+    args, unknown = parser.parse_known_args()
+
+    bootstrap()
+
+    # --- Standard Execution Path (Inside Venv) ---
+    if args.app == "debate":
+        print("> Launching OmniDebate Intelligence Core...")
+        from omnidebate.main import main
+        main()
+    elif args.app == "format":
+        if "--fix" not in sys.argv:
+            print("> Launching OmniFormat Standalone Workstation...")
+        from omniformat.main import main
+        main()
