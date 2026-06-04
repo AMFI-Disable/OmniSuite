@@ -1,0 +1,297 @@
+/* ═══════════════════════════════════════════════════════════════
+   OmniFormat v1.0.0 — Zonal Layout Stylesheet
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Main Grid Layout ── */
+#main-layout {
+    layout: grid;
+    grid-size: 3;
+    grid-columns: 1fr 2fr 1fr;
+    grid-gutter: 0 1;
+    height: 1fr;
+}
+
+/* ── Tactical Zones ── */
+.tactical-zone {
+    height: 1fr;
+    padding: 0 1;
+    overflow: hidden hidden;
+    background: $surface;
+}
+
+#file-tree {
+    height: 1fr;
+    overflow-y: auto;
+}
+
+#zone-alpha {
+    background: $background;
+    border-right: tall $border;
+}
+#zone-beta {
+    background: $surface;
+    border-right: tall #475569;
+}
+#zone-gamma {
+    background: $surface;
+}
+
+/* ── Zone Headers ── */
+.zone-header {
+    text-align: center;
+    text-style: bold;
+    background: $border;
+    color: $text-secondary;
+    width: 100%;
+    margin-bottom: 1;
+    height: 1;
+}
+#zone-alpha .zone-header { background: #3b82f6; color: white; border-bottom: solid #2563eb; }
+#zone-beta .zone-header  { background: $primary; color: black; border-bottom: solid #059669; }
+#zone-gamma .zone-header { background: $accent; color: white; border-bottom: solid #4f46e5; }
+
+/* ── Breadcrumb ── */
+#breadcrumb-bar {
+    background: $surface;
+    color: $primary;
+    padding: 0 1;
+    border-bottom: solid $border;
+    height: 1;
+    text-style: bold;
+}
+
+#doc-preview {
+    height: 1fr;
+    overflow-y: auto;
+    background: transparent;
+    padding: 1 2;
+}
+
+
+#file-tree {
+    background: transparent;
+    color: $text-secondary;
+}
+
+#compile-actions {
+    dock: bottom;
+    height: 3;
+    margin: 0 1;
+    align: center middle;
+    background: $surface;
+    border-top: solid $border;
+}
+#compile-actions Button {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-style: bold;
+    border: none;
+}
+
+#sel-template {
+    margin-bottom: 1;
+}
+
+.section-label {
+    padding: 0 1;
+    color: $text-muted;
+    text-style: bold;
+    height: 1;
+}
+
+#btn-toggle-taglines, #btn-toggle-citations {
+    margin-bottom: 1;
+    width: 100%;
+}
+
+#warnings-list {
+    height: 1fr;
+    overflow-y: auto;
+    border: solid $border;
+    background: $surface;
+    margin-bottom: 1;
+}
+
+#warnings-list ListItem {
+    height: 1;
+    padding: 0 1;
+    color: $text-muted;
+}
+
+#card-checklist {
+    height: 1fr;
+    overflow-y: auto;
+    border: solid $border;
+    background: $surface;
+    margin-bottom: 1;
+}
+
+#card-checklist ListItem {
+    height: 3;
+    padding: 0;
+}
+
+.card-item-row {
+    height: 3;
+    align: left middle;
+    padding: 0 1;
+}
+
+.card-tag-lbl {
+    width: 1fr;
+    color: $text-primary;
+    margin-left: 1;
+    content-align: left middle;
+}
+
+.card-cite-lbl {
+    width: 25;
+    color: $text-secondary;
+    margin-left: 1;
+    content-align: left middle;
+}
+
+.btn-copy-rtf {
+    width: 14;
+    height: 1;
+    margin-left: 1;
+    border: none;
+    background: $accent;
+    color: white;
+}
+
+#compile-actions Button {
+    width: 1fr;
+    margin: 0 1;
+    padding: 0;
+    text-style: bold;
+    border: none;
+}
+
+#doc-editor {
+    height: 1fr;
+    background: $background;
+    color: $text;
+    border: none;
+}
+
+#revision-history-diff {
+    height: 15;
+    overflow: auto auto;
+    background: $background;
+    border: solid $border;
+    padding: 0 1;
+}
+
+/* ── Splash Screen ── */
+SplashScreen {
+    align: center middle;
+    background: $background;
+}
+
+#splash-logo {
+    text-align: center;
+    color: $primary;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#splash-loading {
+    text-align: center;
+    color: $text-primary;
+    text-style: bold;
+    margin-top: 1;
+}
+
+#splash-bar {
+    text-align: center;
+    color: $accent;
+    text-style: bold;
+    margin-top: 1;
+}
+
+#splash-footer {
+    text-align: center;
+    color: $text-muted;
+    text-style: italic;
+    margin-top: 2;
+}
+
+#ai-assistant-panel Select {
+    margin-bottom: 1;
+}
+#ai-assistant-panel Button {
+    width: 100%;
+    margin-bottom: 1;
+}
+#lbl-ai-status {
+    color: $text-secondary;
+    margin-bottom: 1;
+    text-style: bold;
+}
+#lbl-ai-output {
+    background: $background;
+    color: $text-primary;
+    border: solid $border;
+    padding: 1 1;
+    min-height: 8;
+    height: auto;
+    overflow: auto auto;
+}
+
+#outline-tree {
+    height: 12;
+    border: solid $border;
+    background: $surface;
+    margin-bottom: 1;
+}
+
+.outline-controls {
+    height: 3;
+    margin-bottom: 1;
+    align: center middle;
+}
+
+.outline-controls Button {
+    width: 1fr;
+    margin: 0 1;
+    height: 3;
+}
+
+/* ── Prompt Modal Screen ── */
+PromptModal {
+    align: center middle;
+    background: $background 60%;
+}
+
+#prompt-dialog {
+    width: 60;
+    height: auto;
+    background: $surface;
+    border: thick $primary;
+    padding: 1 2;
+}
+
+.prompt-title {
+    text-align: center;
+    text-style: bold;
+    background: $primary;
+    color: black;
+    margin-bottom: 1;
+}
+
+#prompt-input {
+    margin-bottom: 1;
+}
+
+.prompt-actions {
+    height: 3;
+    align: center middle;
+}
+
+.prompt-actions Button {
+    width: 1fr;
+    margin: 0 1;
+}
+
