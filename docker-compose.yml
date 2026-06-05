@@ -1,0 +1,35 @@
+services:
+  omnisuite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnisuite_app
+    # Enable interactive terminal for Textual TUI interface
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    environment:
+      - OLLAMA_ENDPOINT=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - omnisuite-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: omnisuite_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - omnisuite-net
+
+volumes:
+  ollama_data:
+
+networks:
+  omnisuite-net:
+    driver: bridge
