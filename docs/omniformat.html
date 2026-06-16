@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniFormat Compiler - OmniSuite</title>
+  <meta name="description" content="Discover OmniFormat: the document compiler workstation. Designed for automated briefs assembly, citation layout compression, and CaseXC compliance.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables & Core Design Tokens */
+    :root {
+      --bg-color: #040612;
+      --primary-cyan: #00f0ff;
+      --primary-purple: #8b5cf6;
+      --primary-purple-rgb: 139, 92, 246;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      
+      --text-main: #cbd5e1;
+      --text-muted: #64748b;
+      --text-white: #ffffff;
+      
+      --card-bg: rgba(15, 10, 32, 0.75);
+      --card-border: rgba(255, 255, 255, 0.05);
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    
+    /* Floating Background Orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
+    .orb-cyan {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-cyan);
+      bottom: 15%;
+      left: 10%;
+      animation: float-slow 22s infinite alternate ease-in-out;
+    }
+    .orb-purple {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-purple);
+      top: 15%;
+      right: 10%;
+      animation: float-slow-reverse 26s infinite alternate ease-in-out;
+    }
+    
+    @keyframes float-slow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(70px, 40px) scale(1.1); }
+    }
+    @keyframes float-slow-reverse {
+      0% { transform: translate(0, 0) scale(1.1); }
+      100% { transform: translate(-80px, -40px) scale(0.9); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #03040a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.5);
+    }
+    
+    /* Precision 1px Border Gradient Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    
+    .glass-panel:hover {
+      border-color: rgba(139, 92, 246, 0.2);
+      box-shadow: 0 20px 45px rgba(139, 92, 246, 0.06);
+    }
+    
+    .glass-panel:hover::after {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    }
+    
+    /* Content Layout */
+    main {
+      padding-top: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    
+    /* Header Section */
+    .product-header {
+      padding: 40px 24px;
+      margin-bottom: 30px;
+    }
+    
+    .product-header h1 {
+      font-size: 3.25rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .product-header h1 span {
+      background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 15px rgba(139, 92, 246, 0.2));
+    }
+    
+    .product-header p {
+      font-size: 1.15rem;
+      color: #94a3b8;
+      max-width: 850px;
+    }
+    
+    /* Interactive Compiler Workspace */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      padding: 0 24px;
+      margin-bottom: 80px;
+      align-items: start;
+    }
+    
+    @media(max-width: 992px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary-purple);
+      box-shadow: 0 0 8px var(--primary-purple);
+    }
+    
+    .panel-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 420px;
+    }
+    
+    /* Locked Sandbox styling */
+    .input-label-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .input-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary-purple);
+    }
+    
+    .locked-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .text-area {
+      background: rgba(2, 4, 10, 0.6);
+      border: 1px dashed rgba(139, 92, 246, 0.35);
+      border-radius: 8px;
+      padding: 16px;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      resize: none;
+      min-height: 200px;
+      line-height: 1.5;
+      cursor: not-allowed;
+      transition: var(--transition-smooth);
+    }
+    
+    .text-area:focus {
+      outline: none;
+    }
+    
+    .btn-action {
+      background: linear-gradient(135deg, var(--primary-purple) 0%, #7c3aed 100%);
+      color: var(--text-white);
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
+    }
+    
+    /* Stepped Compilation Visualizer */
+    .compiling-steps-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    
+    .compiling-steps-container::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 10%;
+      width: 80%;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 1;
+    }
+    
+    .step-line-progress {
+      position: absolute;
+      top: 15px;
+      left: 10%;
+      width: 0%;
+      height: 2px;
+      background: var(--primary-purple);
+      z-index: 2;
+      transition: width 0.8s ease;
+    }
+    
+    .comp-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 3;
+    }
+    
+    .step-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #0b0f19;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+    
+    .comp-step.active .step-node {
+      border-color: var(--primary-purple);
+      color: var(--primary-purple);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    }
+    
+    .comp-step.done .step-node {
+      border-color: var(--accent-green);
+      background: var(--accent-green);
+      color: #020617;
+    }
+    
+    .step-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    
+    .comp-step.active .step-label {
+      color: var(--text-white);
+    }
+    
+    .comp-step.done .step-label {
+      color: var(--accent-green);
+    }
+    
+    /* Formatted Card Output */
+    .output-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      min-height: 280px;
+    }
+    
+    .formatted-card {
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      background: rgba(2, 4, 10, 0.4);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .formatted-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+    }
+    
+    .card-tagline {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-white);
+      border-left: 3px solid var(--primary-purple);
+      padding-left: 12px;
+      letter-spacing: -0.5px;
+    }
+    
+    .card-citation {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--primary-cyan);
+      background: rgba(0, 240, 255, 0.04);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    
+    .card-body {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    
+    .card-body .highlight {
+      color: var(--text-main);
+      background: rgba(255, 255, 0, 0.12);
+      text-decoration: underline;
+      text-decoration-color: rgba(255, 255, 0, 0.4);
+      font-weight: 600;
+    }
+    
+    .card-body .bold {
+      font-weight: 700;
+      color: var(--text-white);
+    }
+    
+    /* Toast Notification */
+    .toast-overlay {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    
+    .toast-card {
+      background: #0b0f19;
+      border: 1px solid var(--accent-green);
+      color: var(--text-white);
+      padding: 14px 26px;
+      border-radius: 8px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateX(120%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .toast-card.show {
+      transform: translateX(0);
+    }
+    
+    /* Specs section */
+    .details-section {
+      padding: 0 24px;
+    }
+    
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+    
+    .details-card {
+      padding: 30px;
+    }
+    
+    .details-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 12px;
+    }
+    
+    .details-card p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      background: rgba(2, 4, 10, 0.9);
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 80px;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      list-style: none;
+    }
+    
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary-purple);
+    }
+
+    /* Navigation Notice */
+    .nav-notice {
+      background: rgba(139, 92, 246, 0.02);
+      border: 1px dashed rgba(139, 92, 246, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 30px;
+      max-width: 1200px;
+      width: calc(100% - 48px);
+      box-sizing: border-box;
+      animation: pulse-notice-purple 3s infinite alternate ease-in-out;
+    }
+    .nav-notice-icon { font-size: 1.15rem; }
+    .nav-notice-text { font-size: 0.85rem; color: #94a3b8; font-weight: 400; }
+    .nav-notice-text strong { color: var(--primary-purple); }
+    @keyframes pulse-notice-purple {
+      0% { border-color: rgba(139,92,246,0.2); box-shadow: 0 0 10px rgba(139,92,246,0.02); }
+      100% { border-color: rgba(139,92,246,0.45); box-shadow: 0 0 16px rgba(139,92,246,0.07); }
+    }
+
+    /* Style Sheet Configurator */
+    .style-config-section {
+      padding: 0 24px;
+      margin-bottom: 80px;
+    }
+    .style-config-card {
+      padding: 44px;
+    }
+    .style-cfg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 28px 0;
+    }
+    @media (max-width: 768px) { .style-cfg-grid { grid-template-columns: 1fr; } }
+    .style-cfg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .style-cfg-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+    }
+    .style-cfg-input {
+      background: rgba(4,6,18,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text-white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      transition: var(--transition-smooth);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .style-cfg-input:focus {
+      outline: none;
+      border-color: var(--primary-purple);
+      box-shadow: 0 0 10px rgba(139,92,246,0.2);
+    }
+    .style-cfg-select { background: #090b14; cursor: pointer; }
+    .style-cfg-range { padding: 6px 0; cursor: pointer; accent-color: var(--primary-purple); }
+    .style-preview-section {
+      margin-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 24px;
+    }
+    .style-preview-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+    }
+    .style-card-preview {
+      background: rgba(255,255,255,0.98);
+      border-radius: 8px;
+      padding: 24px 28px;
+      max-width: 640px;
+    }
+    .preview-tagline {
+      color: #1a1a1a;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .preview-citation {
+      color: #374151;
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+    .preview-body {
+      color: #374151;
+      line-height: 1.7;
+    }
+    .preview-underline { text-decoration: underline; }
+    .preview-bold { font-weight: 700; }
+    .style-code-output {
+      background: #020308;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 18px 22px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.83rem;
+      color: #a78bfa;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 20px;
+      max-height: 280px;
+    }
+    .style-cfg-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* ── Hollywood Starting Cinematic Intro ── */
+    #hollywood-intro {
+      position: fixed;
+      inset: 0;
+      background-color: #020308;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+      font-family: 'Outfit', sans-serif;
+      pointer-events: all;
+    }
+    
+    .intro-stars {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1.2px, transparent 0);
+      background-size: 60px 60px;
+      opacity: 0.75;
+      animation: stars-drift 80s linear infinite;
+      pointer-events: none;
+    }
+    
+    .intro-nebula {
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.18) 0%, transparent 65%),
+        radial-gradient(circle at 25% 75%, rgba(0, 240, 255, 0.12) 0%, transparent 60%);
+      filter: blur(60px);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    
+    @keyframes stars-drift {
+      0% { background-position: 0 0; }
+      100% { background-position: 1200px 800px; }
+    }
+    
+    .searchlight {
+      position: absolute;
+      bottom: -300px;
+      width: 450px;
+      height: 1400px;
+      background: linear-gradient(to top, rgba(0, 240, 255, 0.28) 0%, rgba(139, 92, 246, 0.04) 55%, transparent 100%);
+      transform-origin: bottom center;
+      filter: blur(25px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+    }
+    
+    .searchlight.sl-left {
+      left: 15%;
+      transform: rotate(-30deg);
+      animation: searchlight-pan-left 10s ease-in-out infinite alternate;
+    }
+    
+    .searchlight.sl-right {
+      right: 15%;
+      transform: rotate(30deg);
+      animation: searchlight-pan-right 12s ease-in-out infinite alternate;
+    }
+    
+    .searchlight.sl-center {
+      left: 50%;
+      margin-left: -225px;
+      transform: rotate(0deg);
+      animation: searchlight-pan-center 9s ease-in-out infinite alternate;
+    }
+    
+    @keyframes searchlight-pan-left {
+      0% { transform: rotate(-38deg); }
+      100% { transform: rotate(-18deg); }
+    }
+    
+    @keyframes searchlight-pan-right {
+      0% { transform: rotate(18deg); }
+      100% { transform: rotate(38deg); }
+    }
+    
+    @keyframes searchlight-pan-center {
+      0% { transform: rotate(-12deg); }
+      100% { transform: rotate(12deg); }
+    }
+    
+    .intro-card {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.88);
+      transition: opacity 0.8s ease, transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+    }
+    
+    .intro-subtext {
+      font-size: 1.35rem;
+      font-weight: 300;
+      letter-spacing: 0.65em;
+      color: rgba(139, 92, 246, 0.95);
+      text-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+      margin-bottom: 18px;
+    }
+    
+    .intro-present-text {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      color: #ffffff;
+      text-shadow: 0 0 25px rgba(255, 255, 255, 0.45);
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .intro-production-text {
+      font-size: 1.9rem;
+      font-weight: 600;
+      letter-spacing: 0.45em;
+      color: #ffffff;
+      text-shadow: 0 0 25px rgba(0, 240, 255, 0.45);
+      background: linear-gradient(to right, #00f0ff, #ffffff, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .intro-logo-monument {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(60px) scale(0.82);
+      transition: opacity 1.4s ease-in-out, transform 2.2s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .monument-base-3d {
+      position: relative;
+    }
+    
+    .monument-title {
+      font-size: 7.25rem !important; /* Force override */
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #ffe066 0%, #f59e0b 25%, #00f0ff 60%, #8b5cf6 100%);
+      background-size: 200% auto;
+      background-position: 0% center;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: logo-sweep 6s linear infinite alternate, logo-glow-pulse 4s ease-in-out infinite alternate;
+      line-height: 1.1;
+    }
+    
+    @keyframes logo-sweep {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+    
+    @keyframes logo-glow-pulse {
+      0% { filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.25)) drop-shadow(0 0 35px rgba(139, 92, 246, 0.15)); }
+      100% { filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.6)) drop-shadow(0 0 75px rgba(139, 92, 246, 0.45)); }
+    }
+    
+    .monument-subtitle {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.6em;
+      color: #a78bfa;
+      margin-top: 22px;
+      opacity: 0.95;
+      text-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+      text-transform: uppercase;
+    }
+    
+    .monument-flare {
+      position: absolute;
+      width: 0px;
+      height: 0px;
+      background: radial-gradient(circle, #ffffff 0%, rgba(0, 240, 255, 0.9) 25%, rgba(139, 92, 246, 0.4) 55%, transparent 75%);
+      border-radius: 50%;
+      filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transform: translate(-50%, -50%);
+      z-index: 10001;
+      transition: width 0.05s ease, height 0.05s ease, opacity 0.05s ease;
+    }
+    
+    .skip-intro-btn {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 30px;
+      padding: 10px 24px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      letter-spacing: 1px;
+    }
+    
+    .skip-intro-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--primary-cyan);
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+      transform: translateY(-1px);
+    }
+    
+    /* Replay button next to header */
+    .btn-replay-intro {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: var(--primary-cyan);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      font-family: inherit;
+      margin-left: 18px;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
+    
+    .btn-replay-intro:hover {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--primary-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+      transform: translateY(-1px);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hollywood Starting Cinematic Intro Overlay -->
+  <div id="hollywood-intro">
+    <div class="intro-stars"></div>
+    <div class="intro-nebula"></div>
+    
+    <!-- Searchlights -->
+    <div class="searchlight sl-left"></div>
+    <div class="searchlight sl-right"></div>
+    <div class="searchlight sl-center"></div>
+
+    <!-- Presentation Cards -->
+    <div class="intro-card" id="intro-card-presents">
+      <div class="intro-subtext">OMNISUITE</div>
+      <div class="intro-present-text">PRESENTS</div>
+    </div>
+    
+    <div class="intro-card" id="intro-card-production">
+      <div class="intro-production-text">A DIGITAL GRANDMASTER PRODUCTION</div>
+    </div>
+
+    <!-- Logo Monument -->
+    <div class="intro-logo-monument" id="intro-monument">
+      <div class="monument-base-3d">
+        <h1 class="monument-title">OMNIFORMAT</h1>
+        <div class="monument-flare"></div>
+      </div>
+      <div class="monument-subtitle">THE DOCUMENT COMPILER WORKSTATION</div>
+    </div>
+
+    <!-- Skip Intro Button -->
+    <button class="skip-intro-btn" id="skip-intro-btn" aria-label="Skip Intro">Skip Intro</button>
+  </div>
+
+  <!-- Glowing Animated Backdrop Orbs -->
+  <div class="glow-orb orb-cyan"></div>
+  <div class="glow-orb orb-purple"></div>
+
+  <!-- Navigation header removed for Google Sites compatibility -->
+
+  <!-- Main Content Area -->
+  <main id="main-content">
+
+    <!-- Navigation Warning Notice -->
+    <div class="nav-notice" role="note">
+      <span class="nav-notice-icon">💡</span>
+      <span class="nav-notice-text">Use the <strong>Google Sites top navigation menu</strong> to switch between workstation pages. Scroll up if the menu is not visible.</span>
+    </div>
+    
+    <!-- Product Header -->
+    <section class="product-header" aria-labelledby="page-title">
+      <h1 id="page-title">📄 Omni<span>Format</span> <button class="btn-replay-intro" id="replay-intro-btn">🎬 Replay Intro</button></h1>
+      <p>The high-speed document compiler workstation. Designed to parse files, extract raw text citations, apply strict Verbatim and CaseXC guidelines, and export fully structured briefs with zero-failure formatting layout compliance.</p>
+    </section>
+
+    <!-- Interactive Compiler Workspace -->
+    <section class="workspace-grid" aria-label="Compiler Simulator">
+      <!-- Left Panel: Raw Input Sandbox (READ ONLY) -->
+      <article class="glass-panel" id="input-pane">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="badge-dot"></span>
+            Raw Citation Sandbox
+          </div>
+        </div>
+        
+        <div class="panel-body">
+          <div class="input-label-container">
+            <label for="citation-input" class="input-label">Locked Citation Source & Text</label>
+            <span class="locked-badge">🔒 Sandbox Preset</span>
+          </div>
+          <textarea id="citation-input" class="text-area" readonly>Hanson, Jane. "The Future of Forensics." Journal of Debate, vol. 12, no. 3, May 2026, pp. 45-67.
+
+"AI-augmented document compiling has revolutionized tournament prep. By automating layout design and citation tags, debaters can focus entirely on strategic arguments, saving up to 80% of formatting time."</textarea>
+          
+          <div>
+            <button class="btn-action" id="compile-btn">
+              <span>⚡ Compile Case (CaseXC Style)</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right Panel: Formatted Output Preview & Visual Compiler steps -->
+      <article class="glass-panel" id="output-pane">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="badge-dot"></span>
+            Stepped Compilation Matrix
+          </div>
+        </div>
+        
+        <div class="panel-body output-container">
+          <!-- Stepped Visual compiler indicators (Hidden initially, shown on click) -->
+          <div class="compiling-steps-container" id="comp-steps-bar" style="display: none;">
+            <div class="step-line-progress" id="step-progress-line"></div>
+            
+            <div class="comp-step" id="step1">
+              <div class="step-node">1</div>
+              <span class="step-label">Tag</span>
+            </div>
+            
+            <div class="comp-step" id="step2">
+              <div class="step-node">2</div>
+              <span class="step-label">Format</span>
+            </div>
+            
+            <div class="comp-step" id="step3">
+              <div class="step-node">3</div>
+              <span class="step-label">Sync</span>
+            </div>
+          </div>
+
+          <!-- Placeholder state -->
+          <div style="text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 40px 0;" id="output-placeholder">
+            <p>Click <strong>Compile Case</strong> to run the automated metadata parsing and formatting simulation pipeline.</p>
+          </div>
+          
+          <!-- Styled formatted card -->
+          <div class="formatted-card" id="compiled-card">
+            <div class="card-tagline" id="card-preview-tagline">AI-Augmented Formatting Saves 80% Time</div>
+            <div class="card-citation" id="card-preview-citation">Hanson '26 (Jane, Journal of Debate, vol. 12, no. 3, "The Future of Forensics", pp. 45-67)</div>
+            <div class="card-body" id="card-preview-body">
+              <span class="highlight bold">AI-augmented document compiling has revolutionized tournament prep.</span> By <span class="highlight bold">automating layout design</span> and citation tags, <span class="highlight bold">debaters can focus entirely on strategic arguments, saving up to 80% of formatting time.</span>
+            </div>
+            
+            <div style="margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;">
+              <button class="btn-action" style="padding: 8px 16px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);" id="btn-save-vault">Save to Vault</button>
+              <button class="btn-action" style="padding: 8px 16px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);" id="btn-mock-download">Download Brief (.docx)</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Document Compiling Specifications -->
+    <section class="details-section" aria-labelledby="details-title">
+      <h2 class="section-title" id="details-title">Advanced Formatting Workstation Specs</h2>
+      
+      <div class="details-grid">
+        <article class="glass-panel details-card" aria-labelledby="verbatim-title">
+          <h3 id="verbatim-title">📄 Verbatim / CaseXC Compliant</h3>
+          <p>Ensures taglines, citations, and card highlights conform strictly to competitive forensics standards. Zero font size discrepancies or double spacing errors.</p>
+        </article>
+        
+        <article class="glass-panel details-card" aria-labelledby="comp-title">
+          <h3 id="comp-title">📦 Citation Compression</h3>
+          <p>Compresses long, unreadable web URLs or citations into clean, standardized debate card headers automatically on compile.</p>
+        </article>
+        
+        <article class="glass-panel details-card" aria-labelledby="batch-title">
+          <h3 id="batch-title">⚡ High-Speed Batch Assembly</h3>
+          <p>Assembles individual cards from the shared SQLite database into a unified, formatted document outline in milliseconds, ready for review.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Verbatim & CaseXC Style Sheet Configurator -->
+    <section class="style-config-section" aria-labelledby="style-cfg-title">
+      <div class="glass-panel style-config-card">
+        <h2 class="section-title" id="style-cfg-title" style="text-align:left; font-size:1.8rem; margin-bottom:6px;">🎨 Verbatim Style Sheet Configurator</h2>
+        <p style="color:#94a3b8; font-size:0.95rem;">Customize your card formatting style, then copy the generated configuration snippet directly into your <code style="color:var(--primary-purple);">verbatim_config.py</code> profile.</p>
+
+        <div class="style-cfg-grid">
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-font-family">Card Body Font</label>
+            <select id="cfg-font-family" class="style-cfg-input style-cfg-select">
+              <option value="'Times New Roman', serif">Times New Roman (Verbatim Default)</option>
+              <option value="'Garamond', serif">Garamond (Classic)</option>
+              <option value="'Georgia', serif">Georgia (Readable)</option>
+              <option value="'Arial', sans-serif">Arial (Modern)</option>
+              <option value="'Calibri', sans-serif">Calibri (Microsoft Office)</option>
+            </select>
+          </div>
+
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-tagline-size">Tagline Font Size (pt)</label>
+            <input type="range" id="cfg-tagline-size" class="style-cfg-input style-cfg-range" min="10" max="16" value="12" step="0.5">
+            <span id="cfg-tagline-size-val" style="font-size:0.8rem; color:#94a3b8;">12pt</span>
+          </div>
+
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-body-size">Card Body Font Size (pt)</label>
+            <input type="range" id="cfg-body-size" class="style-cfg-input style-cfg-range" min="8" max="14" value="10" step="0.5">
+            <span id="cfg-body-size-val" style="font-size:0.8rem; color:#94a3b8;">10pt</span>
+          </div>
+
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-highlight-style">Highlight / Emphasis Style</label>
+            <select id="cfg-highlight-style" class="style-cfg-input style-cfg-select">
+              <option value="underline">Underline Only (Verbatim Standard)</option>
+              <option value="bold">Bold Only (CaseXC)</option>
+              <option value="both">Underline + Bold (Tournament Max)</option>
+              <option value="none">None (Citation Only)</option>
+            </select>
+          </div>
+
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-cite-color">Citation Color</label>
+            <input type="color" id="cfg-cite-color" class="style-cfg-input" value="#374151" style="padding:4px; height:40px; cursor:pointer;">
+          </div>
+
+          <div class="style-cfg-group">
+            <label class="style-cfg-label" for="cfg-line-spacing">Line Spacing</label>
+            <select id="cfg-line-spacing" class="style-cfg-input style-cfg-select">
+              <option value="1.0">1.0 (Compressed)</option>
+              <option value="1.15">1.15 (Verbatim Default)</option>
+              <option value="1.5" selected>1.5 (Standard)</option>
+              <option value="2.0">2.0 (Double Spaced)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="style-preview-section">
+          <div class="style-preview-label">Live Card Preview:</div>
+          <div class="style-card-preview" id="style-card-preview-box">
+            <div class="preview-tagline" id="prev-tagline">AI Formatting Saves 80% of Card Assembly Time</div>
+            <div class="preview-citation" id="prev-citation">Hanson '26 (Jane, Journal of Debate, vol. 12, no. 3, pp. 45–67)</div>
+            <div class="preview-body" id="prev-body">
+              <span id="prev-body-text">AI-augmented document compiling has revolutionized tournament prep. By automating layout design and citation tags, <span id="prev-highlight">debaters can focus entirely on strategic arguments, saving up to 80% of formatting time.</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Config Output -->
+        <pre id="style-code-output" class="style-code-output" aria-live="polite">Generating...</pre>
+        <div class="style-cfg-actions">
+          <span style="font-size:0.8rem;color:#64748b;">Output: <code>verbatim_config.py</code> compatible snippet</span>
+          <button class="btn-action" id="style-copy-btn" style="padding:9px 22px; font-size:0.85rem;">Copy Config Snippet</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Overlay -->
+  <div class="toast-overlay" id="toast-container">
+    <div class="toast-card" id="toast-notification">
+      <span style="font-size: 1.25rem;">✅</span>
+      <span id="toast-message">Database synchronized.</span>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 OmniSuite. Locally managed serverless repository. Built for the Digital Grandmaster.</p>
+  </footer>
+
+  <!-- Script for Compiler simulation & Toast Notification -->
+  <script>
+    function init() {
+      // Hollywood intro elements
+      const intro = document.getElementById("hollywood-intro");
+      const presentsCard = document.getElementById("intro-card-presents");
+      const productionCard = document.getElementById("intro-card-production");
+      const monument = document.getElementById("intro-monument");
+      const skipBtn = document.getElementById("skip-intro-btn");
+      const replayBtn = document.getElementById("replay-intro-btn");
+      const searchlights = document.querySelectorAll(".searchlight");
+      
+      let audioCtx = null;
+      let introTimeout1, introTimeout2, introTimeout3, introTimeout4;
+      
+      function playCinematicSound() {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          
+          // 1. Sub-bass drop oscillator
+          const subOsc = audioCtx.createOscillator();
+          const subGain = audioCtx.createGain();
+          subOsc.type = "sine";
+          subOsc.frequency.setValueAtTime(80, audioCtx.currentTime); 
+          subOsc.frequency.exponentialRampToValueAtTime(32, audioCtx.currentTime + 3.0); 
+          
+          subGain.gain.setValueAtTime(0, audioCtx.currentTime);
+          subGain.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.5);
+          subGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 4.5);
+          
+          subOsc.connect(subGain);
+          subGain.connect(audioCtx.destination);
+          
+          // 2. Rich cinematic synthesizer-driven fanfare
+          const synthVolume = audioCtx.createGain();
+          synthVolume.gain.setValueAtTime(0, audioCtx.currentTime);
+          synthVolume.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 1.8);
+          synthVolume.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 5.2);
+          
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(250, audioCtx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(2200, audioCtx.currentTime + 2.8);
+          
+          synthVolume.connect(filter);
+          filter.connect(audioCtx.destination);
+          
+          // C3, E3, G3 -> D3, F#3, A3
+          const osc1 = audioCtx.createOscillator();
+          osc1.type = "sawtooth";
+          osc1.frequency.setValueAtTime(130.81, audioCtx.currentTime); 
+          osc1.frequency.linearRampToValueAtTime(146.83, audioCtx.currentTime + 2.5); 
+          
+          const osc2 = audioCtx.createOscillator();
+          osc2.type = "square";
+          osc2.frequency.setValueAtTime(164.81, audioCtx.currentTime); 
+          osc2.frequency.linearRampToValueAtTime(185.00, audioCtx.currentTime + 2.5); 
+          
+          const osc3 = audioCtx.createOscillator();
+          osc3.type = "triangle";
+          osc3.frequency.setValueAtTime(196.00, audioCtx.currentTime); 
+          osc3.frequency.linearRampToValueAtTime(220.00, audioCtx.currentTime + 2.5); 
+
+          const osc4 = audioCtx.createOscillator();
+          osc4.type = "sine";
+          osc4.frequency.setValueAtTime(261.63, audioCtx.currentTime); 
+          osc4.frequency.linearRampToValueAtTime(293.66, audioCtx.currentTime + 2.5); 
+          
+          osc1.connect(synthVolume);
+          osc2.connect(synthVolume);
+          osc3.connect(synthVolume);
+          osc4.connect(synthVolume);
+          
+          subOsc.start();
+          osc1.start();
+          osc2.start();
+          osc3.start();
+          osc4.start();
+          
+          subOsc.stop(audioCtx.currentTime + 5.0);
+          osc1.stop(audioCtx.currentTime + 5.5);
+          osc2.stop(audioCtx.currentTime + 5.5);
+          osc3.stop(audioCtx.currentTime + 5.5);
+          osc4.stop(audioCtx.currentTime + 5.5);
+        } catch (err) {
+          console.warn("Web Audio API blocked or not supported:", err);
+        }
+      }
+      
+      function stopCinematicSound() {
+        if (audioCtx) {
+          try {
+            audioCtx.close();
+          } catch(e) {}
+          audioCtx = null;
+        }
+      }
+      
+      function startIntroSequence() {
+        clearTimeout(introTimeout1);
+        clearTimeout(introTimeout2);
+        clearTimeout(introTimeout3);
+        clearTimeout(introTimeout4);
+        
+        stopCinematicSound();
+        
+        intro.style.display = "flex";
+        intro.style.opacity = "1";
+        intro.style.visibility = "visible";
+        presentsCard.style.opacity = "0";
+        presentsCard.style.transform = "scale(0.85)";
+        productionCard.style.opacity = "0";
+        productionCard.style.transform = "scale(0.85)";
+        monument.style.opacity = "0";
+        monument.style.transform = "translateY(60px) scale(0.82)";
+        
+        searchlights.forEach(sl => {
+          sl.style.opacity = "0";
+        });
+        
+        playCinematicSound();
+        
+        // Phase 1: presentsCard (OMNISUITE PRESENTS)
+        introTimeout1 = setTimeout(() => {
+          presentsCard.style.opacity = "1";
+          presentsCard.style.transform = "scale(1)";
+          
+          // Phase 2: presentsCard out, productionCard in
+          introTimeout2 = setTimeout(() => {
+            presentsCard.style.opacity = "0";
+            presentsCard.style.transform = "scale(1.15) blur(10px)";
+            
+            setTimeout(() => {
+              productionCard.style.opacity = "1";
+              productionCard.style.transform = "scale(1)";
+              
+              // Phase 3: productionCard out, logo monument in
+              introTimeout3 = setTimeout(() => {
+                productionCard.style.opacity = "0";
+                productionCard.style.transform = "scale(1.15) blur(10px)";
+                
+                setTimeout(() => {
+                  searchlights.forEach(sl => {
+                    sl.style.opacity = "0.75";
+                  });
+                  
+                  monument.style.opacity = "1";
+                  monument.style.transform = "translateY(0) scale(1)";
+                  
+                  // Trigger flare flash effect
+                  const flare = document.querySelector(".monument-flare");
+                  if (flare) {
+                    flare.style.opacity = "0.95";
+                    flare.style.width = "400px";
+                    flare.style.height = "400px";
+                    flare.style.left = "50%";
+                    flare.style.top = "55%";
+                    setTimeout(() => {
+                      flare.style.transition = "width 1.8s ease-out, height 1.8s ease-out, opacity 1.8s ease-out";
+                      flare.style.opacity = "0";
+                      flare.style.width = "0px";
+                      flare.style.height = "0px";
+                    }, 80);
+                  }
+                  
+                  // Phase 4: Dissolve and reveal main workstation
+                  introTimeout4 = setTimeout(() => {
+                    fadeAwayIntro();
+                  }, 4500);
+                }, 800);
+              }, 2200);
+            }, 800);
+          }, 2200);
+        }, 500);
+      }
+      
+      function fadeAwayIntro() {
+        intro.style.opacity = "0";
+        intro.style.visibility = "hidden";
+        setTimeout(() => {
+          intro.style.display = "none";
+        }, 1200);
+        stopCinematicSound();
+      }
+      
+      skipBtn.addEventListener("click", fadeAwayIntro);
+      replayBtn.addEventListener("click", startIntroSequence);
+      
+      // Auto-start intro on first load
+      if (!sessionStorage.getItem("omniformat-intro-played")) {
+        startIntroSequence();
+        sessionStorage.setItem("omniformat-intro-played", "true");
+      } else {
+        intro.style.display = "none";
+        intro.style.opacity = "0";
+        intro.style.visibility = "hidden";
+      }
+
+      const compileBtn = document.getElementById("compile-btn");
+      const placeholder = document.getElementById("output-placeholder");
+      const compiledCard = document.getElementById("compiled-card");
+      
+      const compStepsBar = document.getElementById("comp-steps-bar");
+      const progressLine = document.getElementById("step-progress-line");
+      const step1 = document.getElementById("step1");
+      const step2 = document.getElementById("step2");
+      const step3 = document.getElementById("step3");
+      
+      const btnSave = document.getElementById("btn-save-vault");
+      const btnDownload = document.getElementById("btn-mock-download");
+      
+      const toast = document.getElementById("toast-notification");
+      const toastMsg = document.getElementById("toast-message");
+      
+      let toastTimeout = null;
+      
+      function showToast(message) {
+        if (toastTimeout) {
+          clearTimeout(toastTimeout);
+        }
+        toastMsg.textContent = message;
+        toast.classList.add("show");
+        
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3000);
+      }
+      
+      compileBtn.addEventListener("click", () => {
+        // Reset states
+        compiledCard.classList.remove("visible");
+        placeholder.style.display = "none";
+        compStepsBar.style.display = "flex";
+        
+        step1.className = "comp-step";
+        step2.className = "comp-step";
+        step3.className = "comp-step";
+        progressLine.style.width = "0%";
+        
+        compileBtn.disabled = true;
+        
+        // Step 1: Tag Extraction
+        setTimeout(() => {
+          step1.classList.add("active");
+          
+          // Step 2: Underline Verbatim formatting
+          setTimeout(() => {
+            step1.classList.remove("active");
+            step1.classList.add("done");
+            step2.classList.add("active");
+            progressLine.style.width = "40%";
+            
+            // Step 3: Database Sync
+            setTimeout(() => {
+              step2.classList.remove("active");
+              step2.classList.add("done");
+              step3.classList.add("active");
+              progressLine.style.width = "80%";
+              
+              // Completion
+              setTimeout(() => {
+                step3.classList.remove("active");
+                step3.classList.add("done");
+                progressLine.style.width = "100%";
+                
+                setTimeout(() => {
+                  compStepsBar.style.display = "none";
+                  compiledCard.classList.add("visible");
+                  compileBtn.disabled = false;
+                  showToast("CaseXC Card compiled and validated!");
+                }, 400);
+              }, 800);
+            }, 800);
+          }, 800);
+        }, 100);
+      });
+      
+      btnSave.addEventListener("click", () => {
+        showToast("✅ Saved to debates/vault.db (Card ID: #XC-883)");
+      });
+      
+      btnDownload.addEventListener("click", () => {
+        showToast("📁 Exporting document brief to workspace...");
+      });
+
+      // ── Verbatim Style Sheet Configurator Logic ───────────────────────────
+      const cfgFontFamily    = document.getElementById("cfg-font-family");
+      const cfgTaglineSize   = document.getElementById("cfg-tagline-size");
+      const cfgTaglineSizeVal= document.getElementById("cfg-tagline-size-val");
+      const cfgBodySize      = document.getElementById("cfg-body-size");
+      const cfgBodySizeVal   = document.getElementById("cfg-body-size-val");
+      const cfgHighlight     = document.getElementById("cfg-highlight-style");
+      const cfgCiteColor     = document.getElementById("cfg-cite-color");
+      const cfgLineSpacing   = document.getElementById("cfg-line-spacing");
+      const prevTagline      = document.getElementById("prev-tagline");
+      const prevCitation     = document.getElementById("prev-citation");
+      const prevBody         = document.getElementById("prev-body");
+      const prevHighlight    = document.getElementById("prev-highlight");
+      const styleCodeOutput  = document.getElementById("style-code-output");
+      const styleCopyBtn     = document.getElementById("style-copy-btn");
+
+      function updateStylePreview() {
+        const font    = cfgFontFamily.value;
+        const tagSz   = parseFloat(cfgTaglineSize.value);
+        const bodySz  = parseFloat(cfgBodySize.value);
+        const hlStyle = cfgHighlight.value;
+        const citeClr = cfgCiteColor.value;
+        const lnSp    = cfgLineSpacing.value;
+
+        cfgTaglineSizeVal.textContent = tagSz + "pt";
+        cfgBodySizeVal.textContent    = bodySz + "pt";
+
+        // Apply preview styles
+        prevTagline.style.fontFamily  = font;
+        prevTagline.style.fontSize    = tagSz + "pt";
+        prevCitation.style.color      = citeClr;
+        prevCitation.style.fontFamily = font;
+        prevBody.style.fontFamily     = font;
+        prevBody.style.fontSize       = bodySz + "pt";
+        prevBody.style.lineHeight     = lnSp;
+
+        prevHighlight.style.textDecoration = (hlStyle === "underline" || hlStyle === "both") ? "underline" : "none";
+        prevHighlight.style.fontWeight     = (hlStyle === "bold" || hlStyle === "both") ? "700" : "400";
+
+        // Build config snippet
+        const snippet = `# verbatim_config.py — OmniFormat Style Profile
+# Auto-generated by OmniFormat Style Sheet Configurator
+
+CARD_STYLE = {
+    "font_family":       "${font}",
+    "tagline_font_size": ${tagSz},     # points
+    "body_font_size":    ${bodySz},     # points
+    "line_spacing":      ${lnSp},
+    "highlight": {
+        "underline": ${(hlStyle === "underline" || hlStyle === "both").toString()},
+        "bold":      ${(hlStyle === "bold" || hlStyle === "both").toString()},
+    },
+    "citation_color":    "${citeClr}",  # hex
+    "tagline_caps":      True,
+    "auto_shrink_citations": True,
+    "enforce_verbatim_compliance": True,
+}`;
+        styleCodeOutput.textContent = snippet;
+      }
+
+      function copyStyleSnippet(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0";
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return ok ? Promise.resolve() : Promise.reject();
+        }
+      }
+
+      styleCopyBtn.addEventListener("click", () => {
+        copyStyleSnippet(styleCodeOutput.textContent).then(() => {
+          const orig = styleCopyBtn.textContent;
+          styleCopyBtn.textContent = "Copied! ✓";
+          styleCopyBtn.style.background = "rgba(16,185,129,0.12)";
+          styleCopyBtn.style.borderColor = "var(--accent-green)";
+          styleCopyBtn.style.color = "var(--accent-green)";
+          setTimeout(() => {
+            styleCopyBtn.textContent = orig;
+            styleCopyBtn.style.background = "";
+            styleCopyBtn.style.borderColor = "";
+            styleCopyBtn.style.color = "";
+          }, 2200);
+        });
+      });
+
+      [cfgFontFamily, cfgTaglineSize, cfgBodySize, cfgHighlight, cfgCiteColor, cfgLineSpacing].forEach(el => {
+        el.addEventListener("input",  updateStylePreview);
+        el.addEventListener("change", updateStylePreview);
+      });
+
+      updateStylePreview();
+
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

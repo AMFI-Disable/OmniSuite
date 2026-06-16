@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSuite - Digital Grandmaster Ecosystem</title>
+  <meta name="description" content="OmniSuite is a unified, high-fidelity workstation suite for forensic researchers, debaters, and case compilers. Operating local-first with zero-latency SQLite vaults.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables & Core Design Tokens */
+    :root {
+      --bg-color: #040612;
+      --primary-cyan: #00f0ff;
+      --primary-cyan-rgb: 0, 240, 255;
+      --primary-purple: #8b5cf6;
+      --primary-purple-rgb: 139, 92, 246;
+      --accent-green: #10b981;
+      --accent-orange: #f97316;
+      
+      --text-main: #cbd5e1;
+      --text-muted: #64748b;
+      --text-white: #ffffff;
+      
+      --card-bg: rgba(8, 12, 28, 0.75);
+      --card-border: rgba(255, 255, 255, 0.05);
+      --card-border-glow: rgba(0, 240, 255, 0.15);
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background: var(--bg-color);
+      /* Cyber Tech Grid Background */
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    
+    /* Floating Background Orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
+    .orb-cyan {
+      width: 400px;
+      height: 400px;
+      background: var(--primary-cyan);
+      top: 15%;
+      left: 10%;
+      animation: float-slow 22s infinite alternate ease-in-out;
+    }
+    .orb-purple {
+      width: 500px;
+      height: 500px;
+      background: var(--primary-purple);
+      bottom: 15%;
+      right: 10%;
+      animation: float-slow-reverse 26s infinite alternate ease-in-out;
+    }
+    
+    @keyframes float-slow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(80px, 50px) scale(1.15); }
+    }
+    @keyframes float-slow-reverse {
+      0% { transform: translate(0, 0) scale(1.15); }
+      100% { transform: translate(-90px, -40px) scale(0.9); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #03040a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.25);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.45);
+    }
+    
+    /* Precision Thin Border Gradient Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    
+    .glass-panel:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 50px -12px rgba(0, 240, 255, 0.08);
+      border-color: rgba(0, 240, 255, 0.15);
+    }
+    
+    .glass-panel:hover::after {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.35) 0%, rgba(139, 92, 246, 0.35) 100%);
+    }
+    
+    /* Layout Sections */
+    main {
+      padding-top: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      position: relative;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--primary-cyan);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.05);
+    }
+    
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse-green 1.5s infinite alternate;
+    }
+    
+    @keyframes pulse-green {
+      0% { opacity: 0.5; }
+      100% { opacity: 1; box-shadow: 0 0 14px var(--accent-green); }
+    }
+    
+    .hero h1 {
+      font-size: 4.5rem;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      color: var(--text-white);
+    }
+    
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 25px rgba(0, 240, 255, 0.25));
+    }
+    
+    .hero p {
+      font-size: 1.3rem;
+      color: #94a3b8;
+      max-width: 750px;
+      margin: 0 auto 40px;
+      font-weight: 300;
+    }
+    
+    .cta-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-cyan) 0%, #00b0ff 100%);
+      color: #020617;
+      box-shadow: 0 4px 25px rgba(0, 240, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(0, 240, 255, 0.45);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-white);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    /* Interactive Terminal Simulator Playground */
+    .terminal-container {
+      max-width: 850px;
+      margin: 0 auto 100px;
+      padding: 0 24px;
+    }
+    
+    .terminal-window {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #020308;
+    }
+    
+    .terminal-header {
+      background: #090b14;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    
+    .terminal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .terminal-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .terminal-btn.close { background: #ef4444; }
+    .terminal-btn.minimize { background: #eab308; }
+    .terminal-btn.maximize { background: #22c55e; }
+    
+    .terminal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+    
+    .terminal-toolbar {
+      background: rgba(255, 255, 255, 0.01);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 10px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .terminal-cmd-btn {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      color: var(--primary-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    
+    .terminal-cmd-btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--primary-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    
+    .terminal-cmd-btn.purple {
+      background: rgba(139, 92, 246, 0.05);
+      border-color: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+    }
+    
+    .terminal-cmd-btn.purple:hover {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--primary-purple);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+    }
+    
+    .terminal-body {
+      padding: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: #9cdcfe;
+      min-height: 400px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      overflow-y: auto;
+      max-height: 500px;
+    }
+    
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: var(--primary-cyan);
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    /* Workstation Cards */
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 50px;
+      letter-spacing: -1.5px;
+      color: var(--text-white);
+    }
+    
+    .workstations-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      padding: 0 24px;
+      margin-bottom: 100px;
+    }
+    
+    @media(max-width: 768px) {
+      .workstations-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 {
+        font-size: 3rem;
+      }
+    }
+    
+    .workstation-card {
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .workstation-icon {
+      font-size: 2.8rem;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.15));
+    }
+    
+    .workstation-card h3 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 14px;
+    }
+    
+    .workstation-card p {
+      color: #94a3b8;
+      margin-bottom: 28px;
+      font-size: 1rem;
+    }
+    
+    .feature-list {
+      list-style: none;
+      margin-bottom: 36px;
+      flex-grow: 1;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+    
+    .feature-item svg {
+      width: 20px;
+      height: 20px;
+      color: var(--primary-cyan);
+      flex-shrink: 0;
+    }
+    
+    .workstation-card.format-card .feature-item svg {
+      color: var(--primary-purple);
+    }
+    
+    /* Architecture Grid */
+    .specs-section {
+      padding: 0 24px;
+      margin-bottom: 100px;
+    }
+    
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+    }
+    
+    .spec-card {
+      padding: 32px;
+    }
+    
+    .spec-card h4 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .spec-card p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      background: rgba(2, 4, 10, 0.9);
+      padding: 44px 24px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    /* Floating top notice style to guide users to scroll up to navigate */
+    .nav-notice {
+      background: rgba(0, 240, 255, 0.02);
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 30px;
+      max-width: 1200px;
+      width: calc(100% - 48px);
+      box-sizing: border-box;
+      animation: pulse-notice 3s infinite alternate ease-in-out;
+    }
+    
+    .nav-notice-icon {
+      font-size: 1.15rem;
+      filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.5));
+    }
+    
+    .nav-notice-text {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+    }
+    
+    .nav-notice-text strong {
+      color: var(--primary-cyan);
+    }
+    
+    @keyframes pulse-notice {
+      0% { border-color: rgba(0, 240, 255, 0.2); box-shadow: 0 0 10px rgba(0, 240, 255, 0.02); }
+      100% { border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 15px rgba(0, 240, 255, 0.06); }
+    }
+
+    /* Workspace Config Generator card */
+    .config-card {
+      margin-top: 50px;
+      padding: 40px;
+    }
+    
+    .config-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+    
+    @media (max-width: 768px) {
+      .config-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .config-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .config-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .config-input {
+      background: rgba(4, 6, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: var(--text-white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      transition: var(--transition-smooth);
+    }
+    
+    .config-input:focus {
+      outline: none;
+      border-color: var(--primary-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+    }
+    
+    .config-select {
+      background: #090b14;
+      cursor: pointer;
+    }
+    
+    .config-checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .config-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-cyan);
+    }
+    
+    .config-output-container {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .config-output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .config-code-block {
+      background: #020308;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #a78bfa;
+      overflow-x: auto;
+      max-height: 300px;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glowing Animated Backdrop Orbs -->
+  <div class="glow-orb orb-cyan"></div>
+  <div class="glow-orb orb-purple"></div>
+
+  <!-- Navigation header removed for Google Sites compatibility -->
+
+  <!-- Main Content Container -->
+  <main id="main-content">
+    
+    <!-- Navigation Warning Notice -->
+    <div class="nav-notice" role="note">
+      <span class="nav-notice-icon">💡</span>
+      <span class="nav-notice-text">To switch workstations or change pages, scroll up to the top of the screen and use the <strong>Google Sites navigation menu</strong>.</span>
+    </div>
+    
+    <!-- Hero Block -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Ecosystem Online v1.0.0
+      </div>
+      <h1 id="hero-title">Elevate Debate to <span>State of the Art</span></h1>
+      <p>A unified, local-first ecosystem of strategic workstations designed for competitive forensicians, elite debaters, and digital researchers.</p>
+      
+      <div class="cta-group">
+        <a href="#workstations" class="btn btn-primary" id="cta-learn-more">Explore Workstations</a>
+      </div>
+    </section>
+
+    <!-- Terminal Simulator Block -->
+    <section class="terminal-container" aria-label="Terminal Simulator">
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-buttons">
+            <span class="terminal-btn close"></span>
+            <span class="terminal-btn minimize"></span>
+            <span class="terminal-btn maximize"></span>
+          </div>
+          <div class="terminal-title">omnisuite-shell --interactive</div>
+          <div style="width: 52px;"></div> <!-- Spacer -->
+        </div>
+        
+        <div class="terminal-toolbar">
+          <span class="toolbar-label">Simulate Command:</span>
+          <button class="terminal-cmd-btn" id="cmd-boot">1. Boot Ecosystem</button>
+          <button class="terminal-cmd-btn purple" id="cmd-vault">2. Query SQLite Vault</button>
+          <button class="terminal-cmd-btn" id="cmd-docker">3. Check Docker Stack</button>
+        </div>
+        
+        <div class="terminal-body" id="terminal-screen" aria-live="polite">even@omnisuite ~ % <span class="terminal-cursor"></span></div>
+      </div>
+    </section>
+
+    <!-- Workstations Section -->
+    <section id="workstations" aria-labelledby="workstations-title">
+      <h2 class="section-title" id="workstations-title">The Dedicated Workstations</h2>
+      
+      <div class="workstations-grid">
+        <!-- OmniDebate Card -->
+        <article class="workstation-card glass-panel" aria-labelledby="card-debate-title">
+          <div class="workstation-icon">🏛️</div>
+          <h3 id="card-debate-title">OmniDebate</h3>
+          <p>The core strategic workstation. Transforms your terminal into a forensic war room with real-time auditing and AI-augmented argument generation.</p>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Real-Time Forensic Auditing Core
+            </li>
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Shared SQLite Database Vault (`debates/vault.db`)
+            </li>
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Local AI Assistance (Ollama Orchestration)
+            </li>
+          </ul>
+          
+          <div class="btn" style="border-color: rgba(0, 240, 255, 0.15); color: var(--text-muted); cursor: default; background: rgba(255, 255, 255, 0.01);" id="btn-explore-debate">Access via Top Navigation</div>
+        </article>
+
+        <!-- OmniFormat Card -->
+        <article class="workstation-card format-card glass-panel" aria-labelledby="card-format-title">
+          <div class="workstation-icon">📄</div>
+          <h3 id="card-format-title">OmniFormat</h3>
+          <p>The document compiling and card formatting workstation. Ensures strict styling compliance with automated layouts and streamlined citations.</p>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Strict Verbatim & CaseXC Format Compliance
+            </li>
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Direct Linkage to Shared Database Vault
+            </li>
+            <li class="feature-item">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              High-Speed Compilation & Automated Drafts
+            </li>
+          </ul>
+          
+          <div class="btn" style="border-color: rgba(139, 92, 246, 0.15); color: var(--text-muted); cursor: default; background: rgba(255, 255, 255, 0.01);" id="btn-explore-format">Access via Top Navigation</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Interactive Config File Generator -->
+    <section class="terminal-container" style="max-width: 1000px; margin-bottom: 80px;" aria-labelledby="config-gen-title">
+      <div class="config-card glass-panel">
+        <h2 class="config-title" id="config-gen-title">⚙️ Workspace Config Synthesizer</h2>
+        <p style="color: #94a3b8; margin-bottom: 30px; font-size: 0.95rem;">Configure the monorepo backend variables dynamically to generate a customized <code>.omnisuite/config.json</code> environment configuration block.</p>
+        
+        <div class="config-grid">
+          <div class="config-group">
+            <label class="config-label" for="cfg-db-path">SQLite Vault Path</label>
+            <input type="text" id="cfg-db-path" class="config-input" value="debates/vault.db">
+          </div>
+          
+          <div class="config-group">
+            <label class="config-label" for="cfg-llm-model">Local Ollama Model</label>
+            <select id="cfg-llm-model" class="config-input config-select">
+              <option value="llama3:8b">Llama 3 (8B) - Default Recommended</option>
+              <option value="mistral:latest">Mistral (7B)</option>
+              <option value="phi3:medium">Phi-3 Medium (14B)</option>
+              <option value="custom">Custom Specified Model</option>
+            </select>
+          </div>
+          
+          <div class="config-group" id="cfg-custom-model-group" style="display: none;">
+            <label class="config-label" for="cfg-custom-model">Custom LLM Tag</label>
+            <input type="text" id="cfg-custom-model" class="config-input" value="gemma2:9b">
+          </div>
+
+          <div class="config-group">
+            <label class="config-label" for="cfg-sync-sec">Sync Debounce Delay (ms)</label>
+            <input type="number" id="cfg-sync-sec" class="config-input" value="250" min="50" max="5000">
+          </div>
+
+          <div class="config-group">
+            <label class="config-label" for="cfg-backup-interval">Backup Interval (Minutes)</label>
+            <input type="number" id="cfg-backup-interval" class="config-input" value="30" min="5" max="1440">
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+          <div class="config-checkbox-group">
+            <input type="checkbox" id="cfg-auto-commit" class="config-checkbox" checked>
+            <label class="config-label" style="text-transform: none; font-size: 0.9rem;" for="cfg-auto-commit">Enable Auto-Commit SQLite vaults to Fossil timeline</label>
+          </div>
+          
+          <div class="config-checkbox-group">
+            <input type="checkbox" id="cfg-audit-logs" class="config-checkbox" checked>
+            <label class="config-label" style="text-transform: none; font-size: 0.9rem;" for="cfg-audit-logs">Enable forensic command audit trails logging</label>
+          </div>
+        </div>
+
+        <div class="config-output-container">
+          <div class="config-output-header">
+            <span class="config-label">Synthesized Configuration Output:</span>
+            <button class="terminal-cmd-btn" id="cfg-copy-btn" style="padding: 6px 16px;">Copy config.json</button>
+          </div>
+          <pre id="config-code-block" class="config-code-block" aria-live="polite">Generating...</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Specs / Architecture Grid -->
+    <section class="specs-section" aria-labelledby="specs-title">
+      <h2 class="section-title" id="specs-title">Architected for the Digital Grandmaster</h2>
+      
+      <div class="specs-grid">
+        <article class="spec-card glass-panel" aria-labelledby="spec-local-title">
+          <h4 id="spec-local-title">🔒 Local-First Vault</h4>
+          <p>Zero internet connectivity required. All cards, speeches, and briefs are stored locally in a schema-validated SQLite database.</p>
+        </article>
+        
+        <article class="spec-card glass-panel" aria-labelledby="spec-fossil-title">
+          <h4 id="spec-fossil-title">🏛️ Serverless Version Control</h4>
+          <p>Leverages Fossil integration, preserving project history and timeline tracking in a single file database with no online accounts required.</p>
+        </article>
+        
+        <article class="spec-card glass-panel" aria-labelledby="spec-bootstrap-title">
+          <h4 id="spec-bootstrap-title">⚡ Autonomous Bootstrap</h4>
+          <p>Built-in workspace engine automatically synthesizes virtual environments and syncs dependencies on launch via fast `uv` workspace pipelines.</p>
+        </article>
+        
+        <article class="spec-card glass-panel" aria-labelledby="spec-docker-title">
+          <h4 id="spec-docker-title">🐳 Docker Orchestrated</h4>
+          <p>Instantly deploy all workstations, dependencies, and local Ollama model networks via containerized orchestration.</p>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 OmniSuite. Locally managed serverless repository. Built for the Digital Grandmaster.</p>
+  </footer>
+
+  <!-- Script for Terminal Simulation & Adapter -->
+  <script>
+    function init() {
+      const screen = document.getElementById("terminal-screen");
+      const btnBoot = document.getElementById("cmd-boot");
+      const btnVault = document.getElementById("cmd-vault");
+      const btnDocker = document.getElementById("cmd-docker");
+      
+      let textBuffer = "even@omnisuite ~ % ";
+      let isTyping = false;
+
+      // Type animations utility
+      function typeText(targetText, speed, instantTextList = [], callback = null) {
+        isTyping = true;
+        let index = 0;
+        
+        function typeChar() {
+          if (index < targetText.length) {
+            textBuffer += targetText[index];
+            screen.innerHTML = textBuffer + '<span class="terminal-cursor"></span>';
+            index++;
+            screen.scrollTop = screen.scrollHeight;
+            setTimeout(typeChar, speed + Math.random() * (speed * 0.4));
+          } else {
+            // Render instant lines sequentially
+            let instantIndex = 0;
+            function printInstant() {
+              if (instantIndex < instantTextList.length) {
+                textBuffer += instantTextList[instantIndex];
+                screen.innerHTML = textBuffer + '<span class="terminal-cursor"></span>';
+                instantIndex++;
+                screen.scrollTop = screen.scrollHeight;
+                setTimeout(printInstant, 120 + Math.random() * 80);
+              } else {
+                isTyping = false;
+                if (callback) callback();
+              }
+            }
+            setTimeout(printInstant, 300);
+          }
+        }
+        typeChar();
+      }
+
+      // 1. Boot Ecosystem Simulation
+      function simulateBoot() {
+        if (isTyping) return;
+        screen.innerHTML = textBuffer;
+        
+        const cmd = "python3 omnisuite --app debate\n";
+        const systemLines = [
+          "🏛️  INITIALIZING AUTONOMOUS OMNISUITE ENVIRONMENT...\n",
+          "> Environment synthesized successfully.\n",
+          "> Synchronizing workspace packages via uv sync...\n",
+          "> Running alembic migrations for vault.db...\n",
+          "✅ SQLite Database Vault synced.\n",
+          "> Launching OmniDebate Workspace Console...\n\n",
+          "   ____            _ ____       _ _       \n",
+          "  / __ \\____ ___  (_/ __/_  __ (_) |_ ___ \n",
+          " / / / / __ `__ \\/ / /_/ / / // / __/ _ \\\n",
+          "/ /_/ / / / / / / / __/ /_/ // / /_/  __/\n",
+          "\\____/_/ /_/ /_/_/_/  \\__,_//_/\\__/\\___/ \n\n",
+          "[SYSTEM STATUS: ONLINE] [VAULT: 1,482 CARDS]\n",
+          "[OLLAMA INTEGRATION: CONNECTED (LLAMA3:8B)]\n",
+          "Press [TAB] to switch panels, [ESC] for CLI.\n\n",
+          "omnidebate > "
+        ];
+        
+        typeText(cmd, 45, systemLines);
+      }
+
+      // 2. Query SQLite Vault Simulation
+      function simulateVault() {
+        if (isTyping) return;
+        
+        // Add prompt prefix if not present
+        if (!textBuffer.endsWith("omnidebate > ") && !textBuffer.endsWith("even@omnisuite ~ % ")) {
+          textBuffer += "\n\neven@omnisuite ~ % ";
+        }
+        
+        const cmd = 'sqlite3 debates/vault.db "SELECT count(*), tag_group FROM cards GROUP BY tag_group;"\n';
+        const queryLines = [
+          "⚙️  Connecting to SQLite backend...\n",
+          "────────────────────────────────────────────────\n",
+          "COUNT  | TAG_GROUP\n",
+          "────────────────────────────────────────────────\n",
+          "482    | Climate Regulations (EPA Mandates)\n",
+          "310    | Carbon Taxation CP (Decentralized credits)\n",
+          "690    | Geopolitical Stability (Energy Security)\n",
+          "────────────────────────────────────────────────\n",
+          "Vault query completed successfully. [Total: 1,482 active records]\n\n",
+          "even@omnisuite ~ % "
+        ];
+        
+        typeText(cmd, 30, queryLines);
+      }
+
+      // 3. Check Docker Stack Simulation
+      function simulateDocker() {
+        if (isTyping) return;
+        
+        if (!textBuffer.endsWith("even@omnisuite ~ % ") && !textBuffer.endsWith("omnidebate > ")) {
+          textBuffer += "\n\neven@omnisuite ~ % ";
+        }
+        
+        const cmd = "docker compose ps\n";
+        const dockerLines = [
+          "NAME                  IMAGE                COMMAND                  SERVICE      STATUS       PORTS\n",
+          "omnisuite-app-1       omnisuite-node:1.0   \"python3 omnisuite...\"   omnisuite    running      -\n",
+          "omnisuite-ollama-1    ollama/ollama:latest \"/bin/ollama serve\"      ollama       running      0.0.0.0:11434->11434/tcp\n",
+          "omnisuite-sqlite-1    alpine:latest        \"tail -f /dev/null\"      sqlite-vol   running      -\n\n",
+          "Network status: Bridge interface fully connected.\n",
+          "LLM status: llama3:8b loaded dynamically.\n\n",
+          "even@omnisuite ~ % "
+        ];
+        
+        typeText(cmd, 30, dockerLines);
+      }
+
+      // Register toolbar clicks
+      btnBoot.addEventListener("click", () => {
+        textBuffer = "even@omnisuite ~ % ";
+        screen.innerHTML = textBuffer;
+        simulateBoot();
+      });
+      btnVault.addEventListener("click", () => {
+        simulateVault();
+      });
+      btnDocker.addEventListener("click", () => {
+        simulateDocker();
+      });
+
+      // Start initial boot simulation automatically
+      simulateBoot();
+
+      // Workspace Config Synthesizer Logic
+      const cfgDbPath = document.getElementById("cfg-db-path");
+      const cfgLlmModel = document.getElementById("cfg-llm-model");
+      const cfgCustomModel = document.getElementById("cfg-custom-model");
+      const cfgCustomModelGroup = document.getElementById("cfg-custom-model-group");
+      const cfgSyncSec = document.getElementById("cfg-sync-sec");
+      const cfgBackupInterval = document.getElementById("cfg-backup-interval");
+      const cfgAutoCommit = document.getElementById("cfg-auto-commit");
+      const cfgAuditLogs = document.getElementById("cfg-audit-logs");
+      const cfgCodeBlock = document.getElementById("config-code-block");
+      const cfgCopyBtn = document.getElementById("cfg-copy-btn");
+
+      function updateConfigOutput() {
+        let modelVal = cfgLlmModel.value;
+        if (modelVal === "custom") {
+          cfgCustomModelGroup.style.display = "flex";
+          modelVal = cfgCustomModel.value || "custom-model";
+        } else {
+          cfgCustomModelGroup.style.display = "none";
+        }
+
+        const configObj = {
+          "omnisuite_version": "1.0.0",
+          "database": {
+            "driver": "sqlite",
+            "path": cfgDbPath.value || "debates/vault.db",
+            "journal_mode": "WAL",
+            "migrations_enabled": true
+          },
+          "llm_orchestration": {
+            "provider": "ollama",
+            "host": "http://localhost:11434",
+            "active_model": modelVal,
+            "options": {
+              "temperature": 0.3,
+              "num_ctx": 4096,
+              "top_p": 0.9
+            }
+          },
+          "workspace": {
+            "sync_delay_ms": parseInt(cfgSyncSec.value) || 250,
+            "auto_commit_fossil": cfgAutoCommit.checked,
+            "backup_interval_minutes": parseInt(cfgBackupInterval.value) || 30
+          },
+          "auditing": {
+            "enable_forensic_trail": cfgAuditLogs.checked,
+            "log_path": "logs/audit.log",
+            "mask_pii_fields": true
+          }
+        };
+
+        cfgCodeBlock.textContent = JSON.stringify(configObj, null, 2);
+      }
+
+      // Clipboard Copier Fallback Utility
+      function copyConfigText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.top = "0";
+          textArea.style.left = "0";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          return successful ? Promise.resolve() : Promise.reject(new Error("failed"));
+        }
+      }
+
+      cfgCopyBtn.addEventListener("click", () => {
+        const text = cfgCodeBlock.textContent;
+        copyConfigText(text).then(() => {
+          const originalText = cfgCopyBtn.textContent;
+          cfgCopyBtn.textContent = "Copied! ✓";
+          cfgCopyBtn.style.borderColor = "var(--accent-green)";
+          cfgCopyBtn.style.color = "var(--accent-green)";
+          setTimeout(() => {
+            cfgCopyBtn.textContent = originalText;
+            cfgCopyBtn.style.borderColor = "var(--primary-cyan)";
+            cfgCopyBtn.style.color = "var(--primary-cyan)";
+          }, 2000);
+        }).catch(err => {
+          console.error("Failed to copy configuration", err);
+        });
+      });
+
+      // Attach event listeners to all form controls
+      [cfgDbPath, cfgLlmModel, cfgCustomModel, cfgSyncSec, cfgBackupInterval, cfgAutoCommit, cfgAuditLogs].forEach(el => {
+        el.addEventListener("input", updateConfigOutput);
+        el.addEventListener("change", updateConfigOutput);
+      });
+
+      // Initial build
+      updateConfigOutput();
+
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

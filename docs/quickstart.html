@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start & Docs - OmniSuite</title>
+  <meta name="description" content="Quick start installation and configuration guide for OmniSuite. Setup workstations, configure Fossil version control, and deploy containerized Ollama.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables & Core Design Tokens */
+    :root {
+      --bg-color: #040612;
+      --primary-cyan: #00f0ff;
+      --primary-purple: #8b5cf6;
+      --primary-green: #10b981;
+      --accent-orange: #f97316;
+      
+      --text-main: #cbd5e1;
+      --text-muted: #64748b;
+      --text-white: #ffffff;
+      
+      --card-bg: rgba(8, 16, 28, 0.75);
+      --card-border: rgba(255, 255, 255, 0.05);
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    
+    /* Floating Background Orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
+    .orb-cyan {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-cyan);
+      top: 15%;
+      left: 10%;
+      animation: float-slow 22s infinite alternate ease-in-out;
+    }
+    .orb-purple {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-purple);
+      bottom: 15%;
+      right: 10%;
+      animation: float-slow-reverse 26s infinite alternate ease-in-out;
+    }
+    
+    @keyframes float-slow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(80px, 40px) scale(1.1); }
+    }
+    @keyframes float-slow-reverse {
+      0% { transform: translate(0, 0) scale(1.1); }
+      100% { transform: translate(-80px, -40px) scale(0.9); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #03040a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.5);
+    }
+    
+    /* Precision 1px Border Gradient Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    
+    .glass-panel:hover {
+      border-color: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 20px 45px rgba(0, 240, 255, 0.06);
+    }
+    
+    .glass-panel:hover::after {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    }
+    
+    /* Content Layout */
+    main {
+      padding-top: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    
+    /* Header Section */
+    .product-header {
+      padding: 40px 24px;
+      margin-bottom: 30px;
+    }
+    
+    .product-header h1 {
+      font-size: 3.25rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .product-header h1 span {
+      background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 15px rgba(0, 240, 255, 0.2));
+    }
+    
+    .product-header p {
+      font-size: 1.15rem;
+      color: #94a3b8;
+      max-width: 850px;
+    }
+    
+    /* Installation Switcher Panel */
+    .setup-container {
+      padding: 0 24px;
+      margin-bottom: 80px;
+    }
+    
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary-cyan);
+      box-shadow: 0 0 8px var(--primary-cyan);
+    }
+    
+    .switcher-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-white);
+    }
+    
+    .tab-btn.active {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--primary-cyan);
+      color: var(--primary-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+    }
+    
+    .panel-body {
+      padding: 30px;
+      min-height: 250px;
+    }
+    
+    .tab-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    /* Code block styling */
+    .code-container {
+      background: #02040a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .code-header {
+      background: #0b0f19;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: flex-end;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    
+    .code-btn-copy {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .code-btn-copy:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-white);
+    }
+    
+    .code-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: #9cdcfe;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    
+    .code-comment {
+      color: #6a9955;
+    }
+    
+    /* Interactive Command Reference Grid Cards */
+    .matrix-section {
+      padding: 0 24px;
+      margin-bottom: 80px;
+    }
+    
+    .search-box {
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      background: rgba(2, 4, 10, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px 24px;
+      color: var(--text-white);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: var(--transition-smooth);
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+    }
+    
+    .command-deck {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .command-card {
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      transition: var(--transition-smooth);
+    }
+    
+    .command-card.hidden {
+      display: none;
+    }
+    
+    .command-card-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-grow: 1;
+      max-width: 80%;
+    }
+    
+    .cmd-badge {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(0, 240, 255, 0.04);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      color: var(--primary-cyan);
+      padding: 6px 14px;
+      border-radius: 4px;
+      display: inline-block;
+      font-size: 0.9rem;
+      width: fit-content;
+      transition: var(--transition-smooth);
+    }
+    
+    .command-card:hover .cmd-badge {
+      border-color: var(--primary-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+    }
+    
+    .cmd-badge .search-highlight {
+      color: var(--text-white);
+      text-shadow: 0 0 8px var(--primary-cyan);
+      font-weight: 700;
+    }
+    
+    .cmd-meta {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary-purple);
+    }
+    
+    .cmd-desc {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+    
+    .command-card-right {
+      flex-shrink: 0;
+    }
+    
+    /* FAQ Accordion Details */
+    .faq-section {
+      padding: 0 24px;
+    }
+    
+    .faq-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    details {
+      background: rgba(2, 4, 10, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+    }
+    
+    details[open] {
+      border-color: rgba(0, 240, 255, 0.15);
+      background: rgba(2, 4, 10, 0.5);
+    }
+    
+    summary {
+      padding: 18px 24px;
+      font-weight: 600;
+      color: var(--text-white);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none; /* Hide default arrow */
+    }
+    
+    summary::-webkit-details-marker {
+      display: none; /* Hide Safari arrow */
+    }
+    
+    summary::after {
+      content: '＋';
+      font-size: 0.9rem;
+      color: var(--primary-cyan);
+      transition: transform 0.2s ease;
+    }
+    
+    details[open] summary::after {
+      content: '－';
+    }
+    
+    summary:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .faq-content {
+      padding: 0 24px 24px;
+      font-size: 0.95rem;
+      color: #94a3b8;
+    }
+    
+    /* Toast Alert */
+    .toast-overlay {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    
+    .toast-card {
+      background: #0b0f19;
+      border: 1px solid var(--primary-green);
+      color: var(--text-white);
+      padding: 14px 26px;
+      border-radius: 8px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateX(120%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .toast-card.show {
+      transform: translateX(0);
+    }
+    
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      background: rgba(2, 4, 10, 0.9);
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 80px;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      list-style: none;
+    }
+    
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary-cyan);
+    }
+
+    /* Navigation Notice */
+    .nav-notice {
+      background: rgba(0, 240, 255, 0.02);
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 30px;
+      max-width: 1200px;
+      width: calc(100% - 48px);
+      box-sizing: border-box;
+      animation: pulse-notice 3s infinite alternate ease-in-out;
+    }
+    .nav-notice-icon { font-size: 1.15rem; filter: drop-shadow(0 0 4px rgba(0,240,255,0.5)); }
+    .nav-notice-text { font-size: 0.85rem; color: #94a3b8; font-weight: 400; }
+    .nav-notice-text strong { color: var(--primary-cyan); }
+    @keyframes pulse-notice {
+      0% { border-color: rgba(0,240,255,0.2); box-shadow: 0 0 10px rgba(0,240,255,0.02); }
+      100% { border-color: rgba(0,240,255,0.4); box-shadow: 0 0 15px rgba(0,240,255,0.06); }
+    }
+
+    /* Monorepo Schema Viewer */
+    .schema-section {
+      padding: 0 24px;
+      margin-bottom: 80px;
+    }
+    .schema-card {
+      padding: 44px;
+    }
+    .schema-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 28px 0 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 0;
+    }
+    .schema-tab-btn {
+      padding: 10px 22px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      background: rgba(255,255,255,0.02);
+      color: #94a3b8;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      position: relative;
+      bottom: -1px;
+    }
+    .schema-tab-btn.active {
+      border-color: rgba(0,240,255,0.2);
+      border-bottom-color: #040612;
+      color: var(--primary-cyan);
+      background: #040612;
+    }
+    .schema-tab-btn:hover:not(.active) {
+      color: var(--text-white);
+      border-color: rgba(255,255,255,0.1);
+    }
+    .schema-pane {
+      display: none;
+    }
+    .schema-pane.active {
+      display: block;
+    }
+    .schema-description {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+    .schema-code {
+      background: #020308;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 22px 26px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: #9cdcfe;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 420px;
+      overflow-y: auto;
+      position: relative;
+    }
+    .schema-code .hl-key   { color: #7dd3fc; }
+    .schema-code .hl-val   { color: #86efac; }
+    .schema-code .hl-str   { color: #fca5a5; }
+    .schema-code .hl-cmt   { color: #4b5563; font-style: italic; }
+    .schema-copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .schema-copy-btn {
+      background: rgba(0,240,255,0.05);
+      border: 1px solid rgba(0,240,255,0.2);
+      color: var(--primary-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 6px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .schema-copy-btn:hover {
+      background: rgba(0,240,255,0.12);
+      border-color: var(--primary-cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glowing Animated Backdrop Orbs -->
+  <div class="glow-orb orb-cyan"></div>
+  <div class="glow-orb orb-purple"></div>
+
+  <!-- Navigation header removed for Google Sites compatibility -->
+
+  <!-- Main Content Area -->
+  <main id="main-content">
+
+    <!-- Navigation Warning Notice -->
+    <div class="nav-notice" role="note">
+      <span class="nav-notice-icon">💡</span>
+      <span class="nav-notice-text">Use the <strong>Google Sites top navigation menu</strong> to switch between workstation pages. Scroll up if the menu is not visible.</span>
+    </div>
+    
+    <!-- Product Header -->
+    <section class="product-header" aria-labelledby="page-title">
+      <h1 id="page-title">⚡ Quick <span>Start</span> & Docs</h1>
+      <p>Configure your local debate workspace environment. Choose a deployment method, explore the interactive command reference index, and audit command structures.</p>
+    </section>
+
+    <!-- Installation Switcher Panel -->
+    <section class="setup-container" aria-label="Installation Switcher Panel">
+      <article class="glass-panel" id="installation-switcher">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="badge-dot"></span>
+            Deployment Methods
+          </div>
+          
+          <div class="switcher-tabs">
+            <button class="tab-btn active" id="tab-bootstrap" aria-selected="true">Bootstrap (Local Env)</button>
+            <button class="tab-btn" id="tab-docker" aria-selected="false">Docker Compose</button>
+            <button class="tab-btn" id="tab-fossil" aria-selected="false">Fossil VCS</button>
+          </div>
+        </div>
+        
+        <div class="panel-body">
+          <!-- Bootstrap Method Content -->
+          <div class="tab-content" id="content-bootstrap">
+            <p>The **Autonomous Bootstrap Engine** automatically synthesizes a Python virtual environment and installs package members in editable mode on the first run. Zero manual configuration is needed.</p>
+            
+            <div class="code-container">
+              <div class="code-header">
+                <button class="code-btn-copy" id="copy-btn-bootstrap">
+                  <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+              <div class="code-body" id="code-text-bootstrap"><span class="code-comment"># Run the bootstrapper directly to synthesize env & run migrations</span>
+python3 omnisuite --app debate</div>
+            </div>
+            
+            <p>This command detects your environment, initializes a `.venv` directory, runs database migrations, and immediately launches the **OmniDebate TUI** console interface.</p>
+          </div>
+          
+          <!-- Docker Compose Content -->
+          <div class="tab-content" id="content-docker" style="display: none;">
+            <p>OmniSuite is fully containerized. Run the workstation monorepo alongside a local **Ollama** service inside a unified Docker compose bridge network.</p>
+            
+            <div class="code-container">
+              <div class="code-header">
+                <button class="code-btn-copy" id="copy-btn-docker">
+                  <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+              <div class="code-body" id="code-text-docker"><span class="code-comment"># Build containers and spin up services in the background</span>
+docker compose up -d
+
+<span class="code-comment"># Launch the OmniDebate TUI container</span>
+docker compose run --rm omnisuite --app debate</div>
+            </div>
+          </div>
+          
+          <!-- Fossil VCS Content -->
+          <div class="tab-content" id="content-fossil" style="display: none;">
+            <p>OmniSuite uses **Fossil** for serverless version control. Fossil stores your history, timeline, wiki, and ticket files in a single local database file (`../.omnisuite.fossil`).</p>
+            
+            <div class="code-container">
+              <div class="code-header">
+                <button class="code-btn-copy" id="copy-btn-fossil">
+                  <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+              <div class="code-body" id="code-text-fossil"><span class="code-comment"># Audit local changes</span>
+fossil status
+
+<span class="code-comment"># Open the local Fossil web management dashboard</span>
+fossil ui</div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Command Matrix Reference Deck -->
+    <section class="matrix-section" aria-labelledby="matrix-title">
+      <h2 class="section-title" id="matrix-title">Command Reference</h2>
+      
+      <div class="search-box">
+        <input type="text" id="command-search" class="search-input" placeholder="Type a keyword to filter commands (e.g. debate, fossil, docker, compile)..." aria-label="Search commands">
+      </div>
+      
+      <!-- Responsive Grid Cards -->
+      <div class="command-deck" id="matrix-deck">
+        
+        <!-- Card 1 -->
+        <article class="command-card glass-panel" data-cmd="python3 omnisuite --app debate">
+          <div class="command-card-left">
+            <div class="cmd-meta">OmniDebate Workstation</div>
+            <div class="cmd-badge">python3 omnisuite --app debate</div>
+            <p class="cmd-desc">Bootstrap environment and launch the main debate war room TUI workstation.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="python3 omnisuite --app debate">Copy</button>
+          </div>
+        </article>
+        
+        <!-- Card 2 -->
+        <article class="command-card glass-panel" data-cmd="python3 omnisuite --app format">
+          <div class="command-card-left">
+            <div class="cmd-meta">OmniFormat Workstation</div>
+            <div class="cmd-badge">python3 omnisuite --app format</div>
+            <p class="cmd-desc">Launch the standalone document compiler to assemble and format CaseXC/Verbatim briefs.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="python3 omnisuite --app format">Copy</button>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="command-card glass-panel" data-cmd="fossil status">
+          <div class="command-card-left">
+            <div class="cmd-meta">Fossil Version Control</div>
+            <div class="cmd-badge">fossil status</div>
+            <p class="cmd-desc">Inspect modified, added, or untracked file changes inside the monorepo.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="fossil status">Copy</button>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="command-card glass-panel" data-cmd="fossil diff">
+          <div class="command-card-left">
+            <div class="cmd-meta">Fossil Version Control</div>
+            <div class="cmd-badge">fossil diff</div>
+            <p class="cmd-desc">Display line-by-line file changes diff inside the active local repository.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="fossil diff">Copy</button>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="command-card glass-panel" data-cmd="fossil ui">
+          <div class="command-card-left">
+            <div class="cmd-meta">Fossil Version Control</div>
+            <div class="cmd-badge">fossil ui</div>
+            <p class="cmd-desc">Launch the local browser GUI dashboard containing logs, wiki boards, and project timelines.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="fossil ui">Copy</button>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="command-card glass-panel" data-cmd="docker compose up -d">
+          <div class="command-card-left">
+            <div class="cmd-meta">Docker Orchestration</div>
+            <div class="cmd-badge">docker compose up -d</div>
+            <p class="cmd-desc">Spin up container services (Ollama LLM, SQLite environment) in background daemon mode.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="docker compose up -d">Copy</button>
+          </div>
+        </article>
+
+        <!-- Card 7 -->
+        <article class="command-card glass-panel" data-cmd="docker compose run --rm omnisuite --app format">
+          <div class="command-card-left">
+            <div class="cmd-meta">Docker Orchestration</div>
+            <div class="cmd-badge">docker compose run --rm omnisuite --app format</div>
+            <p class="cmd-desc">Run the containerized OmniFormat compiler workstation, auto-cleaning the environment on exit.</p>
+          </div>
+          <div class="command-card-right">
+            <button class="code-btn-copy" data-copy="docker compose run --rm omnisuite --app format">Copy</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FAQ accordion using details summary -->
+    <section class="faq-section" aria-labelledby="faq-title">
+      <h2 class="section-title" id="faq-title">Troubleshooting & FAQ</h2>
+      
+      <div class="faq-container">
+        <details name="faq">
+          <summary>Bootstrap engine fails to sync dependencies?</summary>
+          <div class="faq-content">
+            Ensure Python 3.9+ is installed and accessible. If the package bootstrapper hangs, verify internet access or install dependencies manually in editable mode inside the synthesized virtual environment.
+          </div>
+        </details>
+        
+        <details name="faq">
+          <summary>Unable to connect to local Ollama service?</summary>
+          <div class="faq-content">
+            Verify that the Ollama agent is running locally on port 11434 (`localhost:11434`) and has downloaded the Llama 3 model weights: `ollama run llama3`.
+          </div>
+        </details>
+        
+        <details name="faq">
+          <summary>How to reset database schema vault?</summary>
+          <div class="faq-content">
+            You can drop and re-generate migrations on the shared SQLite database vault (`debates/vault.db`) using the Alembic migrations engine, or delete the file entirely and launch bootstrap to rebuild.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Monorepo Config Schema Viewer -->
+    <section class="schema-section" aria-labelledby="schema-viewer-title">
+      <div class="glass-panel schema-card">
+        <h2 class="section-title" id="schema-viewer-title" style="text-align:left; font-size:1.8rem; margin-bottom:6px;">🗂️ Monorepo Config Schema Viewer</h2>
+        <p style="color:#94a3b8; font-size:0.95rem;">Browse the canonical configuration files that power the OmniSuite monorepo. Each schema can be copied and dropped directly into your project workspace.</p>
+
+        <div class="schema-tabs" role="tablist" aria-label="Config Schema Tabs">
+          <button class="schema-tab-btn active" data-schema="docker" role="tab" aria-selected="true" id="stab-docker">docker-compose.yml</button>
+          <button class="schema-tab-btn" data-schema="fossil" role="tab" aria-selected="false" id="stab-fossil">fossil-hooks.sh</button>
+          <button class="schema-tab-btn" data-schema="pyproject" role="tab" aria-selected="false" id="stab-pyproject">pyproject.toml</button>
+          <button class="schema-tab-btn" data-schema="env" role="tab" aria-selected="false" id="stab-env">.env.example</button>
+        </div>
+
+        <!-- Docker Compose Pane -->
+        <div class="schema-pane active" id="spane-docker" role="tabpanel" aria-labelledby="stab-docker">
+          <p class="schema-description">The <code>docker-compose.yml</code> orchestrates the full OmniSuite stack: the main app container, the local Ollama LLM server, and the shared SQLite volume mount. Run with <code>docker compose up -d</code>.</p>
+          <pre class="schema-code" id="scode-docker">version: "3.9"
+
+services:
+  omnisuite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnisuite-app
+    volumes:
+      - ./debates:/app/debates          # SQLite vault mount
+      - ./logs:/app/logs                # Audit trail log mount
+      - ./config:/app/config            # Runtime config mount
+    environment:
+      - OMNISUITE_ENV=production
+      - OLLAMA_HOST=http://ollama:11434
+      - DB_PATH=/app/debates/vault.db
+    depends_on:
+      - ollama
+    networks:
+      - omninet
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: omnisuite-ollama
+    volumes:
+      - ollama_models:/root/.ollama     # Persist downloaded models
+    ports:
+      - "11434:11434"
+    networks:
+      - omninet
+    restart: unless-stopped
+
+  sqlite-vol:
+    image: alpine:latest
+    container_name: omnisuite-sqlite
+    command: tail -f /dev/null
+    volumes:
+      - ./debates:/data
+    networks:
+      - omninet
+
+volumes:
+  ollama_models:
+
+networks:
+  omninet:
+    driver: bridge</pre>
+          <div class="schema-copy-row">
+            <button class="schema-copy-btn" data-target="scode-docker">Copy docker-compose.yml</button>
+          </div>
+        </div>
+
+        <!-- Fossil Hooks Pane -->
+        <div class="schema-pane" id="spane-fossil" role="tabpanel" aria-labelledby="stab-fossil">
+          <p class="schema-description">The <code>fossil-hooks.sh</code> script registers Fossil VCS commit hooks that auto-tag and validate SQLite vault state on every commit, keeping debate card history synchronized.</p>
+          <pre class="schema-code" id="scode-fossil">#!/usr/bin/env bash
+# fossil-hooks.sh — OmniSuite Fossil VCS Integration Hooks
+# Place in: .fossil-hooks/ and register via: fossil hook add
+
+set -euo pipefail
+
+HOOK_EVENT="${1:-commit}"   # commit | pre-commit | post-sync
+DB_PATH="debates/vault.db"
+LOG_PATH="logs/fossil-hook.log"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+echo "[$TIMESTAMP] Fossil hook triggered: $HOOK_EVENT" >> "$LOG_PATH"
+
+# ── Pre-Commit: Validate SQLite integrity ──────────────────────────
+if [[ "$HOOK_EVENT" == "pre-commit" ]]; then
+  echo "[$TIMESTAMP] Running SQLite integrity check..." >> "$LOG_PATH"
+  RESULT=$(sqlite3 "$DB_PATH" "PRAGMA integrity_check;")
+  if [[ "$RESULT" != "ok" ]]; then
+    echo "[ERROR] SQLite vault integrity check FAILED: $RESULT" >&2
+    exit 1
+  fi
+  echo "[$TIMESTAMP] Integrity check passed." >> "$LOG_PATH"
+fi
+
+# ── Post-Commit: Tag vault snapshot ──────────────────────────────
+if [[ "$HOOK_EVENT" == "commit" ]]; then
+  CARD_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM cards;")
+  CHECKIN=$(fossil info | grep 'checkout:' | awk '{print $2}')
+  fossil tag add "vault-snapshot-${CHECKIN:0:8}" current
+  echo "[$TIMESTAMP] Tagged vault snapshot. Cards: $CARD_COUNT" >> "$LOG_PATH"
+fi
+
+# ── Post-Sync: Pull latest model weights manifest ──────────────────
+if [[ "$HOOK_EVENT" == "post-sync" ]]; then
+  echo "[$TIMESTAMP] Syncing Ollama model manifest..." >> "$LOG_PATH"
+  curl -sf http://localhost:11434/api/tags -o config/ollama-models.json || true
+  echo "[$TIMESTAMP] Model manifest synced." >> "$LOG_PATH"
+fi
+
+echo "[$TIMESTAMP] Hook complete." >> "$LOG_PATH"
+exit 0</pre>
+          <div class="schema-copy-row">
+            <button class="schema-copy-btn" data-target="scode-fossil">Copy fossil-hooks.sh</button>
+          </div>
+        </div>
+
+        <!-- pyproject.toml Pane -->
+        <div class="schema-pane" id="spane-pyproject" role="tabpanel" aria-labelledby="stab-pyproject">
+          <p class="schema-description">The <code>pyproject.toml</code> defines the Python package manifest, dependency groups, and tool configurations for <code>uv</code> workspace bootstrapping. Run <code>uv sync</code> to install all groups.</p>
+          <pre class="schema-code" id="scode-pyproject">[build-system]
+requires      = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name        = "omnisuite"
+version     = "1.0.0"
+description = "Unified forensic debate workstation ecosystem"
+readme      = "README.md"
+license     = { text = "MIT" }
+requires-python = ">=3.11"
+
+dependencies = [
+  "typer[all]>=0.12",
+  "rich>=13.7",
+  "sqlalchemy>=2.0",
+  "alembic>=1.13",
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+debate = [
+  "textual>=0.60",       # TUI framework for OmniDebate panels
+  "watchfiles>=0.21",    # Real-time file-change detection
+]
+format = [
+  "python-docx>=1.1",   # .docx export for OmniFormat
+  "pypdf>=4.2",          # PDF parsing for citation extraction
+  "jinja2>=3.1",         # Template engine for brief assembly
+]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.4",
+  "mypy>=1.10",
+  "pre-commit>=3.7",
+]
+
+[project.scripts]
+omnisuite = "omnisuite.__main__:app"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict         = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"</pre>
+          <div class="schema-copy-row">
+            <button class="schema-copy-btn" data-target="scode-pyproject">Copy pyproject.toml</button>
+          </div>
+        </div>
+
+        <!-- .env.example Pane -->
+        <div class="schema-pane" id="spane-env" role="tabpanel" aria-labelledby="stab-env">
+          <p class="schema-description">The <code>.env.example</code> lists all required and optional environment variables. Copy to <code>.env</code> and fill in your values before running <code>uv run omnisuite</code> or <code>docker compose up</code>.</p>
+          <pre class="schema-code" id="scode-env"># ───────────────────────────────────────────────────────────────────────
+# OmniSuite Environment Configuration — .env.example
+# Copy to .env: cp .env.example .env
+# ───────────────────────────────────────────────────────────────────────
+
+# ── Runtime Environment ──────────────────────────────────────────────────
+OMNISUITE_ENV=development              # development | production
+LOG_LEVEL=INFO                         # DEBUG | INFO | WARNING | ERROR
+LOG_PATH=logs/omnisuite.log
+
+# ── Database ─────────────────────────────────────────────────────────────
+DB_PATH=debates/vault.db               # Relative to project root
+DB_JOURNAL_MODE=WAL                    # WAL | DELETE | MEMORY
+DB_POOL_SIZE=5
+AUTO_MIGRATE=true                      # Run alembic on startup
+
+# ── Ollama LLM Orchestration ───────────────────────────────────────────
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=llama3:8b                 # llama3:8b | mistral | phi3
+OLLAMA_TIMEOUT=60                      # seconds
+OLLAMA_TEMPERATURE=0.3
+OLLAMA_NUM_CTX=4096
+
+# ── OmniDebate Settings ────────────────────────────────────────────────
+DEBATE_FORMAT=policy                   # policy | ld | pf | ws
+DEFAULT_SPEECH_TIME=480               # seconds (8:00)
+DEFAULT_PREP_TIME=480                 # seconds (8:00)
+AUDIT_TRAIL_ENABLED=true
+
+# ── OmniFormat Settings ───────────────────────────────────────────────
+FORMAT_STYLE=verbatim                  # verbatim | casexc | custom
+FORMAT_FONT=Times New Roman
+FORMAT_BODY_SIZE=10                    # pt
+FORMAT_TAGLINE_SIZE=12                 # pt
+FORMAT_LINE_SPACING=1.15
+FORMAT_HIGHLIGHT=underline             # underline | bold | both | none
+FORMAT_OUTPUT_DIR=output/briefs
+
+# ── Fossil VCS Integration ─────────────────────────────────────────────
+FOSSIL_REPO_PATH=omnisuite.fossil
+FOSSIL_AUTO_COMMIT=true
+FOSSIL_SYNC_REMOTE=                    # Leave blank for local-only</pre>
+          <div class="schema-copy-row">
+            <button class="schema-copy-btn" data-target="scode-env">Copy .env.example</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast overlay for copy actions -->
+  <div class="toast-overlay">
+    <div class="toast-card" id="toast-notification">
+      <svg id="toast-icon-success" style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>Command copied to clipboard!</span>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 OmniSuite. Locally managed serverless repository. Built for the Digital Grandmaster.</p>
+  </footer>
+
+  <!-- Scripts for Tabs, Copying, and Filter Search -->
+  <script>
+    function init() {
+      // 1. Switcher Tabs Logic
+      const btnBootstrap = document.getElementById("tab-bootstrap");
+      const btnDocker = document.getElementById("tab-docker");
+      const btnFossil = document.getElementById("tab-fossil");
+      
+      const contentBootstrap = document.getElementById("content-bootstrap");
+      const contentDocker = document.getElementById("content-docker");
+      const contentFossil = document.getElementById("content-fossil");
+      
+      function resetTabs() {
+        btnBootstrap.classList.remove("active");
+        btnDocker.classList.remove("active");
+        btnFossil.classList.remove("active");
+        btnBootstrap.setAttribute("aria-selected", "false");
+        btnDocker.setAttribute("aria-selected", "false");
+        btnFossil.setAttribute("aria-selected", "false");
+        
+        contentBootstrap.style.display = "none";
+        contentDocker.style.display = "none";
+        contentFossil.style.display = "none";
+      }
+      
+      btnBootstrap.addEventListener("click", () => {
+        resetTabs();
+        btnBootstrap.classList.add("active");
+        btnBootstrap.setAttribute("aria-selected", "true");
+        contentBootstrap.style.display = "flex";
+      });
+      
+      btnDocker.addEventListener("click", () => {
+        resetTabs();
+        btnDocker.classList.add("active");
+        btnDocker.setAttribute("aria-selected", "true");
+        contentDocker.style.display = "flex";
+      });
+      
+      btnFossil.addEventListener("click", () => {
+        resetTabs();
+        btnFossil.classList.add("active");
+        btnFossil.setAttribute("aria-selected", "true");
+        contentFossil.style.display = "flex";
+      });
+      
+      // 2. Clipboard Copier Logic with Fallback and SVG Morphing
+      const toast = document.getElementById("toast-notification");
+      let toastTimeout = null;
+      
+      function triggerCopyToast() {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toast.classList.add("show");
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2500);
+      }
+      
+      function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        } else {
+          return new Promise((resolve, reject) => {
+            try {
+              const textArea = document.createElement("textarea");
+              textArea.value = text;
+              textArea.style.top = "0";
+              textArea.style.left = "0";
+              textArea.style.position = "fixed";
+              document.body.appendChild(textArea);
+              textArea.focus();
+              textArea.select();
+              const successful = document.execCommand('copy');
+              document.body.removeChild(textArea);
+              if (successful) {
+                resolve();
+              } else {
+                reject(new Error("execCommand failed"));
+              }
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }
+      }
+      
+      // Setup listeners for all copy buttons
+      const copyButtons = document.querySelectorAll(".code-btn-copy, [data-copy]");
+      copyButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          let textToCopy = "";
+          
+          if (btn.hasAttribute("data-copy")) {
+            textToCopy = btn.getAttribute("data-copy");
+          } else {
+            // Find sibling code text in container
+            const container = btn.closest(".code-container");
+            if (container) {
+              const body = container.querySelector(".code-body");
+              if (body) textToCopy = body.innerText;
+            }
+          }
+          
+          if (!textToCopy) return;
+          
+          const originalHTML = btn.innerHTML;
+          
+          copyToClipboard(textToCopy).then(() => {
+            // Morph Button to Green success checkmark SVG
+            btn.innerHTML = `
+              <svg style="width:14px;height:14px;color:var(--primary-green);" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+              <span style="color:var(--primary-green);">Copied</span>
+            `;
+            triggerCopyToast();
+            setTimeout(() => {
+              btn.innerHTML = originalHTML;
+            }, 2000);
+          }).catch(err => {
+            console.error("Copy failed:", err);
+            btn.textContent = "Error";
+            setTimeout(() => {
+              btn.innerHTML = originalHTML;
+            }, 2000);
+          });
+        });
+      });
+      
+      // 3. Command Reference matrix Search & Glow Text Highlighting
+      const searchInput = document.getElementById("command-search");
+      const cards = document.querySelectorAll("#matrix-deck .command-card");
+      
+      searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        cards.forEach(card => {
+          const cmdTextElement = card.querySelector(".cmd-badge");
+          const cmdOriginalText = card.getAttribute("data-cmd");
+          const cardText = card.innerText.toLowerCase();
+          
+          if (cardText.includes(query)) {
+            card.classList.remove("hidden");
+            
+            // Highlight match inside the badge
+            if (query && cmdTextElement && cmdOriginalText) {
+              const regex = new RegExp(`(${query})`, "gi");
+              const highlighted = cmdOriginalText.replace(regex, '<span class="search-highlight">$1</span>');
+              cmdTextElement.innerHTML = highlighted;
+            } else if (cmdTextElement && cmdOriginalText) {
+              cmdTextElement.textContent = cmdOriginalText;
+            }
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+      });
+
+      // ── Monorepo Schema Viewer Logic ───────────────────────────────────────
+      const schemaTabBtns = document.querySelectorAll(".schema-tab-btn");
+      const schemaPanes   = document.querySelectorAll(".schema-pane");
+
+      schemaTabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetId = "spane-" + btn.getAttribute("data-schema");
+
+          schemaTabBtns.forEach(b => {
+            b.classList.remove("active");
+            b.setAttribute("aria-selected", "false");
+          });
+          schemaPanes.forEach(p => p.classList.remove("active"));
+
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+          const pane = document.getElementById(targetId);
+          if (pane) pane.classList.add("active");
+        });
+      });
+
+      // Schema copy buttons (shared clipboard fallback)
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        }
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok ? Promise.resolve() : Promise.reject();
+      }
+
+      document.querySelectorAll(".schema-copy-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetEl = document.getElementById(btn.getAttribute("data-target"));
+          if (!targetEl) return;
+          const text = targetEl.textContent;
+          const origLabel = btn.textContent;
+          copyText(text).then(() => {
+            btn.textContent = "Copied! ✓";
+            btn.style.borderColor = "var(--accent-green)";
+            btn.style.color = "var(--accent-green)";
+            setTimeout(() => {
+              btn.textContent = origLabel;
+              btn.style.borderColor = "";
+              btn.style.color = "";
+            }, 2200);
+          }).catch(() => {
+            btn.textContent = "Error";
+            setTimeout(() => { btn.textContent = origLabel; }, 1500);
+          });
+        });
+      });
+
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniDebate Workstation - OmniSuite</title>
+  <meta name="description" content="Discover OmniDebate: the digital war room workstation. Designed for forensic auditing, speech timing, and local AI argument suggestions.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables & Core Design Tokens */
+    :root {
+      --bg-color: #040612;
+      --primary-cyan: #00f0ff;
+      --primary-cyan-rgb: 0, 240, 255;
+      --primary-purple: #8b5cf6;
+      --primary-purple-rgb: 139, 92, 246;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-orange: #f97316;
+      
+      --text-main: #cbd5e1;
+      --text-muted: #64748b;
+      --text-white: #ffffff;
+      
+      --card-bg: rgba(8, 12, 28, 0.75);
+      --card-border: rgba(255, 255, 255, 0.05);
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    
+    /* Floating Background Orbs */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
+    .orb-cyan {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-cyan);
+      top: 10%;
+      left: 10%;
+      animation: float-slow 24s infinite alternate ease-in-out;
+    }
+    .orb-purple {
+      width: 450px;
+      height: 450px;
+      background: var(--primary-purple);
+      bottom: 15%;
+      right: 15%;
+      animation: float-slow-reverse 28s infinite alternate ease-in-out;
+    }
+    
+    @keyframes float-slow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 40px) scale(1.1); }
+    }
+    @keyframes float-slow-reverse {
+      0% { transform: translate(0, 0) scale(1.1); }
+      100% { transform: translate(-70px, -50px) scale(0.9); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #03040a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.5);
+    }
+    
+    /* Precision 1px Border Gradient Panels */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    
+    .glass-panel:hover {
+      border-color: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 20px 45px rgba(0, 240, 255, 0.06);
+    }
+    
+    .glass-panel:hover::after {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+    }
+    
+    /* Content Layout */
+    main {
+      padding-top: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    
+    /* Header Section */
+    .product-header {
+      padding: 40px 24px;
+      margin-bottom: 30px;
+    }
+    
+    .product-header h1 {
+      font-size: 3.25rem;
+      font-weight: 800;
+      color: var(--text-white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .product-header h1 span {
+      background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 15px rgba(0, 240, 255, 0.2));
+    }
+    
+    .product-header p {
+      font-size: 1.15rem;
+      color: #94a3b8;
+      max-width: 850px;
+    }
+    
+    /* Dashboard Workspace */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 32px;
+      padding: 0 24px;
+      margin-bottom: 80px;
+      align-items: start;
+    }
+    
+    @media(max-width: 992px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Simulator Panel */
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary-cyan);
+      box-shadow: 0 0 8px var(--primary-cyan);
+    }
+    
+    .switcher-tabs {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-white);
+    }
+    
+    .tab-btn.active {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--primary-cyan);
+      color: var(--primary-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+    }
+    
+    .panel-body {
+      padding: 24px;
+      min-height: 480px;
+    }
+    
+    /* Flowsheet Columns styling */
+    .flowsheet-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    @media(max-width: 576px) {
+      .flowsheet-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .flow-col-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary-cyan);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+      padding-bottom: 6px;
+    }
+    
+    .flow-card {
+      background: rgba(2, 4, 10, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    
+    .flow-card:hover {
+      border-color: rgba(0, 240, 255, 0.2);
+      background: rgba(2, 4, 10, 0.5);
+    }
+    
+    .flow-card.active {
+      border-color: var(--primary-cyan);
+      background: rgba(0, 240, 255, 0.03);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+    }
+    
+    .flow-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--primary-purple);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    
+    .flow-heading {
+      font-weight: 700;
+      color: var(--text-white);
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+    
+    .flow-desc {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    
+    /* Recommendations Content styling */
+    .recs-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .rec-item {
+      background: rgba(139, 92, 246, 0.03);
+      border: 1px solid rgba(139, 92, 246, 0.12);
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: var(--transition-smooth);
+    }
+    
+    .rec-item:hover {
+      background: rgba(139, 92, 246, 0.06);
+      border-color: rgba(139, 92, 246, 0.25);
+    }
+    
+    .rec-icon {
+      font-size: 1.5rem;
+      filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.3));
+    }
+    
+    .rec-title {
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+    
+    .rec-desc {
+      font-size: 0.88rem;
+      color: #94a3b8;
+    }
+    
+    /* Dynamic Circular SVG Timer Widget */
+    .timer-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .timer-card {
+      padding: 36px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    
+    .timer-container-svg {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 10px;
+    }
+    
+    .timer-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+    
+    .timer-circle-bg {
+      stroke: rgba(255, 255, 255, 0.03);
+      stroke-width: 6;
+      fill: none;
+    }
+    
+    .timer-circle-fg {
+      stroke: var(--primary-cyan);
+      stroke-width: 6;
+      stroke-dasharray: 502.6; /* 2 * PI * r (r=80) */
+      stroke-dashoffset: 0;
+      stroke-linecap: round;
+      fill: none;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+    }
+    
+    .timer-text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+    }
+    
+    .timer-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 1.5px;
+      margin-bottom: 2px;
+      transition: color 0.3s ease;
+    }
+    
+    .timer-badge.active-mode {
+      color: var(--accent-green);
+    }
+    
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-white);
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+    
+    .timer-display.alerting {
+      color: var(--accent-red);
+      animation: pulse-alert 0.5s infinite alternate ease-in-out;
+    }
+    
+    @keyframes pulse-alert {
+      0% { opacity: 0.6; transform: scale(0.97); }
+      100% { opacity: 1; transform: scale(1.03); }
+    }
+    
+    .timer-controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .timer-btn-control {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-white);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    
+    .timer-btn-control:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    .timer-btn-control.play {
+      background: linear-gradient(135deg, var(--primary-cyan) 0%, #00b0ff 100%);
+      color: #020617;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+    }
+    
+    .timer-btn-control.play:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+    }
+    
+    /* Argument Inspector Card (Right Pane) */
+    .inspector-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 250px;
+    }
+    
+    .inspector-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary-purple);
+      border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+      padding-bottom: 6px;
+    }
+    
+    .inspector-title {
+      font-weight: 800;
+      color: var(--text-white);
+      font-size: 1.1rem;
+    }
+    
+    .inspector-cite {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--primary-cyan);
+      background: rgba(0, 240, 255, 0.04);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    
+    .inspector-body {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    
+    .inspector-meta {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    
+    .inspector-meta strong {
+      color: var(--text-white);
+    }
+    
+    /* Specs Details */
+    .details-section {
+      padding: 0 24px;
+    }
+    
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+    
+    .details-card {
+      padding: 30px;
+    }
+    
+    .details-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 12px;
+    }
+    
+    .details-card p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      background: rgba(2, 4, 10, 0.9);
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 80px;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      list-style: none;
+    }
+    
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary-cyan);
+    }
+    /* Navigation Notice */
+    .nav-notice {
+      background: rgba(0, 240, 255, 0.02);
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 30px;
+      max-width: 1200px;
+      width: calc(100% - 48px);
+      box-sizing: border-box;
+      animation: pulse-notice 3s infinite alternate ease-in-out;
+    }
+    .nav-notice-icon { font-size: 1.15rem; filter: drop-shadow(0 0 4px rgba(0,240,255,0.5)); }
+    .nav-notice-text { font-size: 0.85rem; color: #94a3b8; font-weight: 400; }
+    .nav-notice-text strong { color: var(--primary-cyan); }
+    @keyframes pulse-notice {
+      0% { border-color: rgba(0,240,255,0.2); box-shadow: 0 0 10px rgba(0,240,255,0.02); }
+      100% { border-color: rgba(0,240,255,0.4); box-shadow: 0 0 15px rgba(0,240,255,0.06); }
+    }
+
+    /* Speech Config Panel */
+    .speech-config-section {
+      padding: 0 24px;
+      margin-bottom: 80px;
+    }
+    .speech-config-card {
+      padding: 44px;
+    }
+    .speech-style-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 28px 0 36px;
+    }
+    .style-tab-btn {
+      padding: 10px 22px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.02);
+      color: #94a3b8;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .style-tab-btn.active {
+      border-color: var(--primary-cyan);
+      color: var(--primary-cyan);
+      background: rgba(0,240,255,0.05);
+      box-shadow: 0 0 12px rgba(0,240,255,0.1);
+    }
+    .style-tab-btn:hover:not(.active) {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text-white);
+    }
+    .speech-specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .speech-spec-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+    .speech-spec-key {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .speech-spec-val {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+    .speech-cli-output {
+      background: #020308;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 18px 22px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: #7dd3fc;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-top: 20px;
+    }
+    .speech-cli-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glowing Animated Backdrop Orbs -->
+  <div class="glow-orb orb-cyan"></div>
+  <div class="glow-orb orb-purple"></div>
+
+  <!-- Navigation header removed for Google Sites compatibility -->
+
+  <!-- Main Content Container -->
+  <main id="main-content">
+
+    <!-- Navigation Warning Notice -->
+    <div class="nav-notice" role="note">
+      <span class="nav-notice-icon">💡</span>
+      <span class="nav-notice-text">Use the <strong>Google Sites top navigation menu</strong> to switch between workstation pages. Scroll up if the menu is not visible.</span>
+    </div>
+    
+    <!-- Product Header -->
+    <section class="product-header" aria-labelledby="page-title">
+      <h1 id="page-title">🏛️ Omni<span>Debate</span></h1>
+      <p>The strategic debate workstation designed for real-time tournament forensics. OmniDebate combines a multi-panel visual grid system, SQLite database card vaults, and local Ollama-powered AI argument auditing in a high-fidelity terminal environment.</p>
+    </section>
+
+    <!-- Workspace Dashboard Grid -->
+    <section class="dashboard-container" aria-label="Workstation Dashboard Simulator">
+      <!-- Left Glass Box (Switcher Panels) -->
+      <article class="glass-panel" id="dashboard-simulator">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="badge-dot"></span>
+            Forensic Flowsheet Matrix
+          </div>
+          <div class="switcher-tabs">
+            <button class="tab-btn active" id="tab-flowsheet" aria-selected="true">Flowsheet View</button>
+            <button class="tab-btn" id="tab-recs" aria-selected="false">AI Auditor Recommendations</button>
+          </div>
+        </div>
+        
+        <div class="panel-body">
+          <!-- Flowsheet Contents -->
+          <div class="flowsheet-content" id="flowsheet-view">
+            <!-- 1AC Column -->
+            <div class="flow-col">
+              <div class="flow-col-title">Affirmative (1AC)</div>
+              
+              <div class="flow-card active" id="flow-epa-caps" data-title="EPA Manufacturing Caps" data-cite="Hanson '26 (Jane, Journal of Debate, vol. 12, no. 3)" data-body="Current federal EPA models are critically insufficient to hit target 2030 threshold limits without mandatory caps on heavy industrial manufacturing sectors." data-status="solvency" data-cx="Opponents have no direct evidence of credit validation in 2026. Focus heavily on audit leaks.">
+                <div class="flow-tag">[Solvency - Climate Caps]</div>
+                <div class="flow-heading">EPA Manufacturing Caps</div>
+                <div class="flow-desc">Current federal EPA models are critically insufficient to hit target 2030 threshold limits...</div>
+              </div>
+              
+              <div class="flow-card" id="flow-coral" data-title="Coral Reef Bleaching Collapse" data-cite="NASA Oceans '25 (Global Thermal Indices Report)" data-body="Sea surface temperature anomalies exceed 1.8C baseline threshold. Induces global reef system bleachings and collapse of coastal ecologies." data-status="harms" data-cx="Point out their carbon credit CP has a 5-year lag time before solvency starts, which exceeds this tipping point.">
+                <div class="flow-tag">[Harms - Biodiversity]</div>
+                <div class="flow-heading">Coral Reef Bleaching Collapse</div>
+                <div class="flow-desc">Sea surface temperature anomalies exceed 1.8C baseline threshold. Induces global reef collapse...</div>
+              </div>
+            </div>
+            
+            <!-- 1NC Column -->
+            <div class="flow-col">
+              <div class="flow-col-title">Negative (1NC)</div>
+              
+              <div class="flow-card" id="flow-jobs" data-title="Manufacturing Sector Downturn" data-cite="Bureau of Commerce '26 (Industrial Output Analysis)" data-body="Rigid caps force steel and heavy manufacturing sectors to relocate offshore. Results in domestic job loss and increases leakage emissions." data-status="disadvantage" data-cx="Challenge their labor relocation timeline. Relocation takes years; our carbon credits counterplan saves jobs immediately.">
+                <div class="flow-tag">[Disadv - Economic Leakage]</div>
+                <div class="flow-heading">Manufacturing Sector Downturn</div>
+                <div class="flow-desc">Rigid caps force steel and heavy manufacturing sectors to relocate offshore, resulting in jobs relocations...</div>
+              </div>
+              
+              <div class="flow-card" id="flow-credits" data-title="Decentralized Carbon Credits" data-cite="Stanford Climate Tech '25 (Market Incentives Project)" data-body="A decentralized market-based trading ledger incentivizes grids to deploy clean storage capacity via credit rewards, avoiding federal limits." data-status="counterplan" data-cx="Aff CP has zero market incentive. Press them on how they will police industrial emissions without a blockchain ledger.">
+                <div class="flow-tag">[Counterplan - Market Ledger]</div>
+                <div class="flow-heading">Decentralized Carbon Credits</div>
+                <div class="flow-desc">A decentralized market-based trading ledger incentivizes grids to deploy clean storage...</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- AI Recommendations Contents (Hidden by default) -->
+          <div class="recs-content" id="recs-view" style="display: none;">
+            <div class="rec-item">
+              <span class="rec-icon">💡</span>
+              <div>
+                <div class="rec-title">Cross-Ex Audit Recommendation</div>
+                <div class="rec-desc">Ask the affirmative if their federal caps model accommodates grid congestion studies by [Hanson '24]. Present contradiction in solar distribution timelines.</div>
+              </div>
+            </div>
+            
+            <div class="rec-item">
+              <span class="rec-icon">⚡</span>
+              <div>
+                <div class="rec-title">Suggested Vault Card Load</div>
+                <div class="rec-desc">Load database card `[Decentralization CP - Response 3]` from `debates/vault.db` to argue that carbon credits are prone to hyper-inflation and oversight failure.</div>
+              </div>
+            </div>
+            
+            <div class="rec-item">
+              <span class="rec-icon">🧠</span>
+              <div>
+                <div class="rec-title">Local Ollama Analysis (Llama 3)</div>
+                <div class="rec-desc">Negative CP relies on market solvency. Ask for historical baseline indices. None of the negative citations offer evidence of structural carbon declines from trade credits alone.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right Panel: Timer & Inspector Stack -->
+      <section class="timer-panel" aria-label="Control & Inspector Stack">
+        <!-- SVG Circular Timer Widget -->
+        <article class="glass-panel timer-card" id="timer-widget">
+          <div class="timer-container-svg">
+            <svg class="timer-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="80" class="timer-circle-bg"></circle>
+              <circle cx="100" cy="100" r="80" class="timer-circle-fg" id="timer-progress"></circle>
+            </svg>
+            <div class="timer-text-overlay">
+              <div class="timer-badge" id="timer-badge-text">Constructive</div>
+              <div class="timer-display" id="timer-clock">04:00</div>
+            </div>
+          </div>
+          
+          <div class="timer-controls">
+            <button class="timer-btn-control play" id="timer-toggle-btn">Start</button>
+            <button class="timer-btn-control" id="timer-reset-btn">Reset</button>
+          </div>
+        </article>
+
+        <!-- Dynamic Card Inspector -->
+        <article class="glass-panel inspector-card" id="inspector-panel" aria-label="Card Evidence Inspector">
+          <div class="inspector-label">Evidence Inspector</div>
+          <div id="inspector-content">
+            <h3 class="inspector-title" id="insp-title">EPA Manufacturing Caps</h3>
+            <div style="margin: 8px 0 12px;">
+              <span class="inspector-cite" id="insp-cite">Hanson '26 (Jane, Journal of Debate, vol. 12, no. 3)</span>
+            </div>
+            <p class="inspector-body" id="insp-body">Current federal EPA models are critically insufficient to hit target 2030 threshold limits without mandatory caps on heavy industrial manufacturing sectors.</p>
+            <div class="inspector-meta" style="margin-top: 14px;">
+              <div><strong>Vault Status:</strong> Verified SQLite Registry</div>
+              <div style="margin-top: 4px;"><strong>CX Advice:</strong> <span id="insp-advice">Opponents have no direct evidence of credit validation in 2026. Focus heavily on audit leaks.</span></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <!-- Workstation Specifications Details -->
+    <section class="details-section" aria-labelledby="details-title">
+      <h2 class="section-title" id="details-title">Engineered Forensic Features</h2>
+      
+      <div class="details-grid">
+        <article class="glass-panel details-card" aria-labelledby="audit-title">
+          <h3 id="audit-title">🔍 Forensic Audit Trail</h3>
+          <p>Logs every action, speech transcript, and card load. Retain full accountability for tournament strategy adjustments and review timelines after matches.</p>
+        </article>
+        
+        <article class="glass-panel details-card" aria-labelledby="sqlite-title">
+          <h3 id="sqlite-title">🗄️ SQLite Database Vault</h3>
+          <p>A centralized SQL repository storing tournament cards, taglines, and citations. Connected directly to OmniFormat for automatic card assembly.</p>
+        </article>
+        
+        <article class="glass-panel details-card" aria-labelledby="ollama-title">
+          <h3 id="ollama-title">🤖 Ollama Integration</h3>
+          <p>Coordinates with a local Ollama model to generate cross-examination questions and evaluate arguments without sending data to external clouds.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Interactive Speech Configuration Panel -->
+    <section class="speech-config-section" aria-labelledby="speech-config-title">
+      <div class="glass-panel speech-config-card">
+        <h2 class="section-title" id="speech-config-title" style="text-align:left; margin-bottom: 6px; font-size: 1.8rem;">🎙️ Debate Format Configurator</h2>
+        <p style="color: #94a3b8; font-size: 0.95rem;">Select your tournament format below. The configurator generates real-time speech round specs and the matching CLI bootstrap command for <code style="color:var(--primary-cyan);">python3 omnisuite --app debate</code>.</p>
+
+        <div class="speech-style-tabs" role="tablist" aria-label="Debate Format Selector">
+          <button class="style-tab-btn active" id="dstyle-policy" role="tab" aria-selected="true" data-style="policy">Policy (CX)</button>
+          <button class="style-tab-btn" id="dstyle-ld" role="tab" aria-selected="false" data-style="ld">Lincoln-Douglas</button>
+          <button class="style-tab-btn" id="dstyle-pf" role="tab" aria-selected="false" data-style="pf">Public Forum</button>
+          <button class="style-tab-btn" id="dstyle-ws" role="tab" aria-selected="false" data-style="ws">World Schools</button>
+        </div>
+
+        <div class="speech-specs-grid" id="speech-specs-display">
+          <!-- Populated by JS -->
+        </div>
+
+        <div>
+          <div class="speech-cli-label">Bootstrap Command:</div>
+          <div class="speech-cli-output" id="speech-cli-out" aria-live="polite">&gt; python3 omnisuite --app debate --format policy --prep 8 --speech 8:00</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 OmniSuite. Locally managed serverless repository. Built for the Digital Grandmaster.</p>
+  </footer>
+
+  <!-- Script for Switcher, SVG Circular Timer & Flowsheet Inspector -->
+  <script>
+    function init() {
+      // 1. Tab Switcher Logic
+      const tabFlowsheet = document.getElementById("tab-flowsheet");
+      const tabRecs = document.getElementById("tab-recs");
+      const flowsheetView = document.getElementById("flowsheet-view");
+      const recsView = document.getElementById("recs-view");
+      
+      tabFlowsheet.addEventListener("click", () => {
+        tabFlowsheet.classList.add("active");
+        tabFlowsheet.setAttribute("aria-selected", "true");
+        tabRecs.classList.remove("active");
+        tabRecs.setAttribute("aria-selected", "false");
+        
+        flowsheetView.style.display = "grid";
+        recsView.style.display = "none";
+      });
+      
+      tabRecs.addEventListener("click", () => {
+        tabRecs.classList.add("active");
+        tabRecs.setAttribute("aria-selected", "true");
+        tabFlowsheet.classList.remove("active");
+        tabFlowsheet.setAttribute("aria-selected", "false");
+        
+        flowsheetView.style.display = "none";
+        recsView.style.display = "flex";
+      });
+      
+      // 2. Flowsheet Inspector Panel Logic
+      const flowCards = document.querySelectorAll(".flow-card");
+      const inspTitle = document.getElementById("insp-title");
+      const inspCite = document.getElementById("insp-cite");
+      const inspBody = document.getElementById("insp-body");
+      const inspAdvice = document.getElementById("insp-advice");
+      
+      flowCards.forEach(card => {
+        card.addEventListener("click", () => {
+          // Reset active class
+          flowCards.forEach(c => c.classList.remove("active"));
+          card.classList.add("active");
+          
+          // Populate inspector values
+          inspTitle.textContent = card.getAttribute("data-title");
+          inspCite.textContent = card.getAttribute("data-cite");
+          inspBody.textContent = card.getAttribute("data-body");
+          inspAdvice.textContent = card.getAttribute("data-cx");
+          
+          // Animation trigger on inspector
+          const panel = document.getElementById("inspector-panel");
+          panel.style.transform = "scale(0.98)";
+          setTimeout(() => {
+            panel.style.transform = "scale(1)";
+          }, 100);
+        });
+      });
+      
+      // 3. Circular Countdown SVG Timer Logic
+      const timerClock = document.getElementById("timer-clock");
+      const toggleBtn = document.getElementById("timer-toggle-btn");
+      const resetBtn = document.getElementById("timer-reset-btn");
+      const timerProgress = document.getElementById("timer-progress");
+      const badgeText = document.getElementById("timer-badge-text");
+      
+      const totalDuration = 240; // 4 minutes (240s)
+      let timerSeconds = 240;
+      let timerInterval = null;
+      const strokeMax = 502.6; // 2 * PI * r (r=80)
+      
+      function updateTimerDisplay() {
+        const minutes = Math.floor(timerSeconds / 60);
+        const seconds = timerSeconds % 60;
+        timerClock.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Update SVG circle stroke dashoffset
+        const offset = strokeMax - (timerSeconds / totalDuration) * strokeMax;
+        timerProgress.style.strokeDashoffset = offset;
+        
+        // Dynamic Alert colors when time is low (<30s)
+        if (timerSeconds < 30) {
+          timerProgress.style.stroke = "var(--accent-red)";
+          badgeText.style.color = "var(--accent-red)";
+          badgeText.textContent = "Low Time";
+        } else {
+          timerProgress.style.stroke = "var(--primary-cyan)";
+          badgeText.style.color = "#64748b";
+          badgeText.textContent = "Constructive";
+        }
+      }
+      
+      function playAlertSound() {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const times = [0, 0.25, 0.5];
+          times.forEach((delay) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime + delay);
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+            gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + delay + 0.02);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + delay + 0.18);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + 0.25);
+          });
+        } catch (e) {
+          console.warn("Audio Context blocked or unsupported:", e);
+        }
+      }
+      
+      toggleBtn.addEventListener("click", () => {
+        if (timerInterval) {
+          // Pause timer
+          clearInterval(timerInterval);
+          timerInterval = null;
+          toggleBtn.textContent = "Start";
+          toggleBtn.classList.add("play");
+          badgeText.classList.remove("active-mode");
+        } else {
+          // Start timer
+          if (timerSeconds <= 0) return;
+          toggleBtn.textContent = "Pause";
+          toggleBtn.classList.remove("play");
+          badgeText.classList.add("active-mode");
+          
+          timerInterval = setInterval(() => {
+            timerSeconds--;
+            updateTimerDisplay();
+            
+            if (timerSeconds <= 0) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+              toggleBtn.textContent = "Start";
+              toggleBtn.classList.add("play");
+              timerClock.classList.add("alerting");
+              badgeText.classList.remove("active-mode");
+              playAlertSound();
+            }
+          }, 1000);
+        }
+      });
+      
+      resetBtn.addEventListener("click", () => {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        timerSeconds = 240;
+        updateTimerDisplay();
+        toggleBtn.textContent = "Start";
+        toggleBtn.classList.add("play");
+        timerClock.classList.remove("alerting");
+        badgeText.classList.remove("active-mode");
+      });
+      
+      updateTimerDisplay();
+
+      // ── Speech Configuration Panel Logic ──────────────────────────────────
+      const DEBATE_FORMATS = {
+        policy: {
+          label: "Policy (Cross-Examination)",
+          totalSpeeches: "8 speeches",
+          prepAff: "8 min",  prepNeg: "8 min",
+          crossex: "3:00 per speaker",
+          longestSpeech: "8:00",
+          noteStyle: "High card density — load SQLite vault before round",
+          cli: "python3 omnisuite --app debate --format policy --prep 8 --speech 8:00"
+        },
+        ld: {
+          label: "Lincoln-Douglas",
+          totalSpeeches: "5 speeches",
+          prepAff: "4 min", prepNeg: "3 min",
+          crossex: "3:00 × 2 rounds",
+          longestSpeech: "7:00 (NC)",
+          noteStyle: "Value-criterion framing — prioritize philosophy cards",
+          cli: "python3 omnisuite --app debate --format ld --prep 4 --speech 6:00"
+        },
+        pf: {
+          label: "Public Forum",
+          totalSpeeches: "8 speeches + 3 crossfires",
+          prepAff: "3 min", prepNeg: "3 min",
+          crossex: "3:00 Crossfire × 3",
+          longestSpeech: "4:00",
+          noteStyle: "Concise evidence — tag lines must be ≤ 1 sentence",
+          cli: "python3 omnisuite --app debate --format pf --prep 3 --speech 4:00"
+        },
+        ws: {
+          label: "World Schools",
+          totalSpeeches: "8 speeches + Reply",
+          prepAff: "None", prepNeg: "None",
+          crossex: "Points of Information (POI)",
+          longestSpeech: "8:00",
+          noteStyle: "Matter/Manner/Method judging — use rhetorical highlights",
+          cli: "python3 omnisuite --app debate --format ws --poi-mode true --speech 8:00"
+        }
+      };
+
+      const styleTabBtns = document.querySelectorAll(".style-tab-btn");
+      const speechSpecsDisplay = document.getElementById("speech-specs-display");
+      const speechCliOut = document.getElementById("speech-cli-out");
+
+      function renderDebateFormat(formatKey) {
+        const fmt = DEBATE_FORMATS[formatKey];
+        if (!fmt) return;
+        const specs = [
+          { key: "Format",              val: fmt.label },
+          { key: "Total Speeches",      val: fmt.totalSpeeches },
+          { key: "Prep (Aff/Gov)",       val: fmt.prepAff },
+          { key: "Prep (Neg/Opp)",       val: fmt.prepNeg },
+          { key: "Cross-Examination",   val: fmt.crossex },
+          { key: "Longest Speech",      val: fmt.longestSpeech },
+          { key: "Card Note Style",     val: fmt.noteStyle }
+        ];
+        speechSpecsDisplay.innerHTML = specs.map(s =>
+          `<div class="speech-spec-item">
+            <div class="speech-spec-key">${s.key}</div>
+            <div class="speech-spec-val">${s.val}</div>
+          </div>`
+        ).join("");
+        speechCliOut.textContent = `> ${fmt.cli}`;
+      }
+
+      styleTabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          styleTabBtns.forEach(b => {
+            b.classList.remove("active");
+            b.setAttribute("aria-selected", "false");
+          });
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+          renderDebateFormat(btn.getAttribute("data-style"));
+        });
+      });
+
+      renderDebateFormat("policy");
+
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
