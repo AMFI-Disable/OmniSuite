@@ -49,25 +49,26 @@ OmniSuite is built for immediate deployment. No manual environment configuration
 
 ---
 
-## ✦ Local Version Control (Fossil)
+## ✦ Version Control (GitHub)
 
-OmniSuite is configured with **Fossil** for self-contained, serverless version control. History is preserved locally in a single-file database (`../.omnisuite.fossil`) with no online accounts needed.
+OmniSuite is hosted on **GitHub** at [`amfi-disable/OmniSuite`](https://github.com/amfi-disable/OmniSuite). Commit messages follow the **conventional commits** format (`type:summary`, all lowercase).
 
 * **Check Status**: See modified or untracked files:
   ```bash
-  fossil status
+  git status
   ```
 * **View Diffs**: Inspect changes in files:
   ```bash
-  fossil diff
+  git diff
   ```
-* **Record Changes**: Commit modifications to the local database:
+* **Record Changes**: Stage and commit modifications:
   ```bash
-  fossil commit -m "Your commit message"
+  git add .
+  git commit -m "type:summary of changes"
   ```
-* **Interactive Dashboard**: Spin up the local web-based timeline, wiki, and ticket manager:
+* **Push to GitHub**:
   ```bash
-  fossil ui
+  git push origin main
   ```
 
 ---
