@@ -2,7 +2,7 @@ services:
   omnisuite:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: omnisuite_app
     # Enable interactive terminal for Textual TUI interface
     stdin_open: true
