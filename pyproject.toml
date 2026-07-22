@@ -1,11 +1,94 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "omnisuite"
 version = "1.0.0"
-description = "OmniSuite monorepo for elite forensic tools"
+description = "OmniSuite — Digital Grandmaster Ecosystem for competitive forensicians and debaters"
+readme = "readme.md"
+license = "MIT"
 requires-python = ">=3.9"
-dependencies = []
+authors = [
+    { name = "OmniSuite Contributors" },
+]
+keywords = [
+    "debate", "forensics", "tui", "textual", "terminal",
+    "evidence", "cards", "oracle", "brief", "competitive-speech",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Framework :: Textual",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Education",
+    "Topic :: Text Processing :: Markup",
+    "Typing :: Typed",
+]
+dependencies = [
+    "textual>=0.80.0",
+    "rich>=13.0.0",
+    "requests>=2.28.0",
+    "beautifulsoup4>=4.12.0",
+    "pyyaml>=6.0",
+    "alembic>=1.10.0",
+    "sqlalchemy>=2.0.0",
+    "python-docx>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "types-requests",
+    "types-PyYAML",
+    "types-beautifulsoup4",
+    "build",
+]
+
+[project.urls]
+Homepage = "https://github.com/amfi-disable/OmniSuite"
+Documentation = "https://github.com/amfi-disable/OmniSuite#readme"
+Repository = "https://github.com/amfi-disable/OmniSuite"
+Issues = "https://github.com/amfi-disable/OmniSuite/issues"
+Changelog = "https://github.com/amfi-disable/OmniSuite/blob/main/changelog.md"
+
+[project.scripts]
+omnisuite = "omnisuite.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/omnisuite",
+    "src/omnishared/src/omnishared",
+    "src/omnidebate/src/omnidebate",
+    "src/omniformat/src/omniformat",
+]
 
 [tool.uv.workspace]
 members = [
-    "src/*"
+    "src/*",
 ]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
