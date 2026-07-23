@@ -1,0 +1,284 @@
+/* ═══════════════════════════════════════════════════════════════
+   OmniSuite Nord Theme
+   Arctic, blue-gray palette inspired by Nord Color Scheme.
+   Palette: Polar Night, Snow Storm, Frost, Aurora.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens (Nord Palette) ── */
+/* Polar Night */
+$nord0: #2e3440;
+$nord1: #3b4252;
+$nord2: #434c5e;
+$nord3: #4c566a;
+/* Snow Storm */
+$nord4: #d8dee9;
+$nord5: #e5e9f0;
+$nord6: #eceff4;
+/* Frost */
+$nord7: #8fbcbb;
+$nord8: #88c0d0;
+$nord9: #81a1c1;
+$nord10: #5e81ac;
+/* Aurora */
+$nord11: #bf616a;
+$nord12: #d08770;
+$nord13: #ebcb8b;
+$nord14: #a3be8c;
+$nord15: #b48ead;
+
+/* Semantic Aliases */
+$primary: $nord8;
+$accent: $nord9;
+$danger: $nord11;
+$warning: $nord13;
+$success: $nord14;
+$background: $nord0;
+$surface: $nord1;
+$surface-elevated: $nord2;
+$border: $nord3;
+$text-primary: $nord6;
+$text-secondary: $nord4;
+$text-muted: $nord3;
+
+/* ── Global Screen Defaults ── */
+Screen {
+    background: $background;
+    color: $text-primary;
+}
+
+/* ── Header & Footer ── */
+Header {
+    background: $surface;
+    color: $text-primary;
+    dock: top;
+    height: 1;
+    border-bottom: solid $border;
+}
+
+Footer {
+    background: $surface;
+    color: $text-secondary;
+    dock: bottom;
+    height: 1;
+    border-top: solid $border;
+}
+
+/* ── DataTable ── */
+DataTable {
+    background: $surface;
+    color: $text-primary;
+    border: solid $border;
+}
+
+DataTable > .datatable--cursor {
+    background: $nord10;
+    color: $nord6;
+}
+
+DataTable > .datatable--header {
+    background: $surface-elevated;
+    color: $nord8;
+    text-style: bold;
+}
+
+/* ── Buttons ── */
+Button {
+    background: $surface-elevated;
+    color: $text-primary;
+    border: tall $border;
+    min-width: 10;
+    height: 3;
+}
+
+Button:hover {
+    background: $nord3;
+    color: $nord6;
+    border: tall $primary;
+}
+
+Button:focus {
+    border: tall $primary;
+    text-style: bold;
+}
+
+Button.-primary {
+    background: $nord10;
+    color: $nord6;
+    border: tall $nord10;
+}
+
+Button.-primary:hover {
+    background: $nord9;
+    color: $nord6;
+}
+
+/* ── Input & TextArea ── */
+Input {
+    background: $surface;
+    color: $text-primary;
+    border: tall $border;
+}
+
+Input:focus {
+    border: tall $primary;
+}
+
+Input.-invalid {
+    border: tall $danger;
+}
+
+/* ── Labels & Static ── */
+Label {
+    color: $text-primary;
+}
+
+Static {
+    color: $text-primary;
+}
+
+/* ── Vertical Navigation Ribbon ── */
+#side-ribbon {
+    width: 10;
+    height: 1fr;
+    background: $background;
+    border-right: solid $border;
+    align: center top;
+    padding: 1 0;
+}
+
+.ribbon-btn {
+    min-width: 8;
+    width: 8;
+    height: 4;
+    margin: 1 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: $text-muted;
+    text-align: center;
+    content-align: center middle;
+}
+
+.ribbon-btn:hover {
+    color: $primary;
+    background: $primary 10%;
+}
+
+/* ── Tier Indicators ── */
+.tier-5 { color: $nord13; text-style: bold italic underline; }
+.tier-4 { color: $nord14; text-style: bold; }
+.tier-3 { color: $nord9; }
+.tier-2 { color: $text-secondary; }
+.tier-1 { color: $text-muted; text-style: dim; }
+
+/* ── HUD Groups ── */
+.hud-group {
+    border: solid $border;
+    background: $surface;
+    margin: 1 0;
+    padding: 0 1;
+    height: auto;
+}
+
+.hud-group-label {
+    text-style: bold;
+    color: $primary;
+    background: $primary 10%;
+    width: 100%;
+    padding: 0 1;
+}
+
+.bar-critical { color: $danger; text-style: bold; }
+.bar-caution  { color: $warning; }
+.bar-optimal  { color: $primary; text-style: bold; }
+
+.hidden { display: none; }
+
+/* ── SystemLog ── */
+SystemLog {
+    height: 10;
+    border: thick $nord10;
+    background: $background;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    color: $nord4;
+}
+
+.log-header {
+    text-align: center;
+    text-style: bold;
+    background: $surface;
+    color: $primary;
+    width: 100%;
+    border-left: thick $nord10;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+.log-content {
+    padding: 0 1;
+    color: $nord4;
+}
+
+/* ── QuickNotes ── */
+QuickNotes {
+    height: 1fr;
+    min-height: 12;
+    border: thick $nord10;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    background: $background;
+    transition: border 200ms;
+}
+
+QuickNotes.notes-saving {
+    border: thick $nord8;
+}
+
+QuickNotes Label {
+    text-align: center;
+    text-style: bold;
+    background: $surface;
+    color: $primary;
+    width: 100%;
+    border-left: thick $nord10;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+QuickNotes TextArea {
+    height: 1fr;
+    background: transparent;
+    border: none;
+    color: $text-primary;
+}
+
+/* ── Modal Overlay Patterns ── */
+.modal-overlay {
+    align: center middle;
+    background: $background 70%;
+}
+
+.modal-dialog {
+    width: 85;
+    height: auto;
+    max-height: 46;
+    background: $surface;
+    border: thick $nord10;
+    padding: 1 2;
+}
+
+.modal-title {
+    text-align: center;
+    text-style: bold;
+    background: $nord10;
+    color: $nord6;
+    margin-bottom: 1;
+    width: 100%;
+}
+
+.modal-footer {
+    align: center middle;
+    height: 3;
+    margin-top: 1;
+}

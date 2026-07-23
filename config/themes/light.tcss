@@ -1,0 +1,261 @@
+/* ═══════════════════════════════════════════════════════════════
+   OmniSuite Light Theme
+   Clean, high-contrast light design for bright environments.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+$primary: #059669;
+$accent: #4f46e5;
+$danger: #dc2626;
+$warning: #d97706;
+$success: #16a34a;
+$background: #f8fafc;
+$surface: #ffffff;
+$surface-elevated: #f1f5f9;
+$border: #cbd5e1;
+$text-primary: #0f172a;
+$text-secondary: #475569;
+$text-muted: #94a3b8;
+
+/* ── Global Screen Defaults ── */
+Screen {
+    background: $background;
+    color: $text-primary;
+}
+
+/* ── Header & Footer ── */
+Header {
+    background: $surface;
+    color: $text-primary;
+    dock: top;
+    height: 1;
+    border-bottom: solid $border;
+}
+
+Footer {
+    background: $surface;
+    color: $text-secondary;
+    dock: bottom;
+    height: 1;
+    border-top: solid $border;
+}
+
+/* ── DataTable ── */
+DataTable {
+    background: $surface;
+    color: $text-primary;
+    border: solid $border;
+}
+
+DataTable > .datatable--cursor {
+    background: #dbeafe;
+    color: $text-primary;
+}
+
+DataTable > .datatable--header {
+    background: $surface-elevated;
+    color: $text-primary;
+    text-style: bold;
+}
+
+/* ── Buttons ── */
+Button {
+    background: $surface-elevated;
+    color: $text-primary;
+    border: tall $border;
+    min-width: 10;
+    height: 3;
+}
+
+Button:hover {
+    background: #e2e8f0;
+    color: $text-primary;
+    border: tall $primary;
+}
+
+Button:focus {
+    border: tall $primary;
+    text-style: bold;
+}
+
+Button.-primary {
+    background: $primary;
+    color: #ffffff;
+    border: tall $primary;
+}
+
+Button.-primary:hover {
+    background: #047857;
+    color: #ffffff;
+}
+
+/* ── Input & TextArea ── */
+Input {
+    background: $surface;
+    color: $text-primary;
+    border: tall $border;
+}
+
+Input:focus {
+    border: tall $primary;
+}
+
+Input.-invalid {
+    border: tall $danger;
+}
+
+/* ── Labels & Static ── */
+Label {
+    color: $text-primary;
+}
+
+Static {
+    color: $text-primary;
+}
+
+/* ── Vertical Navigation Ribbon ── */
+#side-ribbon {
+    width: 10;
+    height: 1fr;
+    background: $surface;
+    border-right: solid $border;
+    align: center top;
+    padding: 1 0;
+}
+
+.ribbon-btn {
+    min-width: 8;
+    width: 8;
+    height: 4;
+    margin: 1 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: $text-muted;
+    text-align: center;
+    content-align: center middle;
+}
+
+.ribbon-btn:hover {
+    color: $primary;
+    background: $primary 8%;
+}
+
+/* ── Tier Indicators ── */
+.tier-5 { color: $warning; text-style: bold italic underline; }
+.tier-4 { color: $primary; text-style: bold; }
+.tier-3 { color: #2563eb; }
+.tier-2 { color: $text-secondary; }
+.tier-1 { color: $text-muted; text-style: dim; }
+
+/* ── HUD Groups ── */
+.hud-group {
+    border: solid $border;
+    background: $surface;
+    margin: 1 0;
+    padding: 0 1;
+    height: auto;
+}
+
+.hud-group-label {
+    text-style: bold;
+    color: $primary;
+    background: $surface-elevated;
+    width: 100%;
+    padding: 0 1;
+}
+
+.bar-critical { color: $danger; text-style: bold; }
+.bar-caution  { color: $warning; }
+.bar-optimal  { color: $primary; text-style: bold; }
+
+.hidden { display: none; }
+
+/* ── SystemLog ── */
+SystemLog {
+    height: 10;
+    border: thick $primary;
+    background: $surface;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    color: $text-secondary;
+}
+
+.log-header {
+    text-align: center;
+    text-style: bold;
+    background: $surface-elevated;
+    color: $primary;
+    width: 100%;
+    border-left: thick $primary;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+.log-content {
+    padding: 0 1;
+    color: $text-secondary;
+}
+
+/* ── QuickNotes ── */
+QuickNotes {
+    height: 1fr;
+    min-height: 12;
+    border: thick $primary;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    background: $surface;
+    transition: border 200ms;
+}
+
+QuickNotes.notes-saving {
+    border: thick $primary;
+}
+
+QuickNotes Label {
+    text-align: center;
+    text-style: bold;
+    background: $surface-elevated;
+    color: $primary;
+    width: 100%;
+    border-left: thick $primary;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+QuickNotes TextArea {
+    height: 1fr;
+    background: transparent;
+    border: none;
+    color: $text-primary;
+}
+
+/* ── Modal Overlay Patterns ── */
+.modal-overlay {
+    align: center middle;
+    background: $background 70%;
+}
+
+.modal-dialog {
+    width: 85;
+    height: auto;
+    max-height: 46;
+    background: $surface;
+    border: thick $primary;
+    padding: 1 2;
+}
+
+.modal-title {
+    text-align: center;
+    text-style: bold;
+    background: $primary;
+    color: #ffffff;
+    margin-bottom: 1;
+    width: 100%;
+}
+
+.modal-footer {
+    align: center middle;
+    height: 3;
+    margin-top: 1;
+}

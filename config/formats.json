@@ -43,5 +43,106 @@
       { "name": "2NR", "duration_seconds": 300 },
       { "name": "2AR", "duration_seconds": 300 }
     ]
+  },
+  "British Parliamentary": {
+    "prep_time_seconds": 900,
+    "speeches": [
+      { "name": "Prime Minister (OG)", "duration_seconds": 420 },
+      { "name": "Leader of Opposition (OO)", "duration_seconds": 420 },
+      { "name": "Deputy Prime Minister (OG)", "duration_seconds": 420 },
+      { "name": "Deputy Leader of Opposition (OO)", "duration_seconds": 420 },
+      { "name": "Member of Government (CG)", "duration_seconds": 420 },
+      { "name": "Member of Opposition (CO)", "duration_seconds": 420 },
+      { "name": "Government Whip (CG)", "duration_seconds": 420 },
+      { "name": "Opposition Whip (CO)", "duration_seconds": 420 }
+    ],
+    "poi_seconds": 15,
+    "poi_protected_start_seconds": 60,
+    "poi_protected_end_seconds": 60,
+    "teams": 4,
+    "speakers_per_team": 2
+  },
+  "World Schools Style": {
+    "prep_time_seconds": 1800,
+    "speeches": [
+      { "name": "1st Proposition", "duration_seconds": 480 },
+      { "name": "1st Opposition", "duration_seconds": 480 },
+      { "name": "2nd Proposition", "duration_seconds": 480 },
+      { "name": "2nd Opposition", "duration_seconds": 480 },
+      { "name": "3rd Proposition", "duration_seconds": 480 },
+      { "name": "3rd Opposition", "duration_seconds": 480 },
+      { "name": "Opposition Reply", "duration_seconds": 240 },
+      { "name": "Proposition Reply", "duration_seconds": 240 }
+    ],
+    "poi_seconds": 15,
+    "poi_protected_start_seconds": 60,
+    "poi_protected_end_seconds": 60,
+    "poi_allowed_middle_seconds": 360,
+    "teams": 2,
+    "speakers_per_team": 3
+  },
+  "Asian Parliamentary": {
+    "prep_time_seconds": 1800,
+    "speeches": [
+      { "name": "Prime Minister (Gov)", "duration_seconds": 420 },
+      { "name": "Leader of Opposition (Opp)", "duration_seconds": 420 },
+      { "name": "Deputy Prime Minister (Gov)", "duration_seconds": 420 },
+      { "name": "Deputy Leader of Opposition (Opp)", "duration_seconds": 420 },
+      { "name": "Government Whip (Gov)", "duration_seconds": 420 },
+      { "name": "Opposition Whip (Opp)", "duration_seconds": 420 },
+      { "name": "Opposition Reply", "duration_seconds": 300 },
+      { "name": "Government Reply", "duration_seconds": 300 }
+    ],
+    "poi_seconds": 15,
+    "poi_protected_start_seconds": 60,
+    "poi_protected_end_seconds": 60,
+    "teams": 2,
+    "speakers_per_team": 3
+  },
+  "Canadian National": {
+    "prep_time_seconds": 300,
+    "speeches": [
+      { "name": "1st Government Constructive", "duration_seconds": 420 },
+      { "name": "1st Opposition Constructive", "duration_seconds": 420 },
+      { "name": "2nd Government Constructive", "duration_seconds": 420 },
+      { "name": "2nd Opposition Constructive", "duration_seconds": 420 },
+      { "name": "Opposition Rebuttal", "duration_seconds": 240 },
+      { "name": "Government Rebuttal", "duration_seconds": 240 }
+    ],
+    "teams": 2,
+    "speakers_per_team": 2
+  },
+  "European Parliamentary": {
+    "prep_time_seconds": 900,
+    "speeches": [
+      { "name": "Prime Minister (Gov)", "duration_seconds": 420 },
+      { "name": "Leader of Opposition (Opp)", "duration_seconds": 420 },
+      { "name": "Deputy Prime Minister (Gov)", "duration_seconds": 420 },
+      { "name": "Deputy Leader of Opposition (Opp)", "duration_seconds": 420 },
+      { "name": "Government Whip", "duration_seconds": 420 },
+      { "name": "Opposition Whip", "duration_seconds": 420 }
+    ],
+    "poi_seconds": 15,
+    "poi_protected_start_seconds": 60,
+    "poi_protected_end_seconds": 60,
+    "teams": 2,
+    "speakers_per_team": 3
+  },
+  "Karl Popper": {
+    "prep_time_seconds": 480,
+    "speeches": [
+      { "name": "1st Affirmative Constructive", "duration_seconds": 360 },
+      { "name": "Cross-Examination (3N asks 1A)", "duration_seconds": 180 },
+      { "name": "1st Negative Constructive", "duration_seconds": 360 },
+      { "name": "Cross-Examination (1A asks 1N)", "duration_seconds": 180 },
+      { "name": "2nd Affirmative Constructive", "duration_seconds": 300 },
+      { "name": "Cross-Examination (1N asks 2A)", "duration_seconds": 180 },
+      { "name": "2nd Negative Constructive", "duration_seconds": 300 },
+      { "name": "Cross-Examination (2A asks 2N)", "duration_seconds": 180 },
+      { "name": "Affirmative Rebuttal", "duration_seconds": 300 },
+      { "name": "Negative Rebuttal", "duration_seconds": 300 }
+    ],
+    "teams": 2,
+    "speakers_per_team": 3
   }
 }

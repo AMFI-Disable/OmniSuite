@@ -4,6 +4,9 @@ from omnishared.ui.widgets.quick_notes import QuickNotes
 from omnishared.ui.widgets.sparkline import SparklineBar
 from omnishared.ui.widgets.gauge import GaugeBar
 from omnishared.ui.widgets.heatmap import HeatmapGrid
+from omnishared.ui.widgets.timer import RoundTimer
+from omnishared.ui.widgets.breadcrumb import Breadcrumb
+from omnishared.ui.widgets.status_bar import StatusBar
 
 __all__ = [
     "SideRibbon",
@@ -12,4 +15,7 @@ __all__ = [
     "SparklineBar",
     "GaugeBar",
     "HeatmapGrid",
+    "RoundTimer",
+    "Breadcrumb",
+    "StatusBar",
 ]

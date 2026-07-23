@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OmniSuite — Keybindings Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# Customise keyboard shortcuts here.  Any key omitted will fall back to
+# the built-in default.  Set vim_mode to true for hjkl navigation.
+
+vim_mode: false
+
+navigation:
+  up: "up"
+  down: "down"
+  left: "left"
+  right: "right"
+  page_up: "pageup"
+  page_down: "pagedown"
+  home: "home"
+  end: "end"
+  back: "escape"
+  select: "enter"
+  tab_next: "tab"
+  tab_prev: "shift+tab"
+
+search:
+  open_search: "ctrl+f"
+  next_result: "ctrl+n"
+  prev_result: "ctrl+p"
+  clear_search: "escape"
+
+card_management:
+  new_card: "ctrl+n"
+  delete_card: "ctrl+d"
+  edit_card: "ctrl+e"
+  duplicate_card: "ctrl+shift+d"
+  tag_card: "ctrl+t"
+  export_card: "ctrl+x"
+  toggle_star: "ctrl+s"
+
+timer:
+  start_pause: "space"
+  reset: "r"
+  next_speech: "n"
+  prev_speech: "p"
+
+global:
+  quit: "ctrl+q"
+  help: "f1"
+  command_palette: "ctrl+shift+p"
+  toggle_sidebar: "ctrl+b"
+  toggle_dark_mode: "ctrl+shift+t"
+  quick_notes: "ctrl+shift+n"

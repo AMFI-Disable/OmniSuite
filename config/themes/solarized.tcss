@@ -1,0 +1,283 @@
+/* ═══════════════════════════════════════════════════════════════
+   OmniSuite Solarized Dark Theme
+   Ethan Schoonover's precision-engineered color palette.
+   Base: dark background tones. Accents: monotone + colour.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens (Solarized Palette) ── */
+/* Dark base tones */
+$base03: #002b36;
+$base02: #073642;
+$base01: #586e75;
+$base00: #657b83;
+/* Light content tones */
+$base0: #839496;
+$base1: #93a1a1;
+$base2: #eee8d5;
+$base3: #fdf6e3;
+/* Accent colours */
+$sol-yellow: #b58900;
+$sol-orange: #cb4b16;
+$sol-red: #dc322f;
+$sol-magenta: #d33682;
+$sol-violet: #6c71c4;
+$sol-blue: #268bd2;
+$sol-cyan: #2aa198;
+$sol-green: #859900;
+
+/* Semantic Aliases */
+$primary: $sol-cyan;
+$accent: $sol-blue;
+$danger: $sol-red;
+$warning: $sol-yellow;
+$success: $sol-green;
+$background: $base03;
+$surface: $base02;
+$surface-elevated: #0a4351;
+$border: $base01;
+$text-primary: $base1;
+$text-secondary: $base0;
+$text-muted: $base01;
+
+/* ── Global Screen Defaults ── */
+Screen {
+    background: $background;
+    color: $text-primary;
+}
+
+/* ── Header & Footer ── */
+Header {
+    background: $surface;
+    color: $text-primary;
+    dock: top;
+    height: 1;
+    border-bottom: solid $border;
+}
+
+Footer {
+    background: $surface;
+    color: $text-secondary;
+    dock: bottom;
+    height: 1;
+    border-top: solid $border;
+}
+
+/* ── DataTable ── */
+DataTable {
+    background: $surface;
+    color: $text-primary;
+    border: solid $border;
+}
+
+DataTable > .datatable--cursor {
+    background: $sol-blue;
+    color: $base3;
+}
+
+DataTable > .datatable--header {
+    background: $surface-elevated;
+    color: $sol-cyan;
+    text-style: bold;
+}
+
+/* ── Buttons ── */
+Button {
+    background: $surface-elevated;
+    color: $text-primary;
+    border: tall $border;
+    min-width: 10;
+    height: 3;
+}
+
+Button:hover {
+    background: $border;
+    color: $base2;
+    border: tall $primary;
+}
+
+Button:focus {
+    border: tall $primary;
+    text-style: bold;
+}
+
+Button.-primary {
+    background: $sol-blue;
+    color: $base3;
+    border: tall $sol-blue;
+}
+
+Button.-primary:hover {
+    background: $sol-cyan;
+    color: $base3;
+}
+
+/* ── Input & TextArea ── */
+Input {
+    background: $surface;
+    color: $text-primary;
+    border: tall $border;
+}
+
+Input:focus {
+    border: tall $primary;
+}
+
+Input.-invalid {
+    border: tall $danger;
+}
+
+/* ── Labels & Static ── */
+Label {
+    color: $text-primary;
+}
+
+Static {
+    color: $text-primary;
+}
+
+/* ── Vertical Navigation Ribbon ── */
+#side-ribbon {
+    width: 10;
+    height: 1fr;
+    background: $background;
+    border-right: solid $border;
+    align: center top;
+    padding: 1 0;
+}
+
+.ribbon-btn {
+    min-width: 8;
+    width: 8;
+    height: 4;
+    margin: 1 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: $text-muted;
+    text-align: center;
+    content-align: center middle;
+}
+
+.ribbon-btn:hover {
+    color: $primary;
+    background: $primary 10%;
+}
+
+/* ── Tier Indicators ── */
+.tier-5 { color: $sol-yellow; text-style: bold italic underline; }
+.tier-4 { color: $sol-green; text-style: bold; }
+.tier-3 { color: $sol-blue; }
+.tier-2 { color: $text-secondary; }
+.tier-1 { color: $text-muted; text-style: dim; }
+
+/* ── HUD Groups ── */
+.hud-group {
+    border: solid $border;
+    background: $surface;
+    margin: 1 0;
+    padding: 0 1;
+    height: auto;
+}
+
+.hud-group-label {
+    text-style: bold;
+    color: $primary;
+    background: $primary 10%;
+    width: 100%;
+    padding: 0 1;
+}
+
+.bar-critical { color: $danger; text-style: bold; }
+.bar-caution  { color: $warning; }
+.bar-optimal  { color: $primary; text-style: bold; }
+
+.hidden { display: none; }
+
+/* ── SystemLog ── */
+SystemLog {
+    height: 10;
+    border: thick $sol-blue;
+    background: $background;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    color: $base0;
+}
+
+.log-header {
+    text-align: center;
+    text-style: bold;
+    background: $surface;
+    color: $primary;
+    width: 100%;
+    border-left: thick $sol-blue;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+.log-content {
+    padding: 0 1;
+    color: $base0;
+}
+
+/* ── QuickNotes ── */
+QuickNotes {
+    height: 1fr;
+    min-height: 12;
+    border: thick $sol-blue;
+    padding: 0 1 1 1;
+    margin-bottom: 1;
+    background: $background;
+    transition: border 200ms;
+}
+
+QuickNotes.notes-saving {
+    border: thick $sol-cyan;
+}
+
+QuickNotes Label {
+    text-align: center;
+    text-style: bold;
+    background: $surface;
+    color: $primary;
+    width: 100%;
+    border-left: thick $sol-blue;
+    border-bottom: solid $border;
+    margin-bottom: 1;
+}
+
+QuickNotes TextArea {
+    height: 1fr;
+    background: transparent;
+    border: none;
+    color: $text-primary;
+}
+
+/* ── Modal Overlay Patterns ── */
+.modal-overlay {
+    align: center middle;
+    background: $background 70%;
+}
+
+.modal-dialog {
+    width: 85;
+    height: auto;
+    max-height: 46;
+    background: $surface;
+    border: thick $sol-blue;
+    padding: 1 2;
+}
+
+.modal-title {
+    text-align: center;
+    text-style: bold;
+    background: $sol-blue;
+    color: $base3;
+    margin-bottom: 1;
+    width: 100%;
+}
+
+.modal-footer {
+    align: center middle;
+    height: 3;
+    margin-top: 1;
+}
