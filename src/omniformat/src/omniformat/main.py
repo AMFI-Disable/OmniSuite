@@ -1,10 +1,12 @@
-import sys
-import os
-import traceback
-import datetime
 import argparse
-from omniformat.ui.app import OmniFormat
+import datetime
+import os
+import sys
+import traceback
+
 from omnishared.config import run_setup_dirs
+
+from omniformat.ui.app import OmniFormat
 
 
 def main():
@@ -17,9 +19,7 @@ def main():
         action="store_true",
         help="Auto-fix markdownlint errors in-place and exit",
     )
-    parser.add_argument(
-        "file_path", nargs="?", help="Optional path to Markdown file to format"
-    )
+    parser.add_argument("file_path", nargs="?", help="Optional path to Markdown file to format")
     args, unknown = parser.parse_known_args()
 
     target_file = args.file if args.file else args.file_path

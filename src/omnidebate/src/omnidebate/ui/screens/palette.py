@@ -1,8 +1,9 @@
 from textual import on
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Input, ListView, ListItem, Label
 from textual.containers import Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Input, Label, ListItem, ListView
+
 from omnidebate.core.database import search_cards_fts
 
 

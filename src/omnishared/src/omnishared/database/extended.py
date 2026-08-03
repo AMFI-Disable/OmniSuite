@@ -4,10 +4,10 @@ Provides card tagging, rating, edit history, flow persistence,
 and export logging capabilities.
 """
 
-import json
 import datetime
-from omnishared.database.connection import get_connection
+import json
 
+from omnishared.database.connection import get_connection
 
 # ─── Card Tags ────────────────────────────────────────────────────────────────
 

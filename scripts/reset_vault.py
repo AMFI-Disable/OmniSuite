@@ -1,5 +1,6 @@
 import os
-from omnidebate.core.database import setup_db, get_db_path, add_motion, add_card
+
+from omnidebate.core.database import add_card, add_motion, get_db_path, setup_db
 
 
 def reset_vault():

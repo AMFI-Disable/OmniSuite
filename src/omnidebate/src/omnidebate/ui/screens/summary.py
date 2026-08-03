@@ -1,8 +1,9 @@
 from textual import on
 from textual.app import ComposeResult
+from textual.containers import ScrollableContainer, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Markdown, Label
-from textual.containers import Vertical, ScrollableContainer
+from textual.widgets import Button, Label, Markdown
+
 from omnidebate.core.database import read_vault
 from omnidebate.core.oracle import OracleEngine
 
@@ -17,9 +18,7 @@ class SynthesisScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="synth-dialog"):
-            yield Label(
-                f"📄 STRATEGIC SYNTHESIS: {self.motion_name}", classes="synth-header"
-            )
+            yield Label(f"📄 STRATEGIC SYNTHESIS: {self.motion_name}", classes="synth-header")
             yield ScrollableContainer(Markdown(id="synth-md"))
             yield Button("CLOSE [ESC]", id="btn-close", variant="error")
 

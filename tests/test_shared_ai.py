@@ -1,11 +1,12 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+from omnidebate.core.oracle import OracleEngine
 from omnishared.ai.client import (
+    OllamaOfflineError,
     check_ollama_status,
     generate_completion,
-    OllamaOfflineError,
 )
-from omnidebate.core.oracle import OracleEngine
 
 
 @patch("requests.get")

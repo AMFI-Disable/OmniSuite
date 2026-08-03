@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from omnishared.config import FORMATS_FILE
 
 

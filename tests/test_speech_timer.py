@@ -1,7 +1,8 @@
-import pytest
 import os
-from omnishared.database import setup_db, add_motion, add_card, read_vault
+
+import pytest
 from omnidebate.ui.screens.speech import SpeechPrepScreen
+from omnishared.database import add_card, add_motion, read_vault, setup_db
 
 
 @pytest.fixture(autouse=True)

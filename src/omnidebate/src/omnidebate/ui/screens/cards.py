@@ -1,5 +1,6 @@
 import datetime
 from typing import Optional
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -36,9 +37,7 @@ class AddCardScreen(ModalScreen):
             )
             yield Label("Author  |  Year  (for Smart Cite builder — optional)")
             with Horizontal():
-                yield Input(
-                    value="", placeholder="Author", id="inp-author", classes="half"
-                )
+                yield Input(value="", placeholder="Author", id="inp-author", classes="half")
                 yield Input(value="", placeholder="Year", id="inp-year", classes="half")
             yield Label("Side")
             yield Select(

@@ -1,4 +1,5 @@
 from typing import Optional
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -17,9 +18,7 @@ class CommandHUD(Static):
     _prep_running: bool = False
     _tick_handle: Optional[Timer] = None
 
-    def __init__(
-        self, formats: dict, default_format: str = "Public Forum", *args, **kwargs
-    ):
+    def __init__(self, formats: dict, default_format: str = "Public Forum", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.formats = formats
         self.format_name = default_format
@@ -74,9 +73,7 @@ class CommandHUD(Static):
             yield Button("▶ START SPEECH", id="btn-speech-toggle", variant="success")
             yield Button("🧪 START PREP", id="btn-prep-toggle", variant="success")
             yield Button("⏭ NEXT", id="btn-speech-next", variant="primary")
-            yield Button(
-                "🎙️ PREP SCREEN", id="btn-speech-prep-workspace", variant="primary"
-            )
+            yield Button("🎙️ PREP SCREEN", id="btn-speech-prep-workspace", variant="primary")
             yield Button("↺ RESET", id="btn-reset-fmt", variant="default")
 
     def on_mount(self) -> None:

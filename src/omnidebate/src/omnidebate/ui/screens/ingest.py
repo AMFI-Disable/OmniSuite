@@ -1,17 +1,18 @@
 import datetime
+
+from omnishared.config import load_config
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
-from omnishared.config import load_config
 from omnidebate.core.database import add_card
 from omnidebate.core.logic import (
-    scrape_url,
-    summarize_with_ollama,
-    summarize_offline,
     WEB_INGEST_OK,
+    scrape_url,
+    summarize_offline,
+    summarize_with_ollama,
 )
 
 
@@ -92,9 +93,7 @@ class WebIngestScreen(ModalScreen):
 
     def _fetch_core(self) -> bool:
         if not WEB_INGEST_OK:
-            self.app.notify(
-                "Install requests + beautifulsoup4 for web ingest.", severity="error"
-            )
+            self.app.notify("Install requests + beautifulsoup4 for web ingest.", severity="error")
             return False
         url = self.query_one("#wi-url", Input).value.strip()
         if not url:
@@ -113,12 +112,9 @@ class WebIngestScreen(ModalScreen):
     @on(Button.Pressed, "#wi-fetch")
     def fetch(self) -> None:
         if self._fetch_core():
-            self.query_one("#wi-status", Static).update(
-                f"✅ Fetched: {self._scraped_title}"
-            )
+            self.query_one("#wi-status", Static).update(f"✅ Fetched: {self._scraped_title}")
             self.query_one("#wi-preview", Static).update(
-                self._scraped_body[:500]
-                + ("…" if len(self._scraped_body) > 500 else "")
+                self._scraped_body[:500] + ("…" if len(self._scraped_body) > 500 else "")
             )
             self.query_one("#wi-tag", Input).value = self._scraped_title[:80]
 
@@ -136,9 +132,7 @@ class WebIngestScreen(ModalScreen):
         try:
             tag, summary = summarize_with_ollama(self._scraped_body, ep, md)
             self._scraped_body = summary
-            self.query_one("#wi-status", Static).update(
-                "✨ [bold]AI SYNTHESIS COMPLETE[/bold]"
-            )
+            self.query_one("#wi-status", Static).update("✨ [bold]AI SYNTHESIS COMPLETE[/bold]")
             self.query_one("#wi-preview", Static).update(
                 summary[:500] + ("…" if len(summary) > 500 else "")
             )
@@ -150,9 +144,7 @@ class WebIngestScreen(ModalScreen):
                 severity="warning",
             )
             try:
-                tag, summary = summarize_offline(
-                    self._scraped_body, self._scraped_title
-                )
+                tag, summary = summarize_offline(self._scraped_body, self._scraped_title)
                 self._scraped_body = summary
                 self.query_one("#wi-status", Static).update(
                     "✨ [bold]AI SYNTHESIS COMPLETE (Semantic Fallback)[/bold]"
@@ -161,9 +153,7 @@ class WebIngestScreen(ModalScreen):
                     summary[:500] + ("…" if len(summary) > 500 else "")
                 )
                 self.query_one("#wi-tag", Input).value = tag
-                self.app.notify(
-                    "AI Summary (Heuristic Fallback)", severity="information"
-                )
+                self.app.notify("AI Summary (Heuristic Fallback)", severity="information")
             except Exception as ex:
                 self.query_one("#wi-status", Static).update(f"❌ Fallback Error: {ex}")
                 self.fetch()

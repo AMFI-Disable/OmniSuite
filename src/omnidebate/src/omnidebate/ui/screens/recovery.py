@@ -1,11 +1,12 @@
-from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Label, Button, DataTable
-from textual.containers import Vertical, Horizontal
 import os
 import shutil
+
 from omnishared.config import BACKUPS_DIR
 from omnishared.database import get_db_path
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Button, DataTable, Label
 
 
 class RecoveryScreen(ModalScreen):
@@ -50,7 +51,5 @@ class RecoveryScreen(ModalScreen):
         src = os.path.join(BACKUPS_DIR, fname)
         dst = get_db_path()
         shutil.copy2(src, dst)
-        self.app.notify(
-            f"Database restored from {fname}! Restarting...", severity="success"
-        )
+        self.app.notify(f"Database restored from {fname}! Restarting...", severity="success")
         self.app.exit()

@@ -3,7 +3,6 @@ from typing import List, Optional
 from rich.text import Text
 from textual.widgets import Static
 
-
 # Unicode block elements for sub-character vertical resolution
 _BARS = " ▁▂▃▄▅▆▇█"
 

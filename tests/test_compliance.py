@@ -1,9 +1,9 @@
 from omniformat.core.compliance import (
-    calculate_readability,
-    check_html_tags,
     analyze_markdown,
     auto_correct_markdown,
     balance_html_strings,
+    calculate_readability,
+    check_html_tags,
 )
 
 
@@ -53,9 +53,7 @@ def test_balance_html_strings():
 
 def test_calculate_readability():
     # Standard readable text
-    text = (
-        "The quick brown fox jumps over the lazy dog. This is a very simple sentence."
-    )
+    text = "The quick brown fox jumps over the lazy dog. This is a very simple sentence."
     score = calculate_readability(text)
     assert score > 50  # Should be highly readable
 

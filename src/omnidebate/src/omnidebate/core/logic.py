@@ -1,5 +1,5 @@
-import re
 import difflib
+import re
 
 try:
     import requests
@@ -25,11 +25,7 @@ def bool_search(cards: list, query: str) -> list:
 
     def token_match(card: dict, token: str) -> bool:
         haystack = (
-            card.get("tag", "")
-            + " "
-            + card.get("text", "")
-            + " "
-            + card.get("citation", "")
+            card.get("tag", "") + " " + card.get("text", "") + " " + card.get("citation", "")
         ).lower()
         token = token.lower().strip()
         if not token:
@@ -79,10 +75,7 @@ def impact_tree(card: dict) -> str:
     nodes = []
 
     # Intelligence: Causal Keyword Mapping
-    if any(
-        w in text
-        for w in ["gdp", "economy", "trade", "market", "jobs", "cost", "billion"]
-    ):
+    if any(w in text for w in ["gdp", "economy", "trade", "market", "jobs", "cost", "billion"]):
         nodes.append("💰 Economic Resilience ==> GDP Growth ==> Market Stability")
     if any(
         w in text
@@ -122,10 +115,7 @@ def impact_tree(card: dict) -> str:
         ]
     ):
         nodes.append("🌍 Climate Stability --> Resource Security --> Bio-Survival")
-    if any(
-        w in text
-        for w in ["ai", "tech", "data", "compute", "semiconductor", "innovation"]
-    ):
+    if any(w in text for w in ["ai", "tech", "data", "compute", "semiconductor", "innovation"]):
         nodes.append("⚡ Tech Hegemony ==> Structural Advantage ==> Economic Power")
 
     if not nodes:
@@ -148,11 +138,7 @@ def scrape_url(url: str) -> tuple[str, str]:
     soup = BeautifulSoup(resp.text, "html.parser")
     title = soup.title.string.strip() if soup.title else url
     # Get meaningful paragraphs
-    paras = [
-        p.get_text(" ", strip=True)
-        for p in soup.find_all("p")
-        if len(p.get_text()) > 60
-    ]
+    paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text()) > 60]
     body = " ".join(paras[:8])  # First 8 paragraphs
     return title, body
 

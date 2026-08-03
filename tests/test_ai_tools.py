@@ -3,19 +3,19 @@
 Uses mocking to avoid requiring an Ollama server.
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from omnidebate.core.ai_tools import (
-    summarize_card,
-    generate_counter_arguments,
     analyze_impact_chain,
-    score_case_strength,
     find_evidence_gaps,
     generate_case_outline,
+    generate_counter_arguments,
     generate_cross_questions,
     rewrite_for_clarity,
+    score_case_strength,
+    summarize_card,
 )
-
 
 SAMPLE_CARD_TEXT = (
     "Carbon pricing mechanisms have been shown to reduce emissions by up to 40% "
@@ -38,6 +38,7 @@ def mock_ai_offline():
     """Mock Ollama being offline."""
     with patch("omnidebate.core.ai_tools.generate_completion") as mock:
         from omnishared.ai.client import OllamaOfflineError
+
         mock.side_effect = OllamaOfflineError("Ollama not running")
         yield mock
 

@@ -6,10 +6,17 @@ Orchestrates the 4-Zone tactical UI, Strategic Oracle, and forensic analysis eng
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
-import logging
 import importlib.resources
+import logging
 from typing import Optional
 
+from omnishared.config import load_config, run_setup_dirs
+from omnishared.formats import load_formats
+from omnishared.ui.widgets import (
+    GaugeBar,
+    QuickNotes,
+    SystemLog,
+)
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -17,55 +24,47 @@ from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widgets import (
     Button,
+    Collapsible,
     Footer,
+    Input,
     Label,
     ListItem,
     ListView,
     Markdown,
     Static,
-    Input,
-    Tabs,
     Tab,
-    Collapsible,
+    Tabs,
 )
 
-from omnishared.config import load_config, run_setup_dirs
-from omnishared.formats import load_formats
 from omnidebate.core.database import (
+    delete_card,
+    delete_motion,
+    increment_mastery,
     list_motions,
     read_vault,
-    increment_mastery,
-    delete_motion,
-    delete_card,
     update_card,
 )
-from omnishared.ui.widgets import (
-    QuickNotes,
-    SystemLog,
-    GaugeBar,
-)
-from omnidebate.ui.widgets.command_hud import CommandHUD
 from omnidebate.core.oracle import OracleEngine
+from omnidebate.ui.screens.actions import CardActionScreen
+from omnidebate.ui.screens.analytics import AnalyticsScreen
+from omnidebate.ui.screens.cards import AddCardScreen
+from omnidebate.ui.screens.compare import CompareScreen
+from omnidebate.ui.screens.drill import DrillScreen
+from omnidebate.ui.screens.export_brief import ExportBriefScreen
+from omnidebate.ui.screens.help import HelpScreen
+from omnidebate.ui.screens.impacts import ImpactMapScreen
+from omnidebate.ui.screens.import_docx import DocxIngestScreen
+from omnidebate.ui.screens.ingest import WebIngestScreen
+from omnidebate.ui.screens.motions import AddMotionScreen, ConfirmDeleteScreen
+from omnidebate.ui.screens.palette import CommandPaletteScreen
 
 # Import screens
 from omnidebate.ui.screens.search import SearchScreen
 from omnidebate.ui.screens.settings import SettingsScreen
+from omnidebate.ui.screens.speech import SpeechPrepScreen
 from omnidebate.ui.screens.splash import SplashScreen
 from omnidebate.ui.screens.summary import SynthesisScreen
-from omnidebate.ui.screens.palette import CommandPaletteScreen
-from omnidebate.ui.screens.analytics import AnalyticsScreen
-from omnidebate.ui.screens.import_docx import DocxIngestScreen
-from omnidebate.ui.screens.export_brief import ExportBriefScreen
-from omnidebate.ui.screens.motions import AddMotionScreen, ConfirmDeleteScreen
-from omnidebate.ui.screens.cards import AddCardScreen
-from omnidebate.ui.screens.ingest import WebIngestScreen
-from omnidebate.ui.screens.actions import CardActionScreen
-from omnidebate.ui.screens.help import HelpScreen
-from omnidebate.ui.screens.drill import DrillScreen
-from omnidebate.ui.screens.impacts import ImpactMapScreen
-from omnidebate.ui.screens.speech import SpeechPrepScreen
-from omnidebate.ui.screens.compare import CompareScreen
-
+from omnidebate.ui.widgets.command_hud import CommandHUD
 
 # ─── Audit Registry: Maps action names to Oracle functions ───
 # This replaces 15+ copy-paste methods with a single parametric dispatcher.
@@ -330,9 +329,7 @@ class OmniDebate(App):
                 yield Markdown("# SELECT EVIDENCE\nAudit required.", id="card-detail")
                 with Horizontal(id="brief-actions-row"):
                     yield Button("📋 Copy Link", id="btn-copy-link", variant="primary")
-                    yield Button(
-                        "📄 Copy Content", id="btn-copy-content", variant="success"
-                    )
+                    yield Button("📄 Copy Content", id="btn-copy-content", variant="success")
 
             # 🔮 Zone Delta: STRATEGIC ORACLE
             with Vertical(id="zone-delta", classes="tactical-zone"):
@@ -447,9 +444,7 @@ class OmniDebate(App):
             layout = self.query_one("#main-layout")
             layout.set_class(screen_reader, "screen-reader-optimized")
             if screen_reader:
-                self.notify(
-                    "Screen Reader Mode: Linear Layout Active", severity="information"
-                )
+                self.notify("Screen Reader Mode: Linear Layout Active", severity="information")
         except Exception:
             pass
 
@@ -500,9 +495,7 @@ class OmniDebate(App):
                 query = self.query_one("#evidence-filter", Input).value.strip().lower()
                 if query:
                     cards = [
-                        c
-                        for c in cards
-                        if query in c["tag"].lower() or query in c["text"].lower()
+                        c for c in cards if query in c["tag"].lower() or query in c["text"].lower()
                     ]
             except Exception:
                 pass
@@ -552,9 +545,7 @@ class OmniDebate(App):
                 OracleEngine.calculate_master_timeline(cards),
                 "TIMEFRAME",
             )
-            self._update_gauge(
-                "#risk-bar", OracleEngine.calculate_master_risk(cards), "STRAT RISK"
-            )
+            self._update_gauge("#risk-bar", OracleEngine.calculate_master_risk(cards), "STRAT RISK")
             self._update_gauge(
                 "#evidence-bar",
                 OracleEngine.calculate_master_evidence(cards),
@@ -626,27 +617,19 @@ class OmniDebate(App):
             audit_md = "### 🧬 FORENSIC SUMMARY\n"
             audit_md += "| METRIC | VALUE | STATUS |\n"
             audit_md += "| :--- | :---: | :---: |\n"
-            audit_md += (
-                f"| **STRAT WEIGHT** | {weight}% | {'★' * min(5, weight // 20)} |\n"
-            )
+            audit_md += f"| **STRAT WEIGHT** | {weight}% | {'★' * min(5, weight // 20)} |\n"
             audit_md += f"| **RESILIENCE** | {resilience}% | {'🛡️' if resilience > 70 else '⚠️'} |\n"
 
             if fallacies:
-                audit_md += (
-                    f"\n> [!WARNING]\n> **FALLACY DETECTED:** {', '.join(fallacies)}\n"
-                )
+                audit_md += f"\n> [!WARNING]\n> **FALLACY DETECTED:** {', '.join(fallacies)}\n"
             audit_md += "\n---\n"
 
             if clashes:
                 clash = clashes[0]
                 audit_md += f"### ⚔️ NEXUS CLASH\n**COUNTER:** {clash['tag']}\n> {clash['text'][:140]}...\n\n"
 
-            audit_md += "### 🛡️ REBUTTAL BRIEF\n" + "\n".join(
-                [f"- {r}" for r in rebuttals]
-            )
-            audit_md += "\n\n### 🎤 CX INTERROGATOR\n" + "\n".join(
-                [f"- {q}" for q in cx_strategy]
-            )
+            audit_md += "### 🛡️ REBUTTAL BRIEF\n" + "\n".join([f"- {r}" for r in rebuttals])
+            audit_md += "\n\n### 🎤 CX INTERROGATOR\n" + "\n".join([f"- {q}" for q in cx_strategy])
 
             detail = self.query_one("#card-detail", Markdown)
             redacted_text = OracleEngine.auto_redact_text(c["text"])
@@ -776,9 +759,7 @@ class OmniDebate(App):
         if self.speech_mode:
             if not self.focus_mode:
                 self.action_toggle_focus()
-            self.notify(
-                "ACTIVE SPEECH MODE: PERFORMANCE HUD ONLINE", severity="warning"
-            )
+            self.notify("ACTIVE SPEECH MODE: PERFORMANCE HUD ONLINE", severity="warning")
         else:
             if self.focus_mode:
                 self.action_toggle_focus()
@@ -850,9 +831,7 @@ class OmniDebate(App):
         if not self.active_motion_id:
             self.toast("Select a motion to synthesize.")
             return
-        self.push_screen(
-            SynthesisScreen(self.active_motion_id, self.active_motion_name)
-        )
+        self.push_screen(SynthesisScreen(self.active_motion_id, self.active_motion_name))
 
     def action_open_palette(self) -> None:
         """Open the Global Search Palette for rapid cross-vault navigation."""
@@ -874,9 +853,7 @@ class OmniDebate(App):
         if not self.active_motion_id:
             self.notify("Select a motion first.", severity="warning")
             return
-        self.push_screen(
-            ExportBriefScreen(self.active_motion_id, self.active_motion_name)
-        )
+        self.push_screen(ExportBriefScreen(self.active_motion_id, self.active_motion_name))
 
     def handle_docx_callback(self, success: bool) -> None:
         if success:
@@ -941,9 +918,7 @@ class OmniDebate(App):
         if not self.active_motion_id:
             self.toast("Select a motion first.")
             return
-        self.push_screen(
-            AddCardScreen(self.active_motion_id), callback=self.handle_card_callback
-        )
+        self.push_screen(AddCardScreen(self.active_motion_id), callback=self.handle_card_callback)
 
     def action_edit_card(self) -> None:
         """Open the Edit Card modal screen for the highlighted card."""
@@ -1016,18 +991,14 @@ class OmniDebate(App):
         if not self.active_motion_id:
             self.toast("Select a motion first.")
             return
-        self.push_screen(
-            WebIngestScreen(self.active_motion_id), callback=self.handle_card_callback
-        )
+        self.push_screen(WebIngestScreen(self.active_motion_id), callback=self.handle_card_callback)
 
     def action_open_drill(self) -> None:
         """Open the Gladiator Drill Arena modal."""
         if not self.active_motion_id:
             self.toast("Select a motion first.")
             return
-        self.push_screen(
-            DrillScreen(self.active_motion_id), callback=self.handle_drill_callback
-        )
+        self.push_screen(DrillScreen(self.active_motion_id), callback=self.handle_drill_callback)
 
     def handle_drill_callback(self, result) -> None:
         self._reload_evidence()

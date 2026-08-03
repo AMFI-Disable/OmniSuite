@@ -13,7 +13,6 @@ from rich.text import Text
 from textual.timer import Timer as TextualTimer
 from textual.widgets import Static
 
-
 # ─── Styling constants ──────────────────────────────────────────────────────────
 _COLOR_LABEL = "#94a3b8"
 _COLOR_VALUE = "#e2e8f0"
@@ -34,10 +33,7 @@ def _query_card_count() -> int:
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT COUNT(*) FROM sqlite_master "
-            "WHERE type='table' AND name='cards'"
-        )
+        cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='cards'")
         if cursor.fetchone()[0] == 0:
             conn.close()
             return 0
@@ -59,10 +55,7 @@ def _query_motion_count() -> int:
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT COUNT(*) FROM sqlite_master "
-            "WHERE type='table' AND name='motions'"
-        )
+        cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='motions'")
         if cursor.fetchone()[0] == 0:
             conn.close()
             return 0
@@ -142,9 +135,7 @@ class StatusBar(Static):
     def on_mount(self) -> None:
         """Start the periodic refresh cycle on mount."""
         self._poll_stats()
-        self._refresh_timer = self.set_interval(
-            _REFRESH_INTERVAL, self._poll_stats, pause=False
-        )
+        self._refresh_timer = self.set_interval(_REFRESH_INTERVAL, self._poll_stats, pause=False)
 
     def on_unmount(self) -> None:
         """Stop the refresh timer when removed from the DOM."""

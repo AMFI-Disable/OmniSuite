@@ -6,18 +6,17 @@ Tests CSV/JSON import/export, URL import (mocked), and clipboard paste.
 import csv
 import json
 import os
-import tempfile
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from omnidebate.core.import_engine import (
-    import_from_csv,
-    import_from_json,
     export_to_csv,
     export_to_json,
-    import_from_url,
     import_from_clipboard,
+    import_from_csv,
+    import_from_json,
+    import_from_url,
 )
-
 
 # ─── CSV ──────────────────────────────────────────────────────────────────────
 
@@ -38,10 +37,7 @@ class TestCSVImport:
 
     def test_import_csv_with_optional_fields(self, tmp_path):
         csv_file = tmp_path / "cards.csv"
-        csv_file.write_text(
-            "tag,text,side,language,tier\n"
-            "Test tag,Text,AFF,EN,3\n"
-        )
+        csv_file.write_text("tag,text,side,language,tier\nTest tag,Text,AFF,EN,3\n")
         cards = import_from_csv(str(csv_file))
         assert len(cards) == 1
         assert cards[0].get("language") == "EN"
@@ -121,7 +117,12 @@ class TestJSONExport:
     def test_roundtrip_csv_json(self, tmp_path):
         """Cards exported to CSV then imported should preserve key fields."""
         original = [
-            {"tag": "Roundtrip test", "citation": "Author 2023", "text": "Evidence text", "side": "AFF"},
+            {
+                "tag": "Roundtrip test",
+                "citation": "Author 2023",
+                "text": "Evidence text",
+                "side": "AFF",
+            },
         ]
         csv_path = str(tmp_path / "rt.csv")
         export_to_csv(original, csv_path)
@@ -157,6 +158,7 @@ class TestURLImport:
 
     def test_import_from_url_network_error(self):
         import requests as _req
+
         with patch("requests.get") as mock_get:
             mock_get.side_effect = _req.RequestException("Connection refused")
             with pytest.raises(Exception):
@@ -187,20 +189,24 @@ class TestClipboard:
 class TestKeybindings:
     def test_load_keybindings_returns_dict(self):
         from omnishared.config.keybindings import load_keybindings
+
         kb = load_keybindings()
         assert isinstance(kb, dict)
 
     def test_get_keybinding_returns_string(self):
         from omnishared.config.keybindings import get_keybinding
+
         result = get_keybinding("quit")
         assert isinstance(result, str)
 
     def test_get_nonexistent_keybinding(self):
         from omnishared.config.keybindings import get_keybinding
+
         result = get_keybinding("nonexistent_action_xyz")
         # Should return empty string or default, not crash
         assert isinstance(result, str)
 
     def test_vim_mode_returns_bool(self):
         from omnishared.config.keybindings import is_vim_mode
+
         assert isinstance(is_vim_mode(), bool)

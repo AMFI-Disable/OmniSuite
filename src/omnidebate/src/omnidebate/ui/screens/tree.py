@@ -16,16 +16,14 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass, field
-from typing import Optional
 
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, Label, Static, Tree
 from textual.widgets.tree import TreeNode
-
 
 # ── Data Structures ──────────────────────────────────────────────────────────
 
@@ -73,7 +71,11 @@ def _format_node_label(data: ArgumentNode) -> str:
     Format: ``[score] Label  (N cards)``
     """
     color = _score_color(data.impact_score)
-    cards_suffix = f"  ({data.card_count} card{'s' if data.card_count != 1 else ''})" if data.card_count else ""
+    cards_suffix = (
+        f"  ({data.card_count} card{'s' if data.card_count != 1 else ''})"
+        if data.card_count
+        else ""
+    )
     return f"[{color}][{data.impact_score:3d}][/{color}] {data.label}{cards_suffix}"
 
 
@@ -203,47 +205,27 @@ class ArgumentTreeScreen(Screen):
 
     def _build_starter_template(self, tree: Tree) -> None:
         """Create a default starter template for a new argument tree."""
-        root_data = ArgumentNode(
-            label="Case Structure", impact_score=50, node_type="general"
-        )
+        root_data = ArgumentNode(label="Case Structure", impact_score=50, node_type="general")
         tree.root.data = root_data
         tree.root.set_label(_format_node_label(root_data))
 
         # Contention 1
-        c1_data = ArgumentNode(
-            label="Contention 1", impact_score=50, node_type="contention"
-        )
-        c1 = tree.root.add(
-            _format_node_label(c1_data), data=c1_data
-        )
-        w1_data = ArgumentNode(
-            label="Warrant", impact_score=50, node_type="warrant"
-        )
+        c1_data = ArgumentNode(label="Contention 1", impact_score=50, node_type="contention")
+        c1 = tree.root.add(_format_node_label(c1_data), data=c1_data)
+        w1_data = ArgumentNode(label="Warrant", impact_score=50, node_type="warrant")
         c1.add(_format_node_label(w1_data), data=w1_data)
-        i1_data = ArgumentNode(
-            label="Impact", impact_score=50, node_type="impact"
-        )
+        i1_data = ArgumentNode(label="Impact", impact_score=50, node_type="impact")
         c1.add(_format_node_label(i1_data), data=i1_data)
 
         # Contention 2
-        c2_data = ArgumentNode(
-            label="Contention 2", impact_score=50, node_type="contention"
-        )
-        c2 = tree.root.add(
-            _format_node_label(c2_data), data=c2_data
-        )
-        w2_data = ArgumentNode(
-            label="Warrant", impact_score=50, node_type="warrant"
-        )
+        c2_data = ArgumentNode(label="Contention 2", impact_score=50, node_type="contention")
+        c2 = tree.root.add(_format_node_label(c2_data), data=c2_data)
+        w2_data = ArgumentNode(label="Warrant", impact_score=50, node_type="warrant")
         c2.add(_format_node_label(w2_data), data=w2_data)
-        i2_data = ArgumentNode(
-            label="Impact", impact_score=50, node_type="impact"
-        )
+        i2_data = ArgumentNode(label="Impact", impact_score=50, node_type="impact")
         c2.add(_format_node_label(i2_data), data=i2_data)
 
-    def _load_tree_from_dict(
-        self, parent: TreeNode, data: dict
-    ) -> None:
+    def _load_tree_from_dict(self, parent: TreeNode, data: dict) -> None:
         """Recursively build tree nodes from a nested dictionary.
 
         Expected dictionary format::
@@ -272,9 +254,7 @@ class ArgumentTreeScreen(Screen):
                 card_count=child_dict.get("card_count", 0),
                 node_type=child_dict.get("node_type", "general"),
             )
-            child = parent.add(
-                _format_node_label(child_node_data), data=child_node_data
-            )
+            child = parent.add(_format_node_label(child_node_data), data=child_node_data)
             # Recurse into grandchildren
             for grandchild_dict in child_dict.get("children", []):
                 self._load_tree_from_dict(child, grandchild_dict)
@@ -359,9 +339,7 @@ class ArgumentTreeScreen(Screen):
         if self._input_mode is not None:
             return
         self._input_mode = "link"
-        overlay = TreeInputOverlay(
-            prompt="Enter card ID to link:", input_id="tree-input"
-        )
+        overlay = TreeInputOverlay(prompt="Enter card ID to link:", input_id="tree-input")
         self.mount(overlay)
         self.call_after_refresh(lambda: self.query_one("#tree-input", Input).focus())
 
@@ -374,9 +352,7 @@ class ArgumentTreeScreen(Screen):
         if self._input_mode is not None:
             return
         self._input_mode = "score"
-        overlay = TreeInputOverlay(
-            prompt="Impact score (0–100):", input_id="tree-input"
-        )
+        overlay = TreeInputOverlay(prompt="Impact score (0–100):", input_id="tree-input")
         self.mount(overlay)
 
         def _prefill() -> None:
@@ -402,9 +378,7 @@ class ArgumentTreeScreen(Screen):
             type_map = {0: "contention", 1: "warrant", 2: "impact"}
             node_type = type_map.get(depth, "general")
 
-            child_data = ArgumentNode(
-                label=value, impact_score=50, node_type=node_type
-            )
+            child_data = ArgumentNode(label=value, impact_score=50, node_type=node_type)
             node.add(_format_node_label(child_data), data=child_data)
             node.expand()
             self.app.notify(f"Added: {value}", severity="information")
@@ -473,10 +447,8 @@ class ArgumentTreeScreen(Screen):
 
         try:
             with open(filename, "w", encoding="utf-8") as f:
-                f.write(f"# Argument Tree Export\n\n")
-                f.write(
-                    f"_Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}_\n\n"
-                )
+                f.write("# Argument Tree Export\n\n")
+                f.write(f"_Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}_\n\n")
                 f.write(md)
             self.app.notify(f"Tree exported to {filename}", severity="success")
         except OSError as exc:
@@ -500,9 +472,7 @@ class ArgumentTreeScreen(Screen):
             score_str = f"[{data.impact_score}]"
             cards_str = f" ({data.card_count} cards)" if data.card_count else ""
             type_badge = f" `{data.node_type}`" if data.node_type != "general" else ""
-            lines.append(
-                f"{indent}- **{data.label}** {score_str}{cards_str}{type_badge}"
-            )
+            lines.append(f"{indent}- **{data.label}** {score_str}{cards_str}{type_badge}")
         else:
             lines.append(f"{indent}- {node.label}")
 

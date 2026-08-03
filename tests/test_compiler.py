@@ -1,10 +1,11 @@
 import os
+
 import pytest
 from omniformat.core.compiler import (
-    parse_markdown_to_html,
-    parse_inline_styles,
-    compile_to_html,
     compile_to_docx,
+    compile_to_html,
+    parse_inline_styles,
+    parse_markdown_to_html,
     prettify_markdown_file,
 )
 
@@ -33,9 +34,8 @@ def test_parse_inline_styles():
     assert "<strong>bold</strong>" in parse_inline_styles("**bold**")
     assert "<em>italic</em>" in parse_inline_styles("*italic*")
     assert "<code>code</code>" in parse_inline_styles("`code`")
-    assert (
-        '<a href="http://example.com" target="_blank">label</a>'
-        in parse_inline_styles("[label](http://example.com)")
+    assert '<a href="http://example.com" target="_blank">label</a>' in parse_inline_styles(
+        "[label](http://example.com)"
     )
 
 
@@ -50,7 +50,7 @@ def test_parse_markdown_to_html():
 def test_compile_to_html(sample_md_file):
     html_path = compile_to_html(sample_md_file, theme="cyberdark")
     assert os.path.exists(html_path)
-    with open(html_path, "r", encoding="utf-8") as f:
+    with open(html_path, encoding="utf-8") as f:
         content = f.read()
         assert "<!DOCTYPE html>" in content
         assert "Test Document" in content
@@ -72,7 +72,7 @@ def test_prettify_markdown_file(sample_md_file):
 
     prettify_markdown_file(sample_md_file)
 
-    with open(sample_md_file, "r", encoding="utf-8") as f:
+    with open(sample_md_file, encoding="utf-8") as f:
         content = f.read()
         assert "## Heading" in content
         assert "line    with    tabs" in content

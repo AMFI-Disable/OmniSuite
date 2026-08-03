@@ -1,5 +1,6 @@
 import datetime
 from typing import Dict, Optional
+
 from rich.text import Text
 from textual.widgets import Static
 
@@ -53,9 +54,7 @@ class HeatmapGrid(Static):
         for day_idx in range(7):
             text.append(f"{day_labels[day_idx]} ", style="dim")
             for week_offset in range(self._weeks - 1, -1, -1):
-                d = today - datetime.timedelta(
-                    days=today.weekday() - day_idx + (week_offset * 7)
-                )
+                d = today - datetime.timedelta(days=today.weekday() - day_idx + (week_offset * 7))
                 date_key = d.strftime("%Y-%m-%d")
                 count = self._daily_counts.get(date_key, 0)
 

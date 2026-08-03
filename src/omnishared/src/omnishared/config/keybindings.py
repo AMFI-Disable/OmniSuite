@@ -17,7 +17,6 @@ except ImportError:
 
 from omnishared.config.config import get_workspace_path
 
-
 # ─── File path ──────────────────────────────────────────────────────────────────
 KEYBINDINGS_FILE: str = get_workspace_path("config", "keybindings.yaml")
 

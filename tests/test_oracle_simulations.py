@@ -23,9 +23,7 @@ def test_simulate_sparring_vulnerability():
         "tier": 3,
     }
     spar_strong = OracleEngine.simulate_sparring(card_strong)
-    vuln_line_strong = [line for line in spar_strong if "Vulnerability Rating" in line][
-        0
-    ]
+    vuln_line_strong = [line for line in spar_strong if "Vulnerability Rating" in line][0]
     # 100 - (3 * 20) - (3 * 10) = 100 - 60 - 30 = 10%
     assert "10%" in vuln_line_strong
 
@@ -140,9 +138,7 @@ def test_simulate_judge_deterministic():
         for line in ballot_aff
     )
     # Verify feedback targets NEG
-    assert any(
-        "NEG suffered from low average card mastery" in line for line in ballot_aff
-    )
+    assert any("NEG suffered from low average card mastery" in line for line in ballot_aff)
 
     # Mock a NEG dominating setup
     neg_dominating = [
@@ -178,9 +174,7 @@ def test_simulate_judge_deterministic():
         for line in ballot_neg
     )
     # Verify feedback targets AFF
-    assert any(
-        "AFF suffered from low average card mastery" in line for line in ballot_neg
-    )
+    assert any("AFF suffered from low average card mastery" in line for line in ballot_neg)
 
 
 def test_generate_research_queue():
@@ -219,9 +213,7 @@ def test_generate_research_queue():
         },
     ]
     q_climate = OracleEngine.generate_research_queue(climate_no_terminal)
-    assert any(
-        "MISSING TERMINAL LINK: CLIMATE BIO-SURVIVAL" in line for line in q_climate
-    )
+    assert any("MISSING TERMINAL LINK: CLIMATE BIO-SURVIVAL" in line for line in q_climate)
     assert any("climate warming agricultural collapse" in line for line in q_climate)
 
     # Test Missing Terminal Link: Economy
@@ -242,12 +234,8 @@ def test_generate_research_queue():
         },
     ]
     q_economy = OracleEngine.generate_research_queue(economy_no_terminal)
-    assert any(
-        "MISSING TERMINAL LINK: ECONOMIC STABILITY" in line for line in q_economy
-    )
-    assert any(
-        "economic recession geopolitical conflict link" in line for line in q_economy
-    )
+    assert any("MISSING TERMINAL LINK: ECONOMIC STABILITY" in line for line in q_economy)
+    assert any("economic recession geopolitical conflict link" in line for line in q_economy)
 
     # Test Missing Terminal Link: Tech
     tech_no_terminal = [
@@ -267,12 +255,9 @@ def test_generate_research_queue():
         },
     ]
     q_tech = OracleEngine.generate_research_queue(tech_no_terminal)
+    assert any("MISSING TERMINAL LINK: TECHNOLOGICAL SAFEGUARDS" in line for line in q_tech)
     assert any(
-        "MISSING TERMINAL LINK: TECHNOLOGICAL SAFEGUARDS" in line for line in q_tech
-    )
-    assert any(
-        "artificial general intelligence existential risk control" in line
-        for line in q_tech
+        "artificial general intelligence existential risk control" in line for line in q_tech
     )
 
     # Balanced, no gaps

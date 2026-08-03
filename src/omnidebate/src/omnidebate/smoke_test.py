@@ -1,11 +1,11 @@
-import sys
-import os
 import datetime
+import os
+import sys
 
 # Ensure project root is in path for standalone execution
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from omnidebate.core.database import add_motion, add_card
+from omnidebate.core.database import add_card, add_motion
 
 
 def smoke_test_data():

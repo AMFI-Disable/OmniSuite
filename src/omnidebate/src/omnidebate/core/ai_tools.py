@@ -11,8 +11,7 @@ descriptive error string instead of raising.
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
-from omnishared.ai.client import generate_completion, OllamaOfflineError
-
+from omnishared.ai.client import OllamaOfflineError, generate_completion
 
 # ---------------------------------------------------------------------------
 # System context shared across all AI tool prompts
@@ -77,10 +76,7 @@ def generate_counter_arguments(card_text: str, side: str = "con") -> str:
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=20.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to generate counter-arguments — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to generate counter-arguments — Ollama is not running."
 
 
 def analyze_impact_chain(card_text: str) -> str:
@@ -114,10 +110,7 @@ def analyze_impact_chain(card_text: str) -> str:
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=20.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to analyze impact chain — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to analyze impact chain — Ollama is not running."
 
 
 def score_case_strength(cards: list[dict]) -> str:
@@ -167,10 +160,7 @@ def score_case_strength(cards: list[dict]) -> str:
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=25.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to score case strength — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to score case strength — Ollama is not running."
 
 
 def find_evidence_gaps(cards: list[dict], motion: str) -> str:
@@ -216,15 +206,10 @@ def find_evidence_gaps(cards: list[dict], motion: str) -> str:
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=25.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to find evidence gaps — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to find evidence gaps — Ollama is not running."
 
 
-def generate_case_outline(
-    motion: str, side: str, format_name: str = "Public Forum"
-) -> str:
+def generate_case_outline(motion: str, side: str, format_name: str = "Public Forum") -> str:
     """Generate a draft case outline for a given motion, side, and format.
 
     Produces a structured speech outline with suggested contentions,
@@ -264,10 +249,7 @@ def generate_case_outline(
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=30.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to generate case outline — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to generate case outline — Ollama is not running."
 
 
 def generate_cross_questions(card_text: str) -> str:
@@ -299,8 +281,7 @@ def generate_cross_questions(card_text: str) -> str:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=20.0)
     except OllamaOfflineError:
         return (
-            "[AI Offline] Unable to generate cross-examination questions — "
-            "Ollama is not running."
+            "[AI Offline] Unable to generate cross-examination questions — Ollama is not running."
         )
 
 
@@ -333,7 +314,4 @@ def rewrite_for_clarity(card_text: str) -> str:
     try:
         return generate_completion(prompt, system_prompt=SYSTEM_CONTEXT, timeout=20.0)
     except OllamaOfflineError:
-        return (
-            "[AI Offline] Unable to rewrite card text — "
-            "Ollama is not running."
-        )
+        return "[AI Offline] Unable to rewrite card text — Ollama is not running."

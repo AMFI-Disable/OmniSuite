@@ -1,10 +1,11 @@
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from textual.app import App
 from omnidebate.core.database import setup_db
-from omnidebate.core.logic import summarize_with_ollama, summarize_offline
+from omnidebate.core.logic import summarize_offline, summarize_with_ollama
 from omnidebate.ui.screens.ingest import WebIngestScreen
+from textual.app import App
 
 
 @pytest.fixture(autouse=True)
@@ -53,9 +54,7 @@ def test_summarize_with_ollama_mock(mock_post):
     }
     mock_post.return_value = mock_resp
 
-    tag, brief = summarize_with_ollama(
-        "Some text to summarize", "http://localhost:11434", "llama3"
-    )
+    tag, brief = summarize_with_ollama("Some text to summarize", "http://localhost:11434", "llama3")
     assert tag == "Debate Victory Road"
     assert "- Point A" in brief
 

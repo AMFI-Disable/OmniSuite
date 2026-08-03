@@ -94,9 +94,7 @@ class OracleEngine:
                 return 50
             return min(
                 100,
-                int(
-                    sum(OracleEngine.analyze_singularity(c) for c in cards) / len(cards)
-                ),
+                int(sum(OracleEngine.analyze_singularity(c) for c in cards) / len(cards)),
             )
         except Exception:
             return 50
@@ -109,13 +107,10 @@ class OracleEngine:
             95,
             max(
                 5,
-                int(sum(OracleEngine.analyze_victory(c) for c in cards) / len(cards))
-                + 20,
+                int(sum(OracleEngine.analyze_victory(c) for c in cards) / len(cards)) + 20,
             ),
         )
-        status = (
-            "DOMINANT" if prob > 70 else "COMPETITIVE" if prob > 40 else "VULNERABLE"
-        )
+        status = "DOMINANT" if prob > 70 else "COMPETITIVE" if prob > 40 else "VULNERABLE"
         return prob, status
 
     @staticmethod
@@ -187,9 +182,7 @@ class OracleEngine:
         try:
             if not cards:
                 return 50
-            return min(
-                100, int(sum(OracleEngine.analyze_risk(c) for c in cards) / len(cards))
-            )
+            return min(100, int(sum(OracleEngine.analyze_risk(c) for c in cards) / len(cards)))
         except Exception:
             return 50
 
@@ -226,9 +219,7 @@ class OracleEngine:
                 return 50
             return min(
                 100,
-                int(
-                    sum(OracleEngine.analyze_probability(c) for c in cards) / len(cards)
-                ),
+                int(sum(OracleEngine.analyze_probability(c) for c in cards) / len(cards)),
             )
         except Exception:
             return 50
@@ -332,9 +323,7 @@ class OracleEngine:
         try:
             if not cards:
                 return 50
-            weight = sum(
-                (c.get("tier", 3) * 20) + (len(c.get("text", "")) // 100) for c in cards
-            )
+            weight = sum((c.get("tier", 3) * 20) + (len(c.get("text", "")) // 100) for c in cards)
             return min(100, int(weight / (len(cards) if len(cards) > 0 else 1)))
         except Exception:
             return 50
@@ -348,19 +337,11 @@ class OracleEngine:
 
     @staticmethod
     def detect_fallacies(text):
-        return (
-            ["Potential Slippery Slope in link-chain."]
-            if "leads to" in text.lower()
-            else []
-        )
+        return ["Potential Slippery Slope in link-chain."] if "leads to" in text.lower() else []
 
     @staticmethod
     def detect_clash(card, all_cards):
-        return [
-            c
-            for c in all_cards
-            if c["side"] != card["side"] and c["tag"][:5] in card["tag"]
-        ]
+        return [c for c in all_cards if c["side"] != card["side"] and c["tag"][:5] in card["tag"]]
 
     @staticmethod
     def generate_cx_strategy(card):
@@ -510,19 +491,20 @@ class OracleEngine:
                 if response:
                     opp_attack = ""
                     c_rebuttal = ""
-                    if (
-                        "OPPONENT ATTACK:" in response
-                        and "COUNTER-REBUTTAL:" in response
-                    ):
+                    if "OPPONENT ATTACK:" in response and "COUNTER-REBUTTAL:" in response:
                         parts = response.split("COUNTER-REBUTTAL:")
                         opp_attack = parts[0].replace("OPPONENT ATTACK:", "").strip()
                         c_rebuttal = parts[1].strip()
                     elif "OPPONENT ATTACK:" in response:
                         opp_attack = response.replace("OPPONENT ATTACK:", "").strip()
-                        c_rebuttal = "Focus on the empirical warrant and outweigh on impact magnitude."
+                        c_rebuttal = (
+                            "Focus on the empirical warrant and outweigh on impact magnitude."
+                        )
                     else:
                         opp_attack = response
-                        c_rebuttal = "Analyze the link validity and check for alternative causality."
+                        c_rebuttal = (
+                            "Analyze the link validity and check for alternative causality."
+                        )
 
                     if opp_attack and c_rebuttal:
                         return [
@@ -712,9 +694,7 @@ class OracleEngine:
 
         # Craft heuristic fallback values in case AI fails
         # Craft RFD
-        text_content = (
-            key_tag + " " + (key_card.get("text", "") if key_card else "")
-        ).lower()
+        text_content = (key_tag + " " + (key_card.get("text", "") if key_card else "")).lower()
         clash_description = "the broad structural layout of the debate"
         if any(
             k in text_content
@@ -729,9 +709,7 @@ class OracleEngine:
                 "market",
             ]
         ):
-            clash_description = (
-                "the economic impacts and resource allocation trade-offs"
-            )
+            clash_description = "the economic impacts and resource allocation trade-offs"
         elif any(
             k in text_content
             for k in [
@@ -744,7 +722,9 @@ class OracleEngine:
                 "leakage",
             ]
         ):
-            clash_description = "climate warming, environmental regulations, and ecological sustainability"
+            clash_description = (
+                "climate warming, environmental regulations, and ecological sustainability"
+            )
         elif any(
             k in text_content
             for k in [
@@ -764,9 +744,7 @@ class OracleEngine:
             k in text_content
             for k in ["health", "medical", "disease", "pandemic", "vaccine", "biotech"]
         ):
-            clash_description = (
-                "public health readiness, pandemic risk, and medical infrastructure"
-            )
+            clash_description = "public health readiness, pandemic risk, and medical infrastructure"
         elif any(
             k in text_content
             for k in [
@@ -780,7 +758,9 @@ class OracleEngine:
                 "nato",
             ]
         ):
-            clash_description = "geopolitical security, deterrence frameworks, and conflict escalation risks"
+            clash_description = (
+                "geopolitical security, deterrence frameworks, and conflict escalation risks"
+            )
 
         if winner == "AFF":
             rfd = f"The Affirmative team secured the ballot primarily by winning the clash on {clash_description}. AFF's core card '{key_tag}'{cite_str} established a clear causal pathway, supported by empirical evidence, demonstrating a high-probability link to their terminal impact. The Negative's responses failed to adequately mitigate this systemic advantage, leaving the AFF's solvency narrative largely intact at the end of the round."
@@ -979,13 +959,9 @@ class OracleEngine:
                 )
 
         # 2. Check for missing logical links
-        all_text = " ".join(
-            (c.get("tag", "") + " " + c.get("text", "")).lower() for c in cards
-        )
+        all_text = " ".join((c.get("tag", "") + " " + c.get("text", "")).lower() for c in cards)
 
-        has_climate = any(
-            k in all_text for k in ["climate", "warming", "carbon", "greenhouse"]
-        )
+        has_climate = any(k in all_text for k in ["climate", "warming", "carbon", "greenhouse"])
         has_climate_terminal = any(
             k in all_text
             for k in [
@@ -1015,8 +991,7 @@ class OracleEngine:
 
         has_economy = any(k in all_text for k in ["economy", "gdp", "trade", "finance"])
         has_economy_terminal = any(
-            k in all_text
-            for k in ["security", "conflict", "war", "stability", "hegemony"]
+            k in all_text for k in ["security", "conflict", "war", "stability", "hegemony"]
         )
 
         if has_economy and not has_economy_terminal:
@@ -1036,8 +1011,7 @@ class OracleEngine:
 
         has_tech = any(k in all_text for k in ["technology", "tech", "ai", "algorithm"])
         has_tech_terminal = any(
-            k in all_text
-            for k in ["extinction", "catastrophe", "safety", "existential", "control"]
+            k in all_text for k in ["extinction", "catastrophe", "safety", "existential", "control"]
         )
 
         if has_tech and not has_tech_terminal:
@@ -1295,21 +1269,15 @@ class OracleEngine:
             redacted = text
             # Highlight Warrants (Gold/Underline)
             for w in warrants:
-                redacted = re.sub(
-                    f"(?i)({w})", r"[b][u][#f59e0b]\1[/#f59e0b][/u][/b]", redacted
-                )
+                redacted = re.sub(f"(?i)({w})", r"[b][u][#f59e0b]\1[/#f59e0b][/u][/b]", redacted)
 
             # Highlight Impacts (Red/Bold)
             for i in impacts:
-                redacted = re.sub(
-                    f"(?i)({i})", r"[b][#ef4444]\1[/#ef4444][/b]", redacted
-                )
+                redacted = re.sub(f"(?i)({i})", r"[b][#ef4444]\1[/#ef4444][/b]", redacted)
 
             # Highlight Empirical (Emerald/Bold)
             for e in empirical:
-                redacted = re.sub(
-                    f"(?i)({e})", r"[b][#10b981]\1[/#10b981][/b]", redacted
-                )
+                redacted = re.sub(f"(?i)({e})", r"[b][#10b981]\1[/#10b981][/b]", redacted)
 
             return redacted
         except Exception:

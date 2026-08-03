@@ -1,5 +1,5 @@
-import re
 import datetime
+import re
 
 
 class OutlineNode:
@@ -14,9 +14,7 @@ class OutlineNode:
         self.node_type = node_type  # "root", "folder", "card", "text"
         self.title = title
         self.level = level
-        self.data = (
-            data or {}
-        )  # stores card info like side, tier, citation, text, impact_analysis
+        self.data = data or {}  # stores card info like side, tier, citation, text, impact_analysis
         self.children = children or []
 
     def to_dict(self) -> dict:
@@ -53,13 +51,9 @@ def parse_markdown_to_tree(md_content: str) -> OutlineNode:
         if current_card:
             raw_text = "\n".join(current_text_lines).strip()
             # Try to extract CITE
-            cite_match = re.search(
-                r"\*\*CITE:\*\*\s*(.*?)(?:\n\n|\n|$)", raw_text, re.IGNORECASE
-            )
+            cite_match = re.search(r"\*\*CITE:\*\*\s*(.*?)(?:\n\n|\n|$)", raw_text, re.IGNORECASE)
             if not cite_match:
-                cite_match = re.search(
-                    r"CITE:\s*(.*?)(?:\n\n|\n|$)", raw_text, re.IGNORECASE
-                )
+                cite_match = re.search(r"CITE:\s*(.*?)(?:\n\n|\n|$)", raw_text, re.IGNORECASE)
 
             if cite_match:
                 current_card.data["citation"] = cite_match.group(1).strip()
@@ -132,10 +126,7 @@ def parse_markdown_to_tree(md_content: str) -> OutlineNode:
             flush_current_card()
             hashes, title = header_match.groups()
             level = len(hashes)
-            if (
-                title.strip().startswith("🏛️ STRATEGIC BRIEF")
-                or "STRATEGIC BRIEF:" in title
-            ):
+            if title.strip().startswith("🏛️ STRATEGIC BRIEF") or "STRATEGIC BRIEF:" in title:
                 root.title = title.strip()
                 continue
 

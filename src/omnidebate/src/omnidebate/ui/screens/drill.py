@@ -1,5 +1,6 @@
 import random
 from typing import Optional
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -22,8 +23,7 @@ class DrillScreen(ModalScreen):
     def compose(self) -> ComposeResult:
         with Container(id="drill-dialog"):
             yield Label(
-                "⚔️  GLADIATOR DRILL MODE"
-                + ("  ·  WEAK POINTS ONLY" if self.weak_only else "")
+                "⚔️  GLADIATOR DRILL MODE" + ("  ·  WEAK POINTS ONLY" if self.weak_only else "")
             )
             yield Static("Loading...", id="drill-tag")
             yield Static("", id="drill-cite")
@@ -55,13 +55,9 @@ class DrillScreen(ModalScreen):
         self.revealed = False
         c = self.current_card
         side_icon = "🟢" if c["side"] == "AFF" else "🔴"
-        self.query_one("#drill-tag", Static).update(
-            f"{side_icon} [{c['side']}] {c['tag'].upper()}"
-        )
+        self.query_one("#drill-tag", Static).update(f"{side_icon} [{c['side']}] {c['tag'].upper()}")
         self.query_one("#drill-cite", Static).update(f"Source: {c['citation']}")
-        self.query_one("#drill-card", Static).update(
-            "[ Press REVEAL to display evidence ]"
-        )
+        self.query_one("#drill-card", Static).update("[ Press REVEAL to display evidence ]")
 
     @on(Button.Pressed, "#btn-reveal")
     def reveal(self) -> None:

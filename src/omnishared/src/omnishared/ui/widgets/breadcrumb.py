@@ -13,7 +13,6 @@ from rich.text import Text
 from textual.reactive import reactive
 from textual.widgets import Static
 
-
 # ─── Styling constants ──────────────────────────────────────────────────────────
 _SEPARATOR = " › "
 _COLOR_SEGMENT = "#94a3b8"

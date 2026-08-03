@@ -2,7 +2,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Select, Switch, Input
+from textual.widgets import Button, Input, Label, Select, Switch
 
 
 class SettingsScreen(ModalScreen):
@@ -116,9 +116,7 @@ class SettingsScreen(ModalScreen):
     @on(Button.Pressed, "#btn-save")
     def save(self) -> None:
         new_config = {
-            "timer": {
-                "default_format": self.query_one("#sel-def-format", Select).value
-            },
+            "timer": {"default_format": self.query_one("#sel-def-format", Select).value},
             "ui": {
                 "palette": self.query_one("#sel-palette", Select).value,
                 "screen_reader_mode": self.query_one("#sw-screen-reader", Switch).value,

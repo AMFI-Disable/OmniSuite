@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import ModalScreen
-from textual.widgets import Static, Label
+from textual.widgets import Label, Static
 
 
 class SplashScreen(ModalScreen):
@@ -19,9 +19,7 @@ class SplashScreen(ModalScreen):
         yield Static(self.LOGO, id="splash-logo")
         yield Label("OMNIFORMAT v1.0.0", id="splash-loading")
         yield Label("░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░", id="splash-bar")
-        yield Label(
-            "© 2026 OmniSuite. Built for the Digital Grandmaster.", id="splash-footer"
-        )
+        yield Label("© 2026 OmniSuite. Built for the Digital Grandmaster.", id="splash-footer")
 
     def on_mount(self) -> None:
         self.set_timer(2.5, self.exit_splash)

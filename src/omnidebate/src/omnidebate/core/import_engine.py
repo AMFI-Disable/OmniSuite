@@ -9,14 +9,12 @@ All import functions return normalized card dicts with keys:
 """
 
 import csv
-import io
 import json
 import os
 import platform
 import subprocess
 from datetime import datetime, timezone
 from typing import Any
-
 
 # ---------------------------------------------------------------------------
 # Normalisation helpers
@@ -87,7 +85,7 @@ def import_from_csv(filepath: str) -> list[dict]:
         raise FileNotFoundError(f"CSV file not found: {filepath}")
 
     cards: list[dict] = []
-    with open(filepath, "r", encoding="utf-8-sig", newline="") as fh:
+    with open(filepath, encoding="utf-8-sig", newline="") as fh:
         reader = csv.DictReader(fh)
         if reader.fieldnames is None:
             raise ValueError(f"CSV file is empty or has no header: {filepath}")
@@ -96,8 +94,7 @@ def import_from_csv(filepath: str) -> list[dict]:
         lower_fields = {f.lower().strip() for f in reader.fieldnames}
         if "tag" not in lower_fields or "text" not in lower_fields:
             raise ValueError(
-                f"CSV must contain at least 'tag' and 'text' columns. "
-                f"Found: {reader.fieldnames}"
+                f"CSV must contain at least 'tag' and 'text' columns. Found: {reader.fieldnames}"
             )
 
         for row in reader:
@@ -154,7 +151,7 @@ def import_from_json(filepath: str) -> list[dict]:
     if not os.path.isfile(filepath):
         raise FileNotFoundError(f"JSON file not found: {filepath}")
 
-    with open(filepath, "r", encoding="utf-8") as fh:
+    with open(filepath, encoding="utf-8") as fh:
         data = json.load(fh)
 
     if isinstance(data, list):
@@ -163,13 +160,10 @@ def import_from_json(filepath: str) -> list[dict]:
         raw_cards = data.get("cards", data.get("evidence", []))
         if not isinstance(raw_cards, list):
             raise ValueError(
-                "JSON object must contain a 'cards' array. "
-                f"Got type: {type(raw_cards).__name__}"
+                f"JSON object must contain a 'cards' array. Got type: {type(raw_cards).__name__}"
             )
     else:
-        raise ValueError(
-            f"Expected JSON array or object, got {type(data).__name__}"
-        )
+        raise ValueError(f"Expected JSON array or object, got {type(data).__name__}")
 
     return [_normalize_card(card) for card in raw_cards if isinstance(card, dict)]
 
@@ -252,15 +246,13 @@ def import_from_url(url: str) -> dict:
     title = title_tag.get_text(strip=True) if title_tag else "Imported Article"
 
     # Extract author / publication for citation
-    author_meta = (
-        soup.find("meta", attrs={"name": "author"})
-        or soup.find("meta", attrs={"property": "article:author"})
+    author_meta = soup.find("meta", attrs={"name": "author"}) or soup.find(
+        "meta", attrs={"property": "article:author"}
     )
     author = author_meta.get("content", "").strip() if author_meta else ""
 
-    date_meta = (
-        soup.find("meta", attrs={"property": "article:published_time"})
-        or soup.find("meta", attrs={"name": "date"})
+    date_meta = soup.find("meta", attrs={"property": "article:published_time"}) or soup.find(
+        "meta", attrs={"name": "date"}
     )
     pub_date = date_meta.get("content", "")[:10] if date_meta else ""
 
@@ -295,13 +287,15 @@ def import_from_url(url: str) -> dict:
     # Truncate the tag to a reasonable length
     tag = title[:120] if len(title) > 120 else title
 
-    return _normalize_card({
-        "tag": tag,
-        "citation": citation,
-        "text": body_text,
-        "side": "AFF",
-        "language": "en",
-    })
+    return _normalize_card(
+        {
+            "tag": tag,
+            "citation": citation,
+            "text": body_text,
+            "side": "AFF",
+            "language": "en",
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -358,21 +352,16 @@ def import_from_pdf(filepath: str) -> list[str]:
         # Extract text between BT (begin text) and ET (end text) PDF operators
         import re
 
-        text_blocks = re.findall(
-            r"\(([^)]+)\)", raw_text
-        )
+        text_blocks = re.findall(r"\(([^)]+)\)", raw_text)
         extracted = " ".join(
-            block for block in text_blocks
-            if len(block) > 3 and any(c.isalpha() for c in block)
+            block for block in text_blocks if len(block) > 3 and any(c.isalpha() for c in block)
         )
 
         if extracted.strip():
             return [extracted.strip()]
 
     except Exception as exc:
-        raise RuntimeError(
-            f"Failed to extract text from PDF '{filepath}': {exc}"
-        ) from exc
+        raise RuntimeError(f"Failed to extract text from PDF '{filepath}': {exc}") from exc
 
     raise RuntimeError(
         f"No text could be extracted from PDF: {filepath}. "

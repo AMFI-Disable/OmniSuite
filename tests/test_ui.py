@@ -1,7 +1,8 @@
-import pytest
 import os
-from omnidebate.ui.app import OmniDebate
+
+import pytest
 from omnidebate.core.database import setup_db
+from omnidebate.ui.app import OmniDebate
 
 
 @pytest.fixture(autouse=True)
@@ -70,7 +71,7 @@ async def test_ui_shortcuts_and_filters():
             if query:
                 filtered = [c for c in filtered if query in c["tag"].lower()]
             from textual.containers import Vertical
-            from textual.widgets import Label, Static, ListItem
+            from textual.widgets import Label, ListItem, Static
 
             for c in filtered:
                 row = Vertical(Label(c["tag"]), Static(c["text"]))

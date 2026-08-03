@@ -1,14 +1,15 @@
 import os
+
 import pytest
 from omnidebate.core.database import (
-    setup_db,
-    add_motion,
-    list_motions,
     add_card,
-    read_vault,
+    add_motion,
     delete_card,
     get_trash,
+    list_motions,
+    read_vault,
     restore_trash,
+    setup_db,
 )
 
 

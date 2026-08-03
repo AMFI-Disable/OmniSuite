@@ -1,4 +1,5 @@
 import requests
+
 from omnishared.config import load_config
 
 
@@ -20,9 +21,7 @@ def check_ollama_status() -> bool:
         return False
 
 
-def generate_completion(
-    prompt: str, system_prompt: str = None, timeout: float = 10.0
-) -> str:
+def generate_completion(prompt: str, system_prompt: str = None, timeout: float = 10.0) -> str:
     """Generate a text completion using the local Ollama instance."""
     config = load_config()
     ai_config = config.get("ai", {})

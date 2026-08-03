@@ -1,8 +1,8 @@
-from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import DataTable, Label, Button
-from textual.containers import Vertical, Horizontal
 from textual import on
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Button, DataTable, Label
 
 
 class HelpScreen(ModalScreen):

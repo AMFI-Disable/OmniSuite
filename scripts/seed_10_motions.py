@@ -22,13 +22,11 @@ sys.path.insert(
     ),
 )
 
-from omnidebate.core.database import setup_db, add_motion, add_card
+from omnidebate.core.database import add_card, add_motion, setup_db
 
 
 def seed_database():
-    print(
-        "🏛️ INITIALIZING SAMPLE DEBATE DATABASE SEEDER (10 MOTIONS, 100 REAL CARDS)..."
-    )
+    print("🏛️ INITIALIZING SAMPLE DEBATE DATABASE SEEDER (10 MOTIONS, 100 REAL CARDS)...")
 
     # Reconstruct database if it doesn't exist
     setup_db()

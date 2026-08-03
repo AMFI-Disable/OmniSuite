@@ -13,15 +13,13 @@ visible error banner.
 
 from __future__ import annotations
 
+from omnishared.ai.client import OllamaOfflineError, generate_completion
 from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, Label, Static
-
-from omnishared.ai.client import OllamaOfflineError, generate_completion
-
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -224,9 +222,7 @@ class AIAssistantScreen(Screen):
             with VerticalScroll(id="chat-history"):
                 pass  # Messages mounted dynamically
 
-            yield Static(
-                "⏳ Oracle is thinking…", id="loading-indicator"
-            )
+            yield Static("⏳ Oracle is thinking…", id="loading-indicator")
 
             yield Static(
                 "💡 Commands: /summarize · /counter · /strengthen · /impact · /brief  │  "
@@ -320,9 +316,7 @@ class AIAssistantScreen(Screen):
         event.input.value = ""
 
         if self._is_generating:
-            self.app.notify(
-                "Please wait for Oracle to finish responding.", severity="warning"
-            )
+            self.app.notify("Please wait for Oracle to finish responding.", severity="warning")
             return
 
         # Check for slash commands
@@ -331,7 +325,7 @@ class AIAssistantScreen(Screen):
 
         for cmd, template in PROMPT_TEMPLATES.items():
             if raw.lower().startswith(cmd):
-                remaining = raw[len(cmd):].strip()
+                remaining = raw[len(cmd) :].strip()
                 if not remaining:
                     self.app.notify(
                         f"Usage: {cmd} <your text>",
@@ -374,22 +368,15 @@ class AIAssistantScreen(Screen):
                 system_prompt=SYSTEM_PROMPT,
                 timeout=60.0,
             )
-            self.call_from_thread(
-                self._add_message, "oracle", response, "oracle-message"
-            )
+            self.call_from_thread(self._add_message, "oracle", response, "oracle-message")
         except OllamaOfflineError as exc:
             error_msg = (
-                "Oracle is offline. Please ensure Ollama is running locally.\n"
-                f"Details: {exc}"
+                f"Oracle is offline. Please ensure Ollama is running locally.\nDetails: {exc}"
             )
-            self.call_from_thread(
-                self._add_message, "error", error_msg, "error-message"
-            )
+            self.call_from_thread(self._add_message, "error", error_msg, "error-message")
         except Exception as exc:
             error_msg = f"Unexpected error: {exc}"
-            self.call_from_thread(
-                self._add_message, "error", error_msg, "error-message"
-            )
+            self.call_from_thread(self._add_message, "error", error_msg, "error-message")
         finally:
             self.call_from_thread(self._set_loading, False)
 

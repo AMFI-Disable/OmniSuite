@@ -11,11 +11,11 @@ Adds:
 - flows table for debate flow data
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "a7f3b2c91d04"
 down_revision: Union[str, Sequence[str], None] = "dbb22ea86f29"

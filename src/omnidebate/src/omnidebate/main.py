@@ -1,9 +1,11 @@
+import datetime
 import sys
 import traceback
-import datetime
-from omnidebate.ui.app import OmniDebate
+
 from omnishared.config import run_setup_dirs
+
 from omnidebate.core.database import setup_db
+from omnidebate.ui.app import OmniDebate
 
 
 def main():

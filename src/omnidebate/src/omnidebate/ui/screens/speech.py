@@ -4,25 +4,24 @@ Allows debaters to track speech durations, prep timers, and flow arguments.
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
+from omnishared.database import increment_mastery, read_vault
+from omnishared.formats.loader import load_formats
+from omnishared.ui.widgets import GaugeBar
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.binding import Binding
 from textual.widgets import (
     Button,
-    Label,
-    Static,
-    Select,
-    ListView,
-    ListItem,
     Input,
+    Label,
+    ListItem,
+    ListView,
+    Select,
+    Static,
     TextArea,
 )
-
-from omnishared.formats.loader import load_formats
-from omnishared.database import read_vault, increment_mastery
-from omnishared.ui.widgets import GaugeBar
 
 
 class SpeechPrepScreen(ModalScreen):
@@ -55,9 +54,7 @@ class SpeechPrepScreen(ModalScreen):
         with Container(id="speech-dialog"):
             # Header Row
             with Horizontal(id="speech-header"):
-                yield Label(
-                    "🎙️  LIVE SPEECH PREP & FLOW SHEET  ·  ", id="speech-header-title"
-                )
+                yield Label("🎙️  LIVE SPEECH PREP & FLOW SHEET  ·  ", id="speech-header-title")
                 yield Select([], id="select-format", prompt="Select Format")
 
             # Active Timer Controls & Gauges Row
@@ -70,15 +67,9 @@ class SpeechPrepScreen(ModalScreen):
 
                 # Active Timer Selector buttons
                 with Vertical(id="speech-mode-selector"):
-                    yield Button(
-                        "🎤 RUN SPEECH", id="btn-mode-speech", variant="success"
-                    )
-                    yield Button(
-                        "🟢 RUN AFF PREP", id="btn-mode-aff", variant="default"
-                    )
-                    yield Button(
-                        "🔴 RUN NEG PREP", id="btn-mode-neg", variant="default"
-                    )
+                    yield Button("🎤 RUN SPEECH", id="btn-mode-speech", variant="success")
+                    yield Button("🟢 RUN AFF PREP", id="btn-mode-aff", variant="default")
+                    yield Button("🔴 RUN NEG PREP", id="btn-mode-neg", variant="default")
 
                 # Prep Gauges
                 with Vertical(id="speech-gauges-container"):
@@ -108,15 +99,11 @@ class SpeechPrepScreen(ModalScreen):
                 with Vertical(classes="speech-column"):
                     yield Label("🔥 REBUTTALS / CLASH", classes="speech-column-header")
                     yield ListView(id="rebuttals-list")
-                    yield Input(
-                        placeholder="Add rebuttal point...", id="rebuttal-input"
-                    )
+                    yield Input(placeholder="Add rebuttal point...", id="rebuttal-input")
 
                 # Column 3: FINAL DECISION/SUMMARY
                 with Vertical(classes="speech-column"):
-                    yield Label(
-                        "🏆 FINAL SUMMARY / DECISION", classes="speech-column-header"
-                    )
+                    yield Label("🏆 FINAL SUMMARY / DECISION", classes="speech-column-header")
                     yield TextArea(
                         id="summary-text",
                         placeholder="Note key win-condition points here...",
@@ -178,9 +165,7 @@ class SpeechPrepScreen(ModalScreen):
 
             row = Horizontal(
                 Label(tag_text, classes="constructive-card-label"),
-                Button(
-                    "Flow", id=f"flow-{cid}", classes="btn-flow-arg", variant="warning"
-                ),
+                Button("Flow", id=f"flow-{cid}", classes="btn-flow-arg", variant="warning"),
                 Button(
                     "Spoken",
                     id=f"spoken-{cid}",
@@ -198,9 +183,7 @@ class SpeechPrepScreen(ModalScreen):
         if event.value:
             self.selected_format = event.value
             self.speeches = self.formats[self.selected_format]["speeches"]
-            self.total_prep_time = self.formats[self.selected_format][
-                "prep_time_seconds"
-            ]
+            self.total_prep_time = self.formats[self.selected_format]["prep_time_seconds"]
 
             self.speech_index = 0
             self.aff_prep_remaining = self.total_prep_time
@@ -223,9 +206,7 @@ class SpeechPrepScreen(ModalScreen):
         self.speech_time_remaining = current_speech["duration_seconds"]
 
         try:
-            self.query_one("#speech-name-display", Static).update(
-                current_speech["name"]
-            )
+            self.query_one("#speech-name-display", Static).update(current_speech["name"])
             self.query_one("#speech-timer-display", Static).update(
                 self._format_time(self.speech_time_remaining)
             )
@@ -259,12 +240,8 @@ class SpeechPrepScreen(ModalScreen):
     def _update_prep_gauges(self) -> None:
         if self.total_prep_time <= 0:
             try:
-                self.query_one("#gauge-aff-prep", GaugeBar).set_value(
-                    100, label="AFF PREP 00:00"
-                )
-                self.query_one("#gauge-neg-prep", GaugeBar).set_value(
-                    100, label="NEG PREP 00:00"
-                )
+                self.query_one("#gauge-aff-prep", GaugeBar).set_value(100, label="AFF PREP 00:00")
+                self.query_one("#gauge-neg-prep", GaugeBar).set_value(100, label="NEG PREP 00:00")
             except Exception:
                 pass
             return
@@ -291,15 +268,9 @@ class SpeechPrepScreen(ModalScreen):
             aff_btn = self.query_one("#btn-mode-aff", Button)
             neg_btn = self.query_one("#btn-mode-neg", Button)
 
-            speech_btn.variant = (
-                "success" if self.active_timer_mode == "speech" else "default"
-            )
-            aff_btn.variant = (
-                "success" if self.active_timer_mode == "aff_prep" else "default"
-            )
-            neg_btn.variant = (
-                "success" if self.active_timer_mode == "neg_prep" else "default"
-            )
+            speech_btn.variant = "success" if self.active_timer_mode == "speech" else "default"
+            aff_btn.variant = "success" if self.active_timer_mode == "aff_prep" else "default"
+            neg_btn.variant = "success" if self.active_timer_mode == "neg_prep" else "default"
         except Exception:
             pass
 
@@ -379,9 +350,7 @@ class SpeechPrepScreen(ModalScreen):
             self.speech_time_remaining = current_speech["duration_seconds"]
 
             try:
-                self.query_one("#speech-name-display", Static).update(
-                    current_speech["name"]
-                )
+                self.query_one("#speech-name-display", Static).update(current_speech["name"])
                 self.query_one("#speech-timer-display", Static).update(
                     self._format_time(self.speech_time_remaining)
                 )
@@ -394,9 +363,7 @@ class SpeechPrepScreen(ModalScreen):
                 f"Advanced to speech: {current_speech['name']}", severity="information"
             )
         else:
-            self._safe_notify(
-                "Final speech reached. Debate round completed!", severity="success"
-            )
+            self._safe_notify("Final speech reached. Debate round completed!", severity="success")
 
     def action_exit_screen(self) -> None:
         self.dismiss(None)
@@ -406,9 +373,7 @@ class SpeechPrepScreen(ModalScreen):
             card_id = int(event.button.id.split("-")[-1])
             increment_mastery(card_id)
             self.spoken_card_ids.add(card_id)
-            self._safe_notify(
-                "Card marked as Spoken. Mastery incremented.", severity="success"
-            )
+            self._safe_notify("Card marked as Spoken. Mastery incremented.", severity="success")
             self._reload_constructives()
         elif event.button.id and event.button.id.startswith("flow-"):
             card_id = int(event.button.id.split("-")[-1])
@@ -471,9 +436,7 @@ class SpeechPrepScreen(ModalScreen):
                     self.is_paused = True
                     self._update_play_pause_button()
                     self._update_timer_visuals()
-                    self._safe_notify(
-                        "Affirmative Prep time expired!", severity="warning"
-                    )
+                    self._safe_notify("Affirmative Prep time expired!", severity="warning")
         elif self.active_timer_mode == "neg_prep":
             if self.neg_prep_remaining > 0:
                 self.neg_prep_remaining -= 1

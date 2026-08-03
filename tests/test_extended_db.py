@@ -5,26 +5,27 @@ export logging, and vault statistics.
 """
 
 import os
+
 import pytest
-from omnidebate.core.database import setup_db, add_motion, add_card, read_vault
+from omnidebate.core.database import add_card, add_motion, read_vault, setup_db
 from omnishared.database.extended import (
     add_card_tag,
-    remove_card_tag,
-    get_card_tags,
-    get_cards_by_tag,
-    list_all_tags,
-    set_card_rating,
-    get_cards_by_rating,
-    log_card_change,
-    get_card_history,
-    save_flow,
-    load_flow,
-    list_flows,
     delete_flow,
-    log_export,
+    get_card_history,
+    get_card_tags,
+    get_cards_by_rating,
+    get_cards_by_tag,
     get_export_history,
-    get_vault_statistics,
     get_motion_statistics,
+    get_vault_statistics,
+    list_all_tags,
+    list_flows,
+    load_flow,
+    log_card_change,
+    log_export,
+    remove_card_tag,
+    save_flow,
+    set_card_rating,
 )
 
 
@@ -44,8 +45,26 @@ def test_db(tmp_path):
 def motion_with_cards(test_db):
     """Create a motion with two cards for testing."""
     mid = add_motion("Test Motion")
-    add_card(mid, {"tag": "AFF card", "citation": "Smith 2023", "side": "AFF", "text": "Aff evidence", "tier": 2})
-    add_card(mid, {"tag": "NEG card", "citation": "Jones 2023", "side": "NEG", "text": "Neg evidence", "tier": 1})
+    add_card(
+        mid,
+        {
+            "tag": "AFF card",
+            "citation": "Smith 2023",
+            "side": "AFF",
+            "text": "Aff evidence",
+            "tier": 2,
+        },
+    )
+    add_card(
+        mid,
+        {
+            "tag": "NEG card",
+            "citation": "Jones 2023",
+            "side": "NEG",
+            "text": "Neg evidence",
+            "tier": 1,
+        },
+    )
     cards = read_vault(mid)
     return mid, cards
 

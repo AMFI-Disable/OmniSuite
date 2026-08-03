@@ -7,13 +7,14 @@ Converts, formats, and compiles general Markdown files into:
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
-import os
-import re
 import datetime
 import html
+import os
+import re
+
 from docx import Document
-from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches, Pt, RGBColor
 
 
 def parse_markdown_to_html(md_text: str) -> str:
@@ -54,11 +55,7 @@ def parse_markdown_to_html(md_text: str) -> str:
             continue
 
         # Close lists/tables if needed
-        if (
-            in_list
-            and not line.strip().startswith("-")
-            and not line.strip().startswith("*")
-        ):
+        if in_list and not line.strip().startswith("-") and not line.strip().startswith("*"):
             html_lines.append("</ul>")
             in_list = False
 
@@ -91,9 +88,7 @@ def parse_markdown_to_html(md_text: str) -> str:
             formatted_content = parse_inline_styles(content)
             indent = (current_level - 1) * 20 if current_level > 1 else 0
             style_attr = f' style="margin-left: {indent}px;"' if indent > 0 else ""
-            html_lines.append(
-                f"<blockquote{style_attr}>{formatted_content}</blockquote>"
-            )
+            html_lines.append(f"<blockquote{style_attr}>{formatted_content}</blockquote>")
             continue
 
         # 4. Unordered Lists
@@ -184,7 +179,7 @@ def parse_inline_styles(text: str) -> str:
 
 def compile_to_html(src_path: str, theme: str = "cyberdark") -> str:
     """Compiles a Markdown file into a beautiful single-page HTML file."""
-    with open(src_path, "r", encoding="utf-8") as f:
+    with open(src_path, encoding="utf-8") as f:
         md_content = f.read()
 
     filename = os.path.basename(src_path)
@@ -334,7 +329,7 @@ def compile_to_html(src_path: str, theme: str = "cyberdark") -> str:
 
 def compile_to_docx(src_path: str) -> str:
     """Compiles a Markdown file into a styled Word Document (.docx) with indentation support."""
-    with open(src_path, "r", encoding="utf-8") as f:
+    with open(src_path, encoding="utf-8") as f:
         md_content = f.read()
 
     doc = Document()
@@ -369,9 +364,9 @@ def compile_to_docx(src_path: str) -> str:
     # Divider
     div_p = doc.add_paragraph()
     div_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    div_p.add_run(
-        "____________________________________________________"
-    ).font.color.rgb = RGBColor(200, 200, 200)
+    div_p.add_run("____________________________________________________").font.color.rgb = RGBColor(
+        200, 200, 200
+    )
 
     lines = md_content.splitlines()
     in_code_block = False
@@ -495,7 +490,7 @@ def apply_inline_docx_formatting(paragraph, text: str) -> None:
 
 def prettify_markdown_file(src_path: str) -> str:
     """Rewrites a Markdown file with standardized markdown formatting."""
-    with open(src_path, "r", encoding="utf-8") as f:
+    with open(src_path, encoding="utf-8") as f:
         md_content = f.read()
 
     from omniformat.core.compliance import auto_correct_markdown
@@ -516,9 +511,7 @@ def parse_markdown_to_outline(md_text: str) -> list[dict]:
 
     def traverse(node):
         if node.node_type == "folder":
-            flat_outline.append(
-                {"type": "folder", "title": node.title, "level": node.level}
-            )
+            flat_outline.append({"type": "folder", "title": node.title, "level": node.level})
         elif node.node_type == "card":
             flat_outline.append(
                 {

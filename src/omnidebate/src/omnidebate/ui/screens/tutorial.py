@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
+from textual.containers import ScrollableContainer, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Label, Static, Button
-from textual.containers import Vertical, ScrollableContainer
+from textual.widgets import Button, Label, Static
 
 
 class TutorialScreen(ModalScreen):

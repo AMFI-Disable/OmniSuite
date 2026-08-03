@@ -1,5 +1,6 @@
-import os
 import datetime
+import os
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -7,7 +8,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Static
 
 from omnidebate.core.database import add_card
-from omnidebate.core.logic import parse_verbatim_docx, DOCX_OK
+from omnidebate.core.logic import DOCX_OK, parse_verbatim_docx
 
 
 class DocxIngestScreen(ModalScreen):

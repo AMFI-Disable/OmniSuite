@@ -1,4 +1,5 @@
 from typing import Optional
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
@@ -18,9 +19,7 @@ class AddMotionScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Container(id="motion-dialog"):
-            yield Label(
-                "🗂️ " + ("Rename Motion" if self.motion_id else "Create New Motion")
-            )
+            yield Label("🗂️ " + ("Rename Motion" if self.motion_id else "Create New Motion"))
             yield Input(
                 value=self.current_name,
                 placeholder="e.g. Universal Basic Income",
@@ -62,12 +61,8 @@ class ConfirmDeleteScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Container(id="motion-dialog"):
-            yield Label(
-                f"⚠️ Are you sure you want to delete motion '{self.motion_name}'?"
-            )
-            yield Label(
-                "This will permanently delete all evidence cards in this motion."
-            )
+            yield Label(f"⚠️ Are you sure you want to delete motion '{self.motion_name}'?")
+            yield Label("This will permanently delete all evidence cards in this motion.")
             with Horizontal(id="btn-row"):
                 yield Button("🗑️ Delete", variant="error", id="btn-confirm")
                 yield Button("✖ Cancel", variant="default", id="btn-cancel")

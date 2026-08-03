@@ -1,9 +1,10 @@
 import os
+
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Select, Switch, Static
+from textual.widgets import Button, Label, Select, Static, Switch
 
 from omnidebate.core.export import export_brief
 
@@ -87,6 +88,7 @@ class ExportBriefScreen(ModalScreen):
         if hasattr(self, "exported_file") and self.exported_file:
             import subprocess
             import sys
+
             from omnishared.config import get_workspace_path
 
             try:
@@ -105,9 +107,7 @@ class ExportBriefScreen(ModalScreen):
                     pass
             except Exception as e:
                 try:
-                    self.app.notify(
-                        f"❌ Failed to launch OmniFormat: {e}", severity="error"
-                    )
+                    self.app.notify(f"❌ Failed to launch OmniFormat: {e}", severity="error")
                 except Exception:
                     pass
         self.dismiss()
@@ -127,9 +127,7 @@ class ExportBriefScreen(ModalScreen):
         if not template:
             template = "verbatim"
 
-        self.query_one("#export-status", Static).update(
-            "⏳ Generating document brief..."
-        )
+        self.query_one("#export-status", Static).update("⏳ Generating document brief...")
 
         try:
             out_file = export_brief(

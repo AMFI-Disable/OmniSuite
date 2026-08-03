@@ -1,8 +1,9 @@
 from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Label, Static, Button, DataTable
-from textual.containers import Vertical, Horizontal
-from omnidebate.core.database import list_motions, read_vault, get_velocity_stats
+from textual.widgets import Button, DataTable, Label, Static
+
+from omnidebate.core.database import get_velocity_stats, list_motions, read_vault
 
 
 class AnalyticsScreen(ModalScreen):
@@ -10,13 +11,9 @@ class AnalyticsScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="stats-dialog"):
-            yield Label(
-                "📊  STRATEGIC DASHBOARD & RESEARCH VELOCITY", classes="stats-title"
-            )
+            yield Label("📊  STRATEGIC DASHBOARD & RESEARCH VELOCITY", classes="stats-title")
 
-            yield Label(
-                "🗓️  CONTRIBUTION HEATMAP (Simulation)", classes="section-header"
-            )
+            yield Label("🗓️  CONTRIBUTION HEATMAP (Simulation)", classes="section-header")
             yield Static(id="heatmap-view")
 
             yield Label("📈  7-DAY RESEARCH VELOCITY", classes="section-header")
@@ -66,9 +63,7 @@ class AnalyticsScreen(ModalScreen):
                     cards = read_vault(m["id"])
                     aff = len([c for c in cards if c["side"] == "AFF"])
                     neg = len([c for c in cards if c["side"] == "NEG"])
-                    status = (
-                        " [green]READY[/] " if len(cards) > 8 else " [yellow]PREP[/] "
-                    )
+                    status = " [green]READY[/] " if len(cards) > 8 else " [yellow]PREP[/] "
                     table.add_row(
                         f"#{m['id']}",
                         m["name"].upper(),

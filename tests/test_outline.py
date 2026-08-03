@@ -1,10 +1,11 @@
 import os
+
 import pytest
 from omniformat.core.compiler import (
-    parse_markdown_to_outline,
     compile_outline_to_markdown,
-    compile_to_html,
     compile_to_docx,
+    compile_to_html,
+    parse_markdown_to_outline,
 )
 from omniformat.core.outline import (
     parse_markdown_to_tree,
@@ -39,7 +40,7 @@ def sample_outline_md(tmp_path):
 
 
 def test_tree_parsing_and_serialization(sample_outline_md):
-    with open(sample_outline_md, "r", encoding="utf-8") as f:
+    with open(sample_outline_md, encoding="utf-8") as f:
         content = f.read()
 
     tree_root = parse_markdown_to_tree(content)
@@ -61,7 +62,7 @@ def test_tree_parsing_and_serialization(sample_outline_md):
 
 
 def test_parse_and_compile_outline_compat(sample_outline_md):
-    with open(sample_outline_md, "r", encoding="utf-8") as f:
+    with open(sample_outline_md, encoding="utf-8") as f:
         content = f.read()
 
     outline = parse_markdown_to_outline(content)
@@ -87,7 +88,7 @@ def test_parse_and_compile_outline_compat(sample_outline_md):
 def test_hierarchical_compile_outputs(sample_outline_md):
     html_path = compile_to_html(sample_outline_md, theme="cyberdark")
     assert os.path.exists(html_path)
-    with open(html_path, "r", encoding="utf-8") as f:
+    with open(html_path, encoding="utf-8") as f:
         html_content = f.read()
         assert 'style="margin-left: 20px;"' in html_content
         assert 'style="margin-left: 60px;"' in html_content

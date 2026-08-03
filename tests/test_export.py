@@ -1,6 +1,7 @@
 import os
+
 import pytest
-from omnidebate.core.database import setup_db, add_motion, add_card
+from omnidebate.core.database import add_card, add_motion, setup_db
 from omnidebate.core.export import export_brief_markdown
 
 
@@ -31,7 +32,7 @@ def test_export():
 
     fname = export_brief_markdown(mid, "Test Motion")
     assert os.path.exists(fname)
-    with open(fname, "r") as f:
+    with open(fname) as f:
         content = f.read()
         assert "TEST MOTION" in content
         assert "AFF CARD" in content

@@ -15,7 +15,6 @@ from textual.reactive import reactive
 from textual.timer import Timer as TextualTimer
 from textual.widgets import Static
 
-
 # ─── Progress bar characters ────────────────────────────────────────────────────
 _BAR_FILLED = "█"
 _BAR_EMPTY = "░"
@@ -186,9 +185,7 @@ class RoundTimer(Static):
         self._total_duration = float(max(0, seconds))
         self.reset()
 
-    def load_format(
-        self, format_name: str, speech_index: int = 0
-    ) -> None:
+    def load_format(self, format_name: str, speech_index: int = 0) -> None:
         """Load durations from a named debate format.
 
         Args:
@@ -203,9 +200,7 @@ class RoundTimer(Static):
             )
             self._label = speeches[speech_index].get("name", self._label)
         else:
-            self._total_duration = float(
-                fmt.get("prep_time_seconds", self._total_duration)
-            )
+            self._total_duration = float(fmt.get("prep_time_seconds", self._total_duration))
         self.reset()
 
     # ── Textual lifecycle ────────────────────────────────────────────────────

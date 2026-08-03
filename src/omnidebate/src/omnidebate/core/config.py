@@ -1,12 +1,12 @@
 # Proxy to omnishared.config to preserve backwards compatibility for apps/omnidebate
 
 from omnishared.config import (
-    DEBATES_DIR,
     BACKUPS_DIR,
-    EXPORTS_DIR,
-    TRASH_FILE,
-    FORMATS_FILE,
     CONFIG_FILE,
+    DEBATES_DIR,
+    EXPORTS_DIR,
+    FORMATS_FILE,
+    TRASH_FILE,
     run_setup_dirs,
 )
 from omnishared.formats.loader import load_formats

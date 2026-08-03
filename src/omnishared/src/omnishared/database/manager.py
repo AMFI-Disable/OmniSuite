@@ -1,17 +1,18 @@
-import os
-import sqlite3
-import json
-import glob
 import datetime
+import glob
+import json
+import os
 import shutil
-from omnishared.config import DEBATES_DIR, BACKUPS_DIR, ALEMBIC_INI_FILE
-from omnishared.database.connection import get_db_path, get_connection
+import sqlite3
+
+from omnishared.config import ALEMBIC_INI_FILE, BACKUPS_DIR, DEBATES_DIR
+from omnishared.database.connection import get_connection, get_db_path
 
 
 def setup_db():
     """Hardened database synthesis using Alembic migrations."""
-    from alembic.config import Config
     from alembic import command
+    from alembic.config import Config
 
     if "EVIDENCE_VAULT_DB" not in os.environ:
         os.makedirs(DEBATES_DIR, exist_ok=True)
@@ -21,9 +22,7 @@ def setup_db():
     conn = get_connection()
     c = conn.cursor()
 
-    c.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version'"
-    )
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version'")
     has_alembic = c.fetchone()
 
     c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='motions'")

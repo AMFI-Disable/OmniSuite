@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock, patch
 
+from omnidebate.ui.screens.export_brief import ExportBriefScreen
 from omniformat.core.compliance import (
     analyze_markdown,
     auto_correct_markdown,
-    detect_and_parse_forensics,
     calculate_readability,
+    detect_and_parse_forensics,
 )
-from omnidebate.ui.screens.export_brief import ExportBriefScreen
 
 
 def test_readability_and_heading_validation():
@@ -27,16 +27,12 @@ def test_readability_and_heading_validation():
 
     # 2. Test high readability FRE score alert (> 80)
     # Very simple text
-    simple_text = (
-        "The cat sat on the mat. The dog saw the cat. The cat ran away. It was fun."
-    )
+    simple_text = "The cat sat on the mat. The dog saw the cat. The cat ran away. It was fun."
     fre_score_simple = calculate_readability(simple_text)
     assert fre_score_simple > 80
 
     report_simple = analyze_markdown(simple_text)
-    assert any(
-        "Readability warning" in w and "> 80" in w for w in report_simple["warnings"]
-    )
+    assert any("Readability warning" in w and "> 80" in w for w in report_simple["warnings"])
 
     # 3. Test skipped heading levels (H1 to H3)
     skipped_headings = "# First Level Heading\n### Third Level Heading (Skipping H2)\n"
@@ -56,8 +52,7 @@ def test_readability_and_heading_validation():
     # 6. Test auto-correct of unclosed bold/italic styles
     corrected_styles = auto_correct_markdown(unclosed_bold)
     assert (
-        corrected_styles.strip()
-        == "This is **bold but not closed. And some *italic stuff too.***"
+        corrected_styles.strip() == "This is **bold but not closed. And some *italic stuff too.***"
     )
 
 

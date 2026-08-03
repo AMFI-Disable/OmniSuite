@@ -1,10 +1,10 @@
-from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Markdown, Label, Button
-from textual.containers import Horizontal, Vertical
-from textual import on
-
 from omnishared.ui.widgets import GaugeBar
+from textual import on
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Button, Label, Markdown
+
 from omnidebate.core.database import update_card
 from omnidebate.core.oracle import OracleEngine
 
@@ -36,9 +36,7 @@ class CompareScreen(ModalScreen):
                     )
                     yield Markdown(self._fmt_card(self.card_a))
 
-                    yield Label(
-                        "📊 HEURISTIC METRICS:", classes="metrics-section-label"
-                    )
+                    yield Label("📊 HEURISTIC METRICS:", classes="metrics-section-label")
                     yield GaugeBar(
                         label="RESILIENCE",
                         value=self.diagnostics["resilience_a"],
@@ -55,16 +53,12 @@ class CompareScreen(ModalScreen):
                         id="gauge-fact-a",
                     )
 
-                    yield Label(
-                        "🎯 CROSS-EXAM QUESTIONS:", classes="metrics-section-label"
-                    )
+                    yield Label("🎯 CROSS-EXAM QUESTIONS:", classes="metrics-section-label")
                     cx_a = OracleEngine.generate_cx_questions(self.card_a)
                     for q in cx_a:
                         yield Label(f"• {q}", classes="cx-question-label")
 
-                    yield Label(
-                        "🛡️ REBUTTAL SPEECH BLOCK:", classes="metrics-section-label"
-                    )
+                    yield Label("🛡️ REBUTTAL SPEECH BLOCK:", classes="metrics-section-label")
                     reb_a = OracleEngine.synthesize_rebuttal_block(self.card_a)
                     for r in reb_a:
                         if not r.startswith("#"):
@@ -78,9 +72,7 @@ class CompareScreen(ModalScreen):
                     )
                     yield Markdown(self._fmt_card(self.card_b))
 
-                    yield Label(
-                        "📊 HEURISTIC METRICS:", classes="metrics-section-label"
-                    )
+                    yield Label("📊 HEURISTIC METRICS:", classes="metrics-section-label")
                     yield GaugeBar(
                         label="RESILIENCE",
                         value=self.diagnostics["resilience_b"],
@@ -97,16 +89,12 @@ class CompareScreen(ModalScreen):
                         id="gauge-fact-b",
                     )
 
-                    yield Label(
-                        "🎯 CROSS-EXAM QUESTIONS:", classes="metrics-section-label"
-                    )
+                    yield Label("🎯 CROSS-EXAM QUESTIONS:", classes="metrics-section-label")
                     cx_b = OracleEngine.generate_cx_questions(self.card_b)
                     for q in cx_b:
                         yield Label(f"• {q}", classes="cx-question-label")
 
-                    yield Label(
-                        "🛡️ REBUTTAL SPEECH BLOCK:", classes="metrics-section-label"
-                    )
+                    yield Label("🛡️ REBUTTAL SPEECH BLOCK:", classes="metrics-section-label")
                     reb_b = OracleEngine.synthesize_rebuttal_block(self.card_b)
                     for r in reb_b:
                         if not r.startswith("#"):
@@ -114,13 +102,9 @@ class CompareScreen(ModalScreen):
 
             # Footer with resolution buttons
             with Horizontal(classes="dashboard-footer", id="compare-footer"):
-                yield Button(
-                    "⭐ Prioritize Card A", variant="success", id="btn-prior-a"
-                )
+                yield Button("⭐ Prioritize Card A", variant="success", id="btn-prior-a")
                 yield Button("⭐ Prioritize Card B", variant="error", id="btn-prior-b")
-                yield Button(
-                    "⚖️ Equalize (Tier 2)", variant="warning", id="btn-equalize"
-                )
+                yield Button("⚖️ Equalize (Tier 2)", variant="warning", id="btn-equalize")
                 yield Button("✖ Cancel [ESC]", variant="primary", id="btn-close")
 
     def _get_verdict_badge(self) -> str:
@@ -179,9 +163,7 @@ class CompareScreen(ModalScreen):
         update_card(self.card_a["id"], self.card_a)
         update_card(self.card_b["id"], self.card_b)
         try:
-            self.app.notify(
-                "Resolved: Equalized both cards to Tier 2.", severity="info"
-            )
+            self.app.notify("Resolved: Equalized both cards to Tier 2.", severity="info")
         except Exception:
             pass
         self.dismiss(True)

@@ -1,9 +1,10 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from omnidebate.core.logic import (
     bool_search,
-    smart_cite,
     impact_tree,
     parse_verbatim_docx,
+    smart_cite,
     summarize_with_ollama,
 )
 
@@ -29,14 +30,10 @@ def test_parse_verbatim_docx(tmp_path):
 @patch("requests.post")
 def test_summarize_with_ollama(mock_post):
     mock_resp = MagicMock()
-    mock_resp.json.return_value = {
-        "response": "TAG: AI CLAIM\nBRIEF: - Point 1\n- Point 2"
-    }
+    mock_resp.json.return_value = {"response": "TAG: AI CLAIM\nBRIEF: - Point 1\n- Point 2"}
     mock_post.return_value = mock_resp
 
-    tag, brief = summarize_with_ollama(
-        "Some long debate text", "http://localhost:11434", "llama3"
-    )
+    tag, brief = summarize_with_ollama("Some long debate text", "http://localhost:11434", "llama3")
     assert tag == "AI CLAIM"
     assert "Point 1" in brief
 

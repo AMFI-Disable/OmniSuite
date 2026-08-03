@@ -1,9 +1,10 @@
 import os
+
 import pytest
-from textual.app import App
-from omnidebate.core.database import setup_db, add_motion, add_card, read_vault
+from omnidebate.core.database import add_card, add_motion, read_vault, setup_db
 from omnidebate.core.oracle import OracleEngine
 from omnidebate.ui.screens.compare import CompareScreen
+from textual.app import App
 
 
 @pytest.fixture(autouse=True)

@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Static, Label
 from textual.containers import Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Label, Static
 
 
 class SplashScreen(ModalScreen):
@@ -20,9 +20,7 @@ class SplashScreen(ModalScreen):
         with Vertical(id="splash-container"):
             yield Static(self.LOGO, id="splash-logo")
             yield Label("OMNIDEBATE v1.0.0 — DEBATE COMMAND CENTER", id="splash-status")
-            yield Label(
-                "[ SYSTEM ] Booting protocol initialized...", id="splash-log-line"
-            )
+            yield Label("[ SYSTEM ] Booting protocol initialized...", id="splash-log-line")
             yield Label(
                 "BOOT LOAD: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%",
                 id="splash-bar",
@@ -42,9 +40,7 @@ class SplashScreen(ModalScreen):
         if self._progress <= 100:
             filled = int(self._progress / 100 * 40)
             bar = "█" * filled + "░" * (40 - filled)
-            self.query_one("#splash-bar", Label).update(
-                f"BOOT LOAD: [{bar}] {self._progress}%"
-            )
+            self.query_one("#splash-bar", Label).update(f"BOOT LOAD: [{bar}] {self._progress}%")
 
             # Hollywood-style cyber decryption & boot sequence log timeline
             logs = {

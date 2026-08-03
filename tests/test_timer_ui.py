@@ -1,10 +1,11 @@
-import pytest
-from unittest.mock import patch
-from textual.app import App
-from omnidebate.ui.widgets.command_hud import CommandHUD
-from omnidebate.ui.screens.speech import SpeechPrepScreen
-from omnidebate.core.database import setup_db, add_motion
 import os
+from unittest.mock import patch
+
+import pytest
+from omnidebate.core.database import add_motion, setup_db
+from omnidebate.ui.screens.speech import SpeechPrepScreen
+from omnidebate.ui.widgets.command_hud import CommandHUD
+from textual.app import App
 
 
 @pytest.fixture(autouse=True)

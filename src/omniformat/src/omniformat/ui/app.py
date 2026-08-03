@@ -4,9 +4,29 @@ Decoupled TUI application for formatting, linting, and compiling Markdown files.
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
-import os
 import importlib.resources
+import os
 
+from omniformat.core.compiler import (
+    compile_to_docx,
+    compile_to_html,
+    parse_markdown_to_outline,
+    prettify_markdown_file,
+)
+from omniformat.core.compliance import analyze_markdown, detect_and_parse_forensics
+from omniformat.core.outline import (
+    OutlineNode,
+    parse_markdown_to_tree,
+    serialize_tree_to_markdown,
+)
+from omniformat.ui.screens.splash import SplashScreen
+from omnishared.config import load_config, run_setup_dirs
+from omnishared.ui.widgets import (
+    GaugeBar,
+    QuickNotes,
+    SparklineBar,
+    SystemLog,
+)
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -15,40 +35,19 @@ from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.widgets import (
     Button,
+    Collapsible,
+    DirectoryTree,
     Footer,
+    Input,
     Label,
     ListItem,
     ListView,
     Markdown,
-    Static,
     Select,
-    Collapsible,
-    DirectoryTree,
+    Static,
     TextArea,
-    Input,
     Tree,
 )
-
-from omnishared.config import load_config, run_setup_dirs
-from omnishared.ui.widgets import (
-    QuickNotes,
-    SystemLog,
-    GaugeBar,
-    SparklineBar,
-)
-from omniformat.core.compiler import (
-    compile_to_html,
-    compile_to_docx,
-    prettify_markdown_file,
-    parse_markdown_to_outline,
-)
-from omniformat.core.outline import (
-    OutlineNode,
-    parse_markdown_to_tree,
-    serialize_tree_to_markdown,
-)
-from omniformat.core.compliance import analyze_markdown, detect_and_parse_forensics
-from omniformat.ui.screens.splash import SplashScreen
 
 
 class OmniFormat(App):
@@ -113,25 +112,15 @@ class OmniFormat(App):
                 )
                 yield TextArea(id="doc-editor")
                 with Horizontal(id="compile-actions"):
-                    yield Button(
-                        "⚡ COMPILE / EXPORT", id="btn-compile", variant="primary"
-                    )
-                    yield Button(
-                        "📝 EDIT MODE", id="btn-toggle-edit", variant="default"
-                    )
-                    yield Button(
-                        "🔧 AUTO-FIX LINT", id="btn-autofix", variant="warning"
-                    )
+                    yield Button("⚡ COMPILE / EXPORT", id="btn-compile", variant="primary")
+                    yield Button("📝 EDIT MODE", id="btn-toggle-edit", variant="default")
+                    yield Button("🔧 AUTO-FIX LINT", id="btn-autofix", variant="warning")
 
             # Zone Right: MARKDOWN LINT TELEMETRY
             with Vertical(id="zone-gamma", classes="tactical-zone"):
                 yield Label("[ 🔮 LINT COMPLIANCE ]", classes="zone-header")
-                yield GaugeBar(
-                    label="READABILITY (FRE)", id="gauge-readability", value=100
-                )
-                yield GaugeBar(
-                    label="HEADING STRUCTURE", id="gauge-headings", value=100
-                )
+                yield GaugeBar(label="READABILITY (FRE)", id="gauge-readability", value=100)
+                yield GaugeBar(label="HEADING STRUCTURE", id="gauge-headings", value=100)
                 yield GaugeBar(label="STYLE CONSISTENCY", id="gauge-style", value=100)
                 yield GaugeBar(label="LINK HEALTH", id="gauge-links", value=100)
 
@@ -145,15 +134,11 @@ class OmniFormat(App):
                 ):
                     yield Tree("Strategic Brief", id="outline-tree")
                     with Horizontal(classes="outline-controls"):
-                        yield Button(
-                            "📁 Add Heading", id="btn-add-folder", variant="success"
-                        )
+                        yield Button("📁 Add Heading", id="btn-add-folder", variant="success")
                         yield Button("▲ Up", id="btn-move-up", variant="primary")
                     with Horizontal(classes="outline-controls"):
                         yield Button("▼ Down", id="btn-move-down", variant="primary")
-                        yield Button(
-                            "✖ Remove", id="btn-delete-outline", variant="error"
-                        )
+                        yield Button("✖ Remove", id="btn-delete-outline", variant="error")
 
                 with Collapsible(
                     title="📊 DEBATE FORENSICS",
@@ -261,7 +246,7 @@ class OmniFormat(App):
             return
 
         try:
-            with open(self.active_file_path, "r", encoding="utf-8") as f:
+            with open(self.active_file_path, encoding="utf-8") as f:
                 content = f.read()
             self._run_live_lint(content)
         except Exception as e:
@@ -273,7 +258,7 @@ class OmniFormat(App):
             return
 
         try:
-            with open(self.active_file_path, "r", encoding="utf-8") as f:
+            with open(self.active_file_path, encoding="utf-8") as f:
                 content = f.read()
 
             filename = os.path.basename(self.active_file_path)
@@ -334,9 +319,7 @@ class OmniFormat(App):
             log_widget = self.query_one(SystemLog)
             filename = os.path.basename(self.active_file_path)
             log_widget.log_activity(f"Auto-fixed formatting for: {filename}")
-            self.notify(
-                "Successfully auto-fixed formatting errors!", severity="success"
-            )
+            self.notify("Successfully auto-fixed formatting errors!", severity="success")
         except Exception as e:
             self._log_error(f"Auto-fix failed: {e}")
             self.notify(f"Auto-fix failed: {e}", severity="error")
@@ -393,7 +376,7 @@ class OmniFormat(App):
                 header.update("[ 📝 LIVE MARKDOWN EDITOR ]")
                 # Load content
                 if self.active_file_path and os.path.exists(self.active_file_path):
-                    with open(self.active_file_path, "r", encoding="utf-8") as f:
+                    with open(self.active_file_path, encoding="utf-8") as f:
                         editor.text = f.read()
                 else:
                     editor.text = ""
@@ -403,7 +386,7 @@ class OmniFormat(App):
                 header.update("[ 🧬 MARKDOWN DOCUMENT PREVIEW ]")
                 # Reload file contents into preview
                 if self.active_file_path and os.path.exists(self.active_file_path):
-                    with open(self.active_file_path, "r", encoding="utf-8") as f:
+                    with open(self.active_file_path, encoding="utf-8") as f:
                         preview.update(f.read())
         except Exception:
             pass
@@ -502,15 +485,14 @@ class OmniFormat(App):
             self.query_one("#revision-history-diff", Static).update("No file loaded.")
             return
 
-        from omnishared.config.config import WORKSPACE_ROOT
         import subprocess
+
         import rich.text
+        from omnishared.config.config import WORKSPACE_ROOT
 
         try:
             cmd = ["fossil", "diff", "--unified", self.active_file_path]
-            res = subprocess.run(
-                cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True, timeout=5
-            )
+            res = subprocess.run(cmd, cwd=WORKSPACE_ROOT, capture_output=True, text=True, timeout=5)
 
             diff_text = rich.text.Text()
             if res.returncode == 0 and res.stdout.strip():
@@ -532,9 +514,7 @@ class OmniFormat(App):
                     else:
                         diff_text.append(line + "\n")
             elif res.returncode == 0:
-                diff_text.append(
-                    "No changes detected in this revision.", style="italic #94a3b8"
-                )
+                diff_text.append("No changes detected in this revision.", style="italic #94a3b8")
             else:
                 error_msg = res.stderr.strip() or f"fossil exit code {res.returncode}"
                 diff_text.append(f"Fossil error:\n{error_msg}", style="bold #ef4444")
@@ -547,8 +527,8 @@ class OmniFormat(App):
 
     @work(exclusive=True, thread=True)
     def check_ai_status_on_load(self) -> None:
-        from omnishared.config import load_config
         from omnishared.ai import check_ollama_status
+        from omnishared.config import load_config
 
         config = load_config()
         model = config.get("ai", {}).get("ollama_model", "llama3")
@@ -583,7 +563,7 @@ class OmniFormat(App):
             if is_edit:
                 content = self.query_one("#doc-editor", TextArea).text
             else:
-                with open(self.active_file_path, "r", encoding="utf-8") as f:
+                with open(self.active_file_path, encoding="utf-8") as f:
                     content = f.read()
         except Exception as e:
             self.call_from_thread(self.toast, f"Error reading document: {e}")
@@ -613,9 +593,7 @@ class OmniFormat(App):
             return
 
         prompt = ""
-        system_prompt = (
-            "You are a professional forensic debate AI assistant and editor."
-        )
+        system_prompt = "You are a professional forensic debate AI assistant and editor."
         if action == "improve_tag":
             prompt = (
                 "Suggest a better 5-8 word tag for the following debate card or text. "
@@ -640,9 +618,7 @@ class OmniFormat(App):
             result = generate_completion(prompt, system_prompt=system_prompt)
             self.call_from_thread(self._update_ai_output, result)
         except Exception as e:
-            self.call_from_thread(
-                self._update_ai_output, f"❌ Error during AI generation:\n{e}"
-            )
+            self.call_from_thread(self._update_ai_output, f"❌ Error during AI generation:\n{e}")
 
     def _rebuild_outline_list(self) -> None:
         """Repopulates the #outline-tree widget from the self.outline_tree."""
@@ -666,9 +642,7 @@ class OmniFormat(App):
             if not self.outline_tree:
                 return
 
-            tree.root.label = (
-                f"🏛️ {self.outline_tree.title or 'Strategic Brief Outline'}"
-            )
+            tree.root.label = f"🏛️ {self.outline_tree.title or 'Strategic Brief Outline'}"
             tree.root.data = self.outline_tree
 
             def add_nodes(tree_node, outline_node):
@@ -734,9 +708,7 @@ class OmniFormat(App):
     def on_move_down_btn(self) -> None:
         self.action_move_down()
 
-    def find_parent_node(
-        self, current: OutlineNode, target: OutlineNode
-    ) -> OutlineNode | None:
+    def find_parent_node(self, current: OutlineNode, target: OutlineNode) -> OutlineNode | None:
         for child in current.children:
             if child is target:
                 return current
@@ -765,8 +737,7 @@ class OmniFormat(App):
                         idx = len(parent_node.children)
                     else:
                         parent_node = (
-                            self.find_parent_node(self.outline_tree, target)
-                            or self.outline_tree
+                            self.find_parent_node(self.outline_tree, target) or self.outline_tree
                         )
                         idx = parent_node.children.index(target) + 1
 

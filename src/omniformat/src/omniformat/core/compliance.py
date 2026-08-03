@@ -42,11 +42,7 @@ def calculate_readability(text: str) -> int:
     num_syllables = count_syllables(text)
 
     # Flesch Reading Ease Formula
-    fre = (
-        206.835
-        - 1.015 * (num_words / num_sentences)
-        - 84.6 * (num_syllables / num_words)
-    )
+    fre = 206.835 - 1.015 * (num_words / num_sentences) - 84.6 * (num_syllables / num_words)
     return max(0, min(100, int(round(fre))))
 
 
@@ -75,9 +71,7 @@ def check_html_tags(text: str) -> list[str]:
                             warnings.append(f"MD033: Unclosed HTML tag <{t}>")
                         stack = stack[:idx]
                     else:
-                        warnings.append(
-                            f"MD033: Mismatched closing HTML tag </{tag_name}>"
-                        )
+                        warnings.append(f"MD033: Mismatched closing HTML tag </{tag_name}>")
                 else:
                     stack.pop()
             else:
@@ -120,9 +114,7 @@ def analyze_markdown(text: str) -> dict:
                 # MD018: No space after hash
                 if content and not content.startswith(" "):
                     heading_score = max(0, heading_score - 10)
-                    warnings.append(
-                        f"MD018 (Line {line_idx}): Space missing after header hashes"
-                    )
+                    warnings.append(f"MD018 (Line {line_idx}): Space missing after header hashes")
 
     if headings:
         # MD002 / MD041: First heading in file should be a top-level heading (H1)

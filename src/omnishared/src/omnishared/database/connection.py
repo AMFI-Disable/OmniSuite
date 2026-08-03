@@ -1,5 +1,6 @@
 import os
 import sqlite3
+
 from omnishared.config import DEBATES_DIR
 
 
@@ -27,8 +28,6 @@ def get_metadata(key: str, default: str = "") -> str:
 def set_metadata(key: str, value: str) -> None:
     conn = get_connection()
     c = conn.cursor()
-    c.execute(
-        "INSERT OR REPLACE INTO metadata (key, value) VALUES (?, ?)", (key, value)
-    )
+    c.execute("INSERT OR REPLACE INTO metadata (key, value) VALUES (?, ?)", (key, value))
     conn.commit()
     conn.close()

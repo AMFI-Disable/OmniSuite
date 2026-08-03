@@ -15,7 +15,7 @@ earlier arguments with visual ``←`` indicators.
 from __future__ import annotations
 
 import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 from textual import on
@@ -24,7 +24,6 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, Label, ListItem, ListView, Static
-
 
 # ── Data Structures ──────────────────────────────────────────────────────────
 
@@ -415,9 +414,7 @@ class FlowScreen(Screen):
         if self._input_mode is not None:
             return
         self._input_mode = "link"
-        overlay = FlowInputOverlay(
-            prompt="Enter card ID to link:", input_id="flow-input"
-        )
+        overlay = FlowInputOverlay(prompt="Enter card ID to link:", input_id="flow-input")
         self.mount(overlay)
         self.call_after_refresh(lambda: self.query_one("#flow-input", Input).focus())
 
@@ -479,9 +476,7 @@ class FlowScreen(Screen):
         try:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(md)
-            self.app.notify(
-                f"Flow exported to {filename}", severity="success"
-            )
+            self.app.notify(f"Flow exported to {filename}", severity="success")
         except OSError as exc:
             self.app.notify(f"Export failed: {exc}", severity="error")
 
@@ -495,15 +490,11 @@ class FlowScreen(Screen):
         lines: list[str] = []
         lines.append("# Debate Flow Export")
         lines.append("")
-        lines.append(
-            f"_Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}_"
-        )
+        lines.append(f"_Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}_")
         lines.append("")
 
         # Determine maximum entry count across columns for table rows
-        columns = [
-            self._get_column(i) for i in range(len(self.column_defs))
-        ]
+        columns = [self._get_column(i) for i in range(len(self.column_defs))]
         max_rows = max((len(c.entries) for c in columns), default=0)
 
         if max_rows == 0:

@@ -11,7 +11,7 @@ def find_workspace_root() -> str:
     current = os.path.abspath(os.path.dirname(__file__))
     while True:
         if os.path.exists(os.path.join(current, "pyproject.toml")):
-            with open(os.path.join(current, "pyproject.toml"), "r") as f:
+            with open(os.path.join(current, "pyproject.toml")) as f:
                 content = f.read()
                 if "[tool.uv.workspace]" in content or "omnisuite" in content:
                     return current
