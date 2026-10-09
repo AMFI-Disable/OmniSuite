@@ -17,9 +17,20 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument(
         "--app",
-        choices=["debate", "format"],
+        choices=["debate", "format", "web"],
         default="debate",
-        help="launch 'debate' (OmniDebate) or 'format' (OmniFormat)",
+        help="launch 'debate' (OmniDebate), 'format' (OmniFormat), or 'web' (Web Viewer)",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="host address for web viewer server",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="port for web viewer server",
     )
     parser.add_argument(
         "--version",
@@ -43,6 +54,10 @@ def main(argv: list[str] | None = None) -> None:
         from omniformat.main import main as format_main
 
         format_main()
+    elif args.app == "web":
+        from omnisuite.web import run_web_server
+
+        run_web_server(host=args.host, port=args.port, blocking=True)
 
 
 def _get_version() -> str:

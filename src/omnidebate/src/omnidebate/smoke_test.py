@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from omnidebate.core.database import add_card, add_motion
 
 
-def smoke_test_data():
+def smoke_test_data() -> None:
     print("🚀 Initializing Smoke Test Data...")
 
     # Add a motion

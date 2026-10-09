@@ -6,6 +6,7 @@ Orchestrates the 4-Zone tactical UI, Strategic Oracle, and forensic analysis eng
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
+import contextlib
 import importlib.resources
 import logging
 from typing import Optional
@@ -435,10 +436,8 @@ class OmniDebate(App):
         palette = ui_cfg.get("palette", "")
         screen_reader = ui_cfg.get("screen_reader_mode", False)
 
-        try:
+        with contextlib.suppress(Exception):
             self.screen.set_class(palette == "high-contrast", "high-contrast")
-        except Exception:
-            pass
 
         try:
             layout = self.query_one("#main-layout")
@@ -744,10 +743,8 @@ class OmniDebate(App):
         """Toggles Focus Mode: Hides Navigator, Controls and Oracle to maximize briefing space."""
         self.focus_mode = not self.focus_mode
         for zid in ["#zone-epsilon", "#zone-alpha", "#zone-beta", "#zone-delta"]:
-            try:
+            with contextlib.suppress(Exception):
                 self.query_one(zid).display = not self.focus_mode
-            except Exception:
-                pass
         self.toast(f"Focus Mode: {'ENABLED' if self.focus_mode else 'DISABLED'}")
 
     def action_toggle_speech(self) -> None:
@@ -1267,10 +1264,8 @@ class OmniDebate(App):
 
     def _safe_update(self, selector: str, value: str) -> None:
         """Safely update a widget if it exists."""
-        try:
+        with contextlib.suppress(Exception):
             self.query_one(selector).update(value)
-        except Exception:
-            pass
 
     def _update_gauge(self, selector: str, value: int, label: str) -> None:
         """Update a GaugeBar widget safely."""
@@ -1282,10 +1277,8 @@ class OmniDebate(App):
 
     def _log_error(self, msg: str) -> None:
         """Log an error to the system log widget."""
-        try:
+        with contextlib.suppress(Exception):
             self.query_one(SystemLog).log_activity(f"ERROR: {msg}")
-        except Exception:
-            pass
 
     @on(Button.Pressed, "#btn-copy-link")
     def handle_copy_link(self) -> None:

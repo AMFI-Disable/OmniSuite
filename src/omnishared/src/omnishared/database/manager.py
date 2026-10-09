@@ -389,10 +389,10 @@ def get_velocity_stats() -> list[int]:
     conn = get_connection()
     c = conn.cursor()
     c.execute("""
-        SELECT date(timestamp) as day, COUNT(*) as count 
-        FROM cards 
+        SELECT date(timestamp) as day, COUNT(*) as count
+        FROM cards
         WHERE timestamp >= date('now', '-7 days')
-        GROUP BY day 
+        GROUP BY day
         ORDER BY day DESC
     """)
     stats = {row["day"]: row["count"] for row in c.fetchall()}

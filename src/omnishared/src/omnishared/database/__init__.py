@@ -26,6 +26,17 @@ from omnishared.database.manager import (
     snapshot,
     update_card,
 )
+from omnishared.database.sync import (
+    SyncDiff,
+    SyncStrategy,
+    VaultSyncEngine,
+    apply_vault_changeset,
+    calculate_vault_diff,
+    compute_vault_checksum,
+    export_vault_changeset,
+    sync_vault_databases,
+    sync_with_remote_node,
+)
 
 __all__ = [
     "get_db_path",
@@ -52,4 +63,13 @@ __all__ = [
     "get_trash",
     "restore_trash",
     "get_velocity_stats",
+    "SyncStrategy",
+    "SyncDiff",
+    "VaultSyncEngine",
+    "compute_vault_checksum",
+    "export_vault_changeset",
+    "calculate_vault_diff",
+    "apply_vault_changeset",
+    "sync_vault_databases",
+    "sync_with_remote_node",
 ]

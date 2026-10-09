@@ -11,6 +11,7 @@ import datetime
 import html
 import os
 import re
+from typing import Any
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -453,7 +454,7 @@ def compile_to_docx(src_path: str) -> str:
     return dest_path
 
 
-def apply_inline_docx_formatting(paragraph, text: str) -> None:
+def apply_inline_docx_formatting(paragraph: Any, text: str) -> None:
     """Helper to parse inline markdown tags (bold/italic/code) and add runs to docx paragraph."""
     # Split text into segments of code, bold, italic, or plain text
     # A simple tokenizer:
@@ -509,7 +510,7 @@ def parse_markdown_to_outline(md_text: str) -> list[dict]:
     root = parse_markdown_to_tree(md_text)
     flat_outline = []
 
-    def traverse(node):
+    def traverse(node: Any) -> None:
         if node.node_type == "folder":
             flat_outline.append({"type": "folder", "title": node.title, "level": node.level})
         elif node.node_type == "card":

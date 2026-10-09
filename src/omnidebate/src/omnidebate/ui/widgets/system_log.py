@@ -1,3 +1,5 @@
+import contextlib
+
 from textual.app import ComposeResult
 from textual.widgets import Label, Static
 
@@ -21,7 +23,5 @@ class SystemLog(Static):
 
         now = datetime.now().strftime("%H:%M:%S")
         self._logs.insert(0, f"> [{now}] {message}")
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#log-text", Static).update("\n".join(self._logs[:5]))
-        except Exception:
-            pass

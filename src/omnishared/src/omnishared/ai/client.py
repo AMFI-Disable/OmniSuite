@@ -1,45 +1,77 @@
-import requests
+from typing import Optional
 
-from omnishared.config import load_config
+from omnishared.ai.base import (
+    GeminiAPIError,
+    LLMAllProvidersFailedError,
+    LLMProviderError,
+    OllamaOfflineError,
+    OpenAIAPIError,
+)
+from omnishared.ai.multi import MultiLLMProvider
+from omnishared.ai.ollama import OllamaProvider
+
+__all__ = [
+    "LLMProviderError",
+    "OllamaOfflineError",
+    "OpenAIAPIError",
+    "GeminiAPIError",
+    "LLMAllProvidersFailedError",
+    "get_multi_provider",
+    "reset_multi_provider",
+    "check_ollama_status",
+    "check_ai_status",
+    "generate_completion",
+]
+
+_default_multi_provider: Optional[MultiLLMProvider] = None
 
 
-class OllamaOfflineError(Exception):
-    """Raised when the Ollama server is offline or doesn't respond."""
+def get_multi_provider() -> MultiLLMProvider:
+    """Get or create default MultiLLMProvider singleton instance."""
+    global _default_multi_provider
+    if _default_multi_provider is None:
+        _default_multi_provider = MultiLLMProvider.from_config()
+    return _default_multi_provider
 
-    pass
+
+def reset_multi_provider() -> None:
+    """Reset default MultiLLMProvider singleton instance."""
+    global _default_multi_provider
+    _default_multi_provider = None
 
 
 def check_ollama_status() -> bool:
     """Check if the local Ollama instance is online."""
-    config = load_config()
-    ai_config = config.get("ai", {})
-    endpoint = ai_config.get("ollama_endpoint", "http://localhost:11434")
-    try:
-        resp = requests.get(f"{endpoint}/api/tags", timeout=1.5)
-        return resp.status_code == 200
-    except Exception:
-        return False
+    provider = OllamaProvider()
+    return provider.is_available()
 
 
-def generate_completion(prompt: str, system_prompt: str = None, timeout: float = 10.0) -> str:
-    """Generate a text completion using the local Ollama instance."""
-    config = load_config()
-    ai_config = config.get("ai", {})
-    endpoint = ai_config.get("ollama_endpoint", "http://localhost:11434")
-    model = ai_config.get("ollama_model", "llama3")
+def check_ai_status() -> dict[str, bool]:
+    """Check availability of all configured AI providers."""
+    return get_multi_provider().check_status()
 
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.3},
-    }
-    if system_prompt:
-        payload["system"] = system_prompt
 
-    try:
-        resp = requests.post(f"{endpoint}/api/generate", json=payload, timeout=timeout)
-        resp.raise_for_status()
-        return resp.json().get("response", "").strip()
-    except Exception as e:
-        raise OllamaOfflineError(f"Ollama generation failed: {e}") from e
+def generate_completion(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    timeout: float = 10.0,
+    provider: Optional[str] = None,
+) -> str:
+    """Generate text completion using MultiLLMProvider fallback mechanism.
+
+    Args:
+        prompt: Prompt text for completion.
+        system_prompt: Optional system prompt context.
+        timeout: Request timeout in seconds.
+        provider: Optional name of preferred provider to try first.
+
+    Returns:
+        Generated text string.
+    """
+    multi = get_multi_provider()
+    return multi.generate(
+        prompt=prompt,
+        system_prompt=system_prompt,
+        timeout=timeout,
+        preferred_provider=provider,
+    )

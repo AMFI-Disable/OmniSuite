@@ -1,3 +1,5 @@
+import contextlib
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
@@ -27,10 +29,8 @@ class AnalyticsScreen(ModalScreen):
 
     def safe_update(self, selector: str, value: str) -> None:
         """Safely update a widget if it exists, otherwise fail silent."""
-        try:
+        with contextlib.suppress(Exception):
             self.query_one(selector).update(value)
-        except Exception:
-            pass
 
     def on_mount(self) -> None:
         try:
@@ -82,9 +82,9 @@ class AnalyticsScreen(ModalScreen):
 
             grid = []
             colors = ["#1e293b", "#064e3b", "#065f46", "#059669", "#10b981"]
-            for day in range(7):
+            for _day in range(7):
                 row = ""
-                for week in range(12):
+                for _week in range(12):
                     activity = random.randint(0, 4)
                     color = colors[activity]
                     row += f"[{color}]■ [/]"

@@ -171,9 +171,8 @@ def analyze_markdown(text: str) -> dict:
             consecutive_blank = 0
 
         # MD040: Code block language specification
-        if line.startswith("```"):
-            if not line.endswith("```") and len(line.strip()) == 3:
-                missing_code_lang = True
+        if line.startswith("```") and not line.endswith("```") and len(line.strip()) == 3:
+            missing_code_lang = True
 
     if has_tabs:
         style_score = max(0, style_score - 15)

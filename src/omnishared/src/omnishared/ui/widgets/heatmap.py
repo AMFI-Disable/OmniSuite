@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict, Optional
+from typing import Optional
 
 from rich.text import Text
 from textual.widgets import Static
@@ -17,7 +17,7 @@ class HeatmapGrid(Static):
 
     def __init__(
         self,
-        daily_counts: Optional[Dict[str, int]] = None,
+        daily_counts: Optional[dict[str, int]] = None,
         weeks: int = 12,
         **kwargs,
     ):
@@ -25,7 +25,7 @@ class HeatmapGrid(Static):
         self._daily_counts = daily_counts or {}
         self._weeks = weeks
 
-    def set_data(self, daily_counts: Dict[str, int]) -> None:
+    def set_data(self, daily_counts: dict[str, int]) -> None:
         """Update the heatmap data. Keys are 'YYYY-MM-DD' strings."""
         self._daily_counts = daily_counts
         self.refresh()
@@ -59,10 +59,7 @@ class HeatmapGrid(Static):
                 count = self._daily_counts.get(date_key, 0)
 
                 # Normalize to 0-4 range
-                if count == 0:
-                    level = 0
-                else:
-                    level = min(4, int((count / max_count) * 4) + 1)
+                level = 0 if count == 0 else min(4, int(count / max_count * 4) + 1)
 
                 char = _HEAT_CHARS[min(level, len(_HEAT_CHARS) - 1)]
                 color = _HEAT_COLORS[min(level, len(_HEAT_COLORS) - 1)]

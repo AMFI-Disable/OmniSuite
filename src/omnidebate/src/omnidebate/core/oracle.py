@@ -1,3 +1,4 @@
+import contextlib
 import re
 
 
@@ -840,10 +841,8 @@ class OracleEngine:
                         if line.startswith("DECISION:"):
                             ai_decision = line.replace("DECISION:", "").strip()
                         elif line.startswith("CONFIDENCE:"):
-                            try:
+                            with contextlib.suppress(Exception):
                                 ai_confidence = int(re.sub(r"\D", "", line))
-                            except Exception:
-                                pass
                         elif line.startswith("RFD:"):
                             current_section = "rfd"
                         elif line.startswith("KEY VOTING ISSUE:"):

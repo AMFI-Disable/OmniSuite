@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from rich.text import Text
 from textual.widgets import Static
@@ -16,7 +16,7 @@ class SparklineBar(Static):
 
     def __init__(
         self,
-        values: Optional[List[int]] = None,
+        values: Optional[list[int]] = None,
         label: str = "",
         max_val: int = 10,
         color_low: str = "#ef4444",
@@ -32,7 +32,7 @@ class SparklineBar(Static):
         self._color_mid = color_mid
         self._color_high = color_high
 
-    def set_values(self, values: List[int], max_val: Optional[int] = None) -> None:
+    def set_values(self, values: list[int], max_val: Optional[int] = None) -> None:
         """Update the sparkline data and trigger a re-render."""
         self._values = values
         if max_val is not None:

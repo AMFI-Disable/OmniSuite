@@ -7,7 +7,8 @@ refreshes every 5 seconds.
 
 from __future__ import annotations
 
-from typing import Optional
+import contextlib
+from typing import Any
 
 from rich.text import Text
 from textual.timer import Timer as TextualTimer
@@ -110,7 +111,7 @@ class StatusBar(Static):
 
     def __init__(
         self,
-        timer_widget=None,
+        timer_widget: Any = None,
         **kwargs,
     ) -> None:
         """Initialise the StatusBar.
@@ -122,7 +123,7 @@ class StatusBar(Static):
         """
         super().__init__(**kwargs)
         self._timer_widget = timer_widget
-        self._refresh_timer: Optional[TextualTimer] = None
+        self._refresh_timer: TextualTimer | None = None
 
         # Cached values to avoid blocking the UI thread
         self._card_count: int = 0
@@ -145,7 +146,7 @@ class StatusBar(Static):
 
     # ── Public API ───────────────────────────────────────────────────────────
 
-    def set_timer_widget(self, timer_widget) -> None:
+    def set_timer_widget(self, timer_widget: Any) -> None:
         """Attach a RoundTimer instance for state display.
 
         Args:
@@ -214,24 +215,18 @@ class StatusBar(Static):
 
     def _poll_stats(self) -> None:
         """Refresh cached statistics from database and AI backend."""
-        try:
+        with contextlib.suppress(Exception):
             self._card_count = _query_card_count()
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             self._motion_count = _query_motion_count()
-        except Exception:
-            pass
 
         try:
             self._ai_online = _check_ai_online()
         except Exception:
             self._ai_online = False
 
-        try:
+        with contextlib.suppress(Exception):
             self._format_name = _get_current_format()
-        except Exception:
-            pass
 
         self.refresh()

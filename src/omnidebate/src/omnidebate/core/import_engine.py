@@ -268,10 +268,7 @@ def import_from_url(url: str) -> dict:
         or soup.find("main")
     )
 
-    if article_el:
-        paragraphs = article_el.find_all("p")
-    else:
-        paragraphs = soup.find_all("p")
+    paragraphs = article_el.find_all("p") if article_el else soup.find_all("p")
 
     body_parts = []
     for p in paragraphs:

@@ -4,6 +4,8 @@ Allows debaters to track speech durations, prep timers, and flow arguments.
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
+import contextlib
+
 from omnishared.database import increment_mastery, read_vault
 from omnishared.formats.loader import load_formats
 from omnishared.ui.widgets import GaugeBar
@@ -117,7 +119,7 @@ class SpeechPrepScreen(ModalScreen):
             self.formats = {}
 
         try:
-            options = [(name, name) for name in self.formats.keys()]
+            options = [(name, name) for name in self.formats]
             if options:
                 self.call_after_refresh(self._set_initial_format, options[0][0])
         except Exception:
@@ -132,17 +134,15 @@ class SpeechPrepScreen(ModalScreen):
     def _set_initial_format(self, value: str) -> None:
         try:
             select = self.query_one("#select-format", Select)
-            options = [(name, name) for name in self.formats.keys()]
+            options = [(name, name) for name in self.formats]
             select.set_options(options)
             select.value = value
         except Exception:
             pass
 
     def _safe_notify(self, message: str, severity: str = "information") -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.app.notify(message, severity=severity)
-        except Exception:
-            pass
 
     def _reload_constructives(self) -> None:
         try:
@@ -247,20 +247,16 @@ class SpeechPrepScreen(ModalScreen):
             return
 
         aff_pct = int((self.aff_prep_remaining / self.total_prep_time) * 100)
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#gauge-aff-prep", GaugeBar).set_value(
                 aff_pct, label=f"AFF PREP {self._format_time(self.aff_prep_remaining)}"
             )
-        except Exception:
-            pass
 
         neg_pct = int((self.neg_prep_remaining / self.total_prep_time) * 100)
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#gauge-neg-prep", GaugeBar).set_value(
                 neg_pct, label=f"NEG PREP {self._format_time(self.neg_prep_remaining)}"
             )
-        except Exception:
-            pass
 
     def _update_mode_buttons(self) -> None:
         try:
@@ -325,12 +321,10 @@ class SpeechPrepScreen(ModalScreen):
             if self.speeches:
                 current_speech = self.speeches[self.speech_index]
                 self.speech_time_remaining = current_speech["duration_seconds"]
-                try:
+                with contextlib.suppress(Exception):
                     self.query_one("#speech-timer-display", Static).update(
                         self._format_time(self.speech_time_remaining)
                     )
-                except Exception:
-                    pass
         elif self.active_timer_mode == "aff_prep":
             self.aff_prep_remaining = self.total_prep_time
             self._update_prep_gauges()
@@ -404,10 +398,8 @@ class SpeechPrepScreen(ModalScreen):
 
     @on(ListView.Selected, "#rebuttals-list")
     def remove_rebuttal(self, event: ListView.Selected) -> None:
-        try:
+        with contextlib.suppress(Exception):
             event.item.remove()
-        except Exception:
-            pass
         self._safe_notify("Rebuttal point removed.", severity="information")
 
     def tick(self) -> None:
@@ -417,12 +409,10 @@ class SpeechPrepScreen(ModalScreen):
         if self.active_timer_mode == "speech":
             if self.speech_time_remaining > 0:
                 self.speech_time_remaining -= 1
-                try:
+                with contextlib.suppress(Exception):
                     self.query_one("#speech-timer-display", Static).update(
                         self._format_time(self.speech_time_remaining)
                     )
-                except Exception:
-                    pass
                 if self.speech_time_remaining == 0:
                     self.is_paused = True
                     self._update_play_pause_button()
@@ -437,15 +427,14 @@ class SpeechPrepScreen(ModalScreen):
                     self._update_play_pause_button()
                     self._update_timer_visuals()
                     self._safe_notify("Affirmative Prep time expired!", severity="warning")
-        elif self.active_timer_mode == "neg_prep":
-            if self.neg_prep_remaining > 0:
-                self.neg_prep_remaining -= 1
-                self._update_prep_gauges()
-                if self.neg_prep_remaining == 0:
-                    self.is_paused = True
-                    self._update_play_pause_button()
-                    self._update_timer_visuals()
-                    self._safe_notify("Negative Prep time expired!", severity="warning")
+        elif self.active_timer_mode == "neg_prep" and self.neg_prep_remaining > 0:
+            self.neg_prep_remaining -= 1
+            self._update_prep_gauges()
+            if self.neg_prep_remaining == 0:
+                self.is_paused = True
+                self._update_play_pause_button()
+                self._update_timer_visuals()
+                self._safe_notify("Negative Prep time expired!", severity="warning")
 
     def _format_time(self, seconds: int) -> str:
         mins = seconds // 60

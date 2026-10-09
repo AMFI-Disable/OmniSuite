@@ -226,10 +226,7 @@ def generate_case_outline(motion: str, side: str, format_name: str = "Public For
         LLM is unavailable.
     """
     side_label = side.upper()
-    if side_label in ("PRO", "AFF"):
-        side_label = "AFFIRMATIVE/PRO"
-    else:
-        side_label = "NEGATIVE/CON"
+    side_label = "AFFIRMATIVE/PRO" if side_label in ("PRO", "AFF") else "NEGATIVE/CON"
 
     prompt = (
         f"Generate a complete {side_label} case outline for the following "

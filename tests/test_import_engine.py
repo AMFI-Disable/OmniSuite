@@ -60,7 +60,7 @@ class TestCSVExport:
             {"tag": "Card 2", "citation": "Jones 2024", "text": "More text", "side": "NEG"},
         ]
         out_path = str(tmp_path / "export.csv")
-        result = export_to_csv(cards, out_path)
+        export_to_csv(cards, out_path)
         assert os.path.exists(out_path)
         # Verify content
         with open(out_path, newline="") as f:
@@ -71,7 +71,7 @@ class TestCSVExport:
 
     def test_export_empty_cards(self, tmp_path):
         out_path = str(tmp_path / "empty.csv")
-        result = export_to_csv([], out_path)
+        export_to_csv([], out_path)
         assert os.path.exists(out_path)
 
 
@@ -108,7 +108,7 @@ class TestJSONExport:
             {"tag": "Card 1", "text": "Evidence", "side": "AFF", "citation": "Z 2023"},
         ]
         out_path = str(tmp_path / "export.json")
-        result = export_to_json(cards, out_path)
+        export_to_json(cards, out_path)
         assert os.path.exists(out_path)
         with open(out_path) as f:
             loaded = json.load(f)

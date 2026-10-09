@@ -8,7 +8,6 @@ format-aware duration presets loaded from configuration.
 from __future__ import annotations
 
 import sys
-from typing import Optional
 
 from rich.text import Text
 from textual.reactive import reactive
@@ -26,7 +25,7 @@ _COLOR_RED = "#ef4444"
 _COLOR_DIM = "#334155"
 
 
-def _load_format_durations(format_name: Optional[str] = None) -> dict:
+def _load_format_durations(format_name: str | None = None) -> dict:
     """Load speech and prep time durations for a debate format.
 
     Args:
@@ -98,7 +97,7 @@ class RoundTimer(Static):
         duration: int = 240,
         label: str = "TIMER",
         bar_width: int = 30,
-        format_name: Optional[str] = None,
+        format_name: str | None = None,
         speech_index: int = 0,
         **kwargs,
     ) -> None:
@@ -118,7 +117,7 @@ class RoundTimer(Static):
         super().__init__(**kwargs)
         self._label = label
         self._bar_width = bar_width
-        self._tick_timer: Optional[TextualTimer] = None
+        self._tick_timer: TextualTimer | None = None
         self._bell_fired = False
 
         # If a format is requested, override duration from config

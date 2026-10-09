@@ -7,8 +7,6 @@ Renders a single-line breadcrumb trail like
 
 from __future__ import annotations
 
-from typing import List
-
 from rich.text import Text
 from textual.reactive import reactive
 from textual.widgets import Static
@@ -45,7 +43,7 @@ class Breadcrumb(Static):
 
     def __init__(
         self,
-        initial_path: List[str] | None = None,
+        initial_path: list[str] | None = None,
         **kwargs,
     ) -> None:
         """Initialise the Breadcrumb widget.
@@ -83,7 +81,7 @@ class Breadcrumb(Static):
         self.path = new_path
         return removed
 
-    def set_path(self, labels: List[str]) -> None:
+    def set_path(self, labels: list[str]) -> None:
         """Replace the entire breadcrumb path.
 
         Args:

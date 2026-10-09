@@ -8,7 +8,6 @@ remaps navigation keys to hjkl.
 from __future__ import annotations
 
 import os
-from typing import Dict, Optional
 
 try:
     import yaml
@@ -22,7 +21,7 @@ KEYBINDINGS_FILE: str = get_workspace_path("config", "keybindings.yaml")
 
 
 # ─── Default keybindings ────────────────────────────────────────────────────────
-_DEFAULTS: Dict[str, Dict[str, str]] = {
+_DEFAULTS: dict[str, dict[str, str]] = {
     "navigation": {
         "up": "up",
         "down": "down",
@@ -69,7 +68,7 @@ _DEFAULTS: Dict[str, Dict[str, str]] = {
 }
 
 # Vim-mode overrides for navigation keys
-_VIM_OVERRIDES: Dict[str, str] = {
+_VIM_OVERRIDES: dict[str, str] = {
     "up": "k",
     "down": "j",
     "left": "h",
@@ -81,7 +80,7 @@ _VIM_OVERRIDES: Dict[str, str] = {
 }
 
 # Module-level cache to avoid re-reading YAML on every call
-_cache: Optional[Dict] = None
+_cache: dict | None = None
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
@@ -99,7 +98,7 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return merged
 
 
-def load_keybindings(*, force_reload: bool = False) -> Dict:
+def load_keybindings(*, force_reload: bool = False) -> dict:
     """Load keybindings from ``config/keybindings.yaml``.
 
     Returns the merged result of built-in defaults and any user
@@ -116,7 +115,7 @@ def load_keybindings(*, force_reload: bool = False) -> Dict:
         return _cache
 
     # Start with built-in defaults
-    bindings: Dict = {
+    bindings: dict = {
         "vim_mode": False,
         **{section: dict(keys) for section, keys in _DEFAULTS.items()},
     }

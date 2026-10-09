@@ -653,20 +653,20 @@ def export_brief(
                 <span>{total_count}</span>
             </div>
         </div>
-        
+
         <div id="toc-nav">
             <a href="#aff-section" class="nav-link">🟢 AFFIRMATIVE ({aff_count})</a>
             <a href="#neg-section" class="nav-link">🔴 NEGATIVE ({neg_count})</a>
         </div>
-        
+
         <div id="search-container">
             <input type="text" id="search-input" placeholder="🔍 Search cards..." />
         </div>
     </div>
-    
+
     <div id="main-content">
         <h2>🏛️ STRATEGIC BRIEF: {motion_name.upper()}</h2>
-        
+
         <div id="aff-section">
             <div class="section-title aff">🟢 AFFIRMATIVE CASE (PRO)</div>
 """
@@ -724,7 +724,7 @@ def export_brief(
 
         html_content += """
         </div>
-        
+
         <div id="neg-section">
             <div class="section-title neg">🔴 NEGATIVE CASE (CON)</div>
 """
@@ -737,20 +737,20 @@ def export_brief(
         html_content += """
         </div>
     </div>
-    
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const searchInput = document.getElementById("search-input");
             const cards = document.querySelectorAll(".card");
-            
+
             searchInput.addEventListener("input", (e) => {
                 const query = e.target.value.toLowerCase().trim();
-                
+
                 cards.forEach(card => {
                     const tagline = card.getAttribute("data-tagline").toLowerCase();
                     const citation = card.getAttribute("data-citation").toLowerCase();
                     const text = card.getAttribute("data-text").toLowerCase();
-                    
+
                     if (tagline.includes(query) || citation.includes(query) || text.includes(query)) {
                         card.style.display = "";
                     } else {

@@ -73,7 +73,9 @@ packages = [
 
 [tool.uv.workspace]
 members = [
-    "src/*",
+    "src/omnidebate",
+    "src/omniformat",
+    "src/omnishared",
 ]
 
 [tool.ruff]
@@ -90,4 +92,10 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [
+    "src",
+    "src/omnidebate/src",
+    "src/omniformat/src",
+    "src/omnishared/src",
+]
 asyncio_mode = "strict"

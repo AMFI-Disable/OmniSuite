@@ -18,7 +18,8 @@ def test_config():
     assert cfg2["test_key"] == "test_value"
 
     # Cleanup
-    os.remove("test_config.yaml")
+    if os.path.exists("test_config.yaml"):
+        os.remove("test_config.yaml")
     config.CONFIG_FILE = original_file
     print("Config test passed!")
 

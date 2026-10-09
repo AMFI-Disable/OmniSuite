@@ -14,6 +14,7 @@ green (high, ≥70) → yellow (medium, 30–69) → red (low, <30).
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 from dataclasses import dataclass, field
 
@@ -499,7 +500,7 @@ class ArgumentTreeScreen(Screen):
             status = "No node selected"
         else:
             data: ArgumentNode = node.data
-            color = _score_color(data.impact_score)
+            _score_color(data.impact_score)
             children_count = len(node.children)
             status = (
                 f"Node: {data.label} │ Type: {data.node_type} │ "
@@ -507,7 +508,5 @@ class ArgumentTreeScreen(Screen):
                 f"Children: {children_count}"
             )
 
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#tree-status-bar", Static).update(status)
-        except Exception:
-            pass

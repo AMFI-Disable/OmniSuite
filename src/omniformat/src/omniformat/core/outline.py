@@ -46,7 +46,7 @@ def parse_markdown_to_tree(md_content: str) -> OutlineNode:
     current_card = None
     current_text_lines = []
 
-    def flush_current_card():
+    def flush_current_card() -> None:
         nonlocal current_card, current_text_lines
         if current_card:
             raw_text = "\n".join(current_text_lines).strip()
@@ -172,7 +172,7 @@ def serialize_tree_to_markdown(root: OutlineNode) -> str:
     )
     md.append("---\n\n")
 
-    def traverse(node: OutlineNode):
+    def traverse(node: OutlineNode) -> None:
         if node.node_type == "folder":
             hashes = "#" * node.level
             md.append(f"{hashes} {node.title}\n\n")

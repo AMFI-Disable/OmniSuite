@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 from textual import on
@@ -101,15 +102,11 @@ class ExportBriefScreen(ModalScreen):
                     self.exported_file,
                 ]
                 subprocess.Popen(cmd, start_new_session=True)
-                try:
+                with contextlib.suppress(Exception):
                     self.app.notify("⚡ Launching OmniFormat...", severity="info")
-                except Exception:
-                    pass
             except Exception as e:
-                try:
+                with contextlib.suppress(Exception):
                     self.app.notify(f"❌ Failed to launch OmniFormat: {e}", severity="error")
-                except Exception:
-                    pass
         self.dismiss()
 
     @on(Button.Pressed, "#btn-export")

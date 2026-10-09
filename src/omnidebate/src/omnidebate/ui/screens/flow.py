@@ -14,9 +14,9 @@ earlier arguments with visual ``←`` indicators.
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 from dataclasses import dataclass
-from typing import Optional
 
 from textual import on
 from textual.app import ComposeResult
@@ -40,8 +40,8 @@ class FlowEntry:
     """
 
     text: str
-    linked_card_id: Optional[int] = None
-    response_to: Optional[int] = None
+    linked_card_id: int | None = None
+    response_to: int | None = None
 
 
 # Default column definitions for Public Forum (PF) format.
@@ -553,7 +553,5 @@ class FlowScreen(Screen):
             entry_info = " │ (empty)"
 
         status = f"Column: {col.column_name} ({col.side.upper()}){entry_info}"
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#flow-status-bar", Static).update(status)
-        except Exception:
-            pass

@@ -9,7 +9,7 @@ from omnishared.config import run_setup_dirs
 from omniformat.ui.app import OmniFormat
 
 
-def main():
+def main() -> None:
     """Main Entry Point with Global Fallback Error Handling."""
     parser = argparse.ArgumentParser(description="OmniFormat Standalone Workstation")
     parser.add_argument("--app", help=argparse.SUPPRESS)

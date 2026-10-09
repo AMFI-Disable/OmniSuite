@@ -4,11 +4,11 @@ import sqlite3
 from omnishared.config import DEBATES_DIR
 
 
-def get_db_path():
+def get_db_path() -> str:
     return os.getenv("EVIDENCE_VAULT_DB", os.path.join(DEBATES_DIR, "vault.db"))
 
 
-def get_connection():
+def get_connection() -> sqlite3.Connection:
     if "EVIDENCE_VAULT_DB" not in os.environ:
         os.makedirs(DEBATES_DIR, exist_ok=True)
     conn = sqlite3.connect(get_db_path())

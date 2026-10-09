@@ -4,6 +4,7 @@ Decoupled TUI application for formatting, linting, and compiling Markdown files.
 © 2026 OmniSuite. Built for the Digital Grandmaster.
 """
 
+import contextlib
 import importlib.resources
 import os
 
@@ -239,10 +240,8 @@ class OmniFormat(App):
             wl = self.query_one("#warnings-list", ListView)
             wl.clear()
             wl.mount(ListItem(Label("No document loaded.")))
-            try:
+            with contextlib.suppress(Exception):
                 self.query_one("#debate-forensics-panel", Collapsible).display = False
-            except Exception:
-                pass
             return
 
         try:
@@ -338,16 +337,12 @@ class OmniFormat(App):
         self.notify(message, timeout=2)
 
     def _safe_update(self, selector: str, value: str) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.query_one(selector).update(value)
-        except Exception:
-            pass
 
     def _log_error(self, msg: str) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.query_one(SystemLog).log_activity(f"ERROR: {msg}")
-        except Exception:
-            pass
 
     @on(Button.Pressed, "#btn-toggle-edit")
     def toggle_edit_btn_pressed(self) -> None:
@@ -575,10 +570,8 @@ class OmniFormat(App):
 
         # Get selected action
         action = "improve_tag"
-        try:
+        with contextlib.suppress(Exception):
             action = self.query_one("#sel-ai-action", Select).value
-        except Exception:
-            pass
 
         # Update output to show progress
         self.call_from_thread(self._update_ai_output, "🤖 Thinking...")
@@ -825,10 +818,8 @@ class OmniFormat(App):
             self._save_outline_changes()
 
     def _update_ai_output(self, text: str) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.query_one("#lbl-ai-output", Static).update(text)
-        except Exception:
-            pass
 
 
 class PromptModal(ModalScreen[str]):

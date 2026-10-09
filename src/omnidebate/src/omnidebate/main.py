@@ -8,7 +8,7 @@ from omnidebate.core.database import setup_db
 from omnidebate.ui.app import OmniDebate
 
 
-def main():
+def main() -> None:
     """Main Entry Point with Global Fallback Error Handling."""
     try:
         run_setup_dirs()

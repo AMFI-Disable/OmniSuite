@@ -1,3 +1,5 @@
+import contextlib
+
 from omnishared.ui.widgets import GaugeBar
 from textual import on
 from textual.app import ComposeResult
@@ -130,13 +132,11 @@ class CompareScreen(ModalScreen):
         self.card_b["tier"] = 1
         update_card(self.card_a["id"], self.card_a)
         update_card(self.card_b["id"], self.card_b)
-        try:
+        with contextlib.suppress(Exception):
             self.app.notify(
                 f"Resolved: Promoted {self.card_a['tag']} to Tier 3, demoted {self.card_b['tag']} to Tier 1.",
                 severity="success",
             )
-        except Exception:
-            pass
         self.dismiss(True)
 
     @on(Button.Pressed, "#btn-prior-b")
@@ -146,13 +146,11 @@ class CompareScreen(ModalScreen):
         self.card_b["tier"] = 3
         update_card(self.card_a["id"], self.card_a)
         update_card(self.card_b["id"], self.card_b)
-        try:
+        with contextlib.suppress(Exception):
             self.app.notify(
                 f"Resolved: Promoted {self.card_b['tag']} to Tier 3, demoted {self.card_a['tag']} to Tier 1.",
                 severity="success",
             )
-        except Exception:
-            pass
         self.dismiss(True)
 
     @on(Button.Pressed, "#btn-equalize")
@@ -162,10 +160,8 @@ class CompareScreen(ModalScreen):
         self.card_b["tier"] = 2
         update_card(self.card_a["id"], self.card_a)
         update_card(self.card_b["id"], self.card_b)
-        try:
+        with contextlib.suppress(Exception):
             self.app.notify("Resolved: Equalized both cards to Tier 2.", severity="info")
-        except Exception:
-            pass
         self.dismiss(True)
 
     @on(Button.Pressed, "#btn-close")
