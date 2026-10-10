@@ -19,15 +19,24 @@ def get_connection() -> sqlite3.Connection:
 def get_metadata(key: str, default: str = "") -> str:
     conn = get_connection()
     c = conn.cursor()
-    c.execute("SELECT value FROM metadata WHERE key = ?", (key,))
-    row = c.fetchone()
-    conn.close()
-    return row["value"] if row else default
+    try:
+        c.execute("SELECT value FROM metadata WHERE key = ?", (key,))
+        row = c.fetchone()
+        return row["value"] if row else default
+    except sqlite3.OperationalError:
+        return default
+    finally:
+        conn.close()
 
 
 def set_metadata(key: str, value: str) -> None:
     conn = get_connection()
     c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO metadata (key, value) VALUES (?, ?)", (key, value))
-    conn.commit()
-    conn.close()
+    try:
+        c.execute("CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT)")
+        c.execute("INSERT OR REPLACE INTO metadata (key, value) VALUES (?, ?)", (key, value))
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+    finally:
+        conn.close()
