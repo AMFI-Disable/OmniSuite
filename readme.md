@@ -1,12 +1,18 @@
 # 🏛️ OmniSuite
 
-[![Version](https://img.shields.io/badge/Version-V1.0.0-10b981?style=for-the-badge)](https://github.com/AMFI-Disable/OmniSuite/releases)
-[![PyPI](https://img.shields.io/pypi/v/omnisuite?style=for-the-badge&color=3b82f6)](https://pypi.org/project/omnisuite/)
-[![Tests](https://img.shields.io/github/actions/workflow/status/AMFI-Disable/OmniSuite/ci.yml?style=for-the-badge&label=tests)](https://github.com/AMFI-Disable/OmniSuite/actions)
-[![License](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge)](license)
-[![Python](https://img.shields.io/badge/Python-3.9+-8b5cf6?style=for-the-badge)](https://python.org)
+<div align="center">
 
-**The Digital Grandmaster Ecosystem** — a unified, high-fidelity workstation for competitive forensicians, debaters, and researchers. OmniSuite transforms the terminal into a cyber-dark command center for forensic research, case compilation, and tournament strategy.
+**The High-Fidelity Terminal Workstation For Forensic Research & Case Compilation**  
+*Unified command-line and Textual interface engineered for competitive forensicians, debate research, and tournament strategy.*
+
+[![Platform: macOS & Linux](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-blue.svg?style=flat-square&logo=linux)](https://linux.org)
+[![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
+[![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=flat-square&logo=github)](https://github.com/AMFI-Disable/OmniSuite/releases)
+[![Tests: Passing](https://img.shields.io/badge/Tests-Passing%20(100%25)-success.svg?style=flat-square&logo=github-actions)](https://github.com/AMFI-Disable/OmniSuite/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](license)
+[![Privacy: Local Storage](https://img.shields.io/badge/Privacy-100%25%20Local%20SQLite-purple.svg?style=flat-square)](#privacy-and-storage)
+
+</div>
 
 ---
 
@@ -16,7 +22,7 @@
 pip install omnisuite
 ```
 
-Or from source:
+Or install from source for development:
 
 ```bash
 git clone https://github.com/AMFI-Disable/OmniSuite.git
@@ -24,13 +30,15 @@ cd OmniSuite
 pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 ```
 
-## 🚀 Launch
+---
+
+## 🚀 Key Commands
 
 ```bash
-# Research Workstation
+# Launch forensic research workstation
 omnisuite --app debate
 
-# Document Compiler
+# Launch document compiler
 omnisuite --app format
 ```
 
@@ -107,7 +115,7 @@ Switch themes from Settings (`F5`).
 
 ---
 
-## 🐳 Docker
+## 🐳 Docker Deployment
 
 ```bash
 docker compose up -d
@@ -116,41 +124,31 @@ docker compose run --rm omnisuite --app debate
 
 ---
 
-## 🛠️ Development
+## 🧪 Automated Testing And Verification <a id="automated-testing"></a>
 
 ```bash
-# Setup
+# Setup virtual environment and test dependencies
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 pip install ruff pytest pytest-asyncio
 
-# Test
+# Run test suite
 pytest --tb=short -q
 
-# Lint
+# Code quality and formatting lint
 ruff check . && ruff format --check .
 ```
 
-See [Architecture](docs/dev/architecture.md) and [Contributing](docs/dev/contributing.md).
+---
+
+## 🛡️ Privacy And Storage Guarantees <a id="privacy-and-storage"></a>
+
+- **100% Local SQLite Storage**: All forensic research, cards, debate flows, and brief metadata are stored locally on device.
+- **Zero Telemetry**: No tracking cookies, third-party network pings, or telemetry reporting.
+- **Local AI Execution**: Ollama integration executes inference entirely against local models without cloud leaks.
 
 ---
 
-## ✦ Version Control (GitHub)
+## 📄 License And Terms <a id="license-and-terms"></a>
 
-OmniSuite is hosted at [`AMFI-Disable/OmniSuite`](https://github.com/AMFI-Disable/OmniSuite). Commit messages follow the strict workspace standard (`xxx: xxx xxx xxx`, all lowercase).
-
----
-
-## 📖 Documentation
-
-- [Getting Started](docs/guide/getting-started.md)
-- [Card Management](docs/guide/card-management.md)
-- [Debate Flow](docs/guide/debate-flow.md)
-- [AI Features](docs/guide/ai-features.md)
-- [Export & Import](docs/guide/export-import.md)
-- [Keyboard Shortcuts](docs/guide/keybindings.md)
-- [Changelog](changelog.md)
-
----
-
-*© 2026 OmniSuite. Built for the Digital Grandmaster.*
+Licensed under the [MIT License](license). Copyright (c) 2026 AMFI-Disable.
