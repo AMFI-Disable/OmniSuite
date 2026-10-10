@@ -74,12 +74,28 @@ def test_calculate_vault_diff(create_test_db):
     db_a = create_test_db("diff_a.db")
     os.environ["EVIDENCE_VAULT_DB"] = db_a
     mid_a = add_motion("Shared Motion")
-    add_card(mid_a, {"tag": "Card A", "citation": "Cite A", "text": "Text A", "timestamp": "2026-08-01T10:00:00Z"})
+    add_card(
+        mid_a,
+        {
+            "tag": "Card A",
+            "citation": "Cite A",
+            "text": "Text A",
+            "timestamp": "2026-08-01T10:00:00Z",
+        },
+    )
 
     db_b = create_test_db("diff_b.db")
     os.environ["EVIDENCE_VAULT_DB"] = db_b
     mid_b = add_motion("Shared Motion")
-    add_card(mid_b, {"tag": "Card B", "citation": "Cite B", "text": "Text B", "timestamp": "2026-08-02T10:00:00Z"})
+    add_card(
+        mid_b,
+        {
+            "tag": "Card B",
+            "citation": "Cite B",
+            "text": "Text B",
+            "timestamp": "2026-08-02T10:00:00Z",
+        },
+    )
     add_motion("Remote Only Motion")
 
     changeset_b = export_vault_changeset(db_b)
@@ -189,12 +205,28 @@ def test_sync_vault_databases_p2p(create_test_db):
     db_a = create_test_db("p2p_a.db")
     os.environ["EVIDENCE_VAULT_DB"] = db_a
     mid_a = add_motion("Universal Basic Income")
-    add_card(mid_a, {"tag": "UBI Pro", "citation": "Yang 2020", "text": "Poverty reduction", "timestamp": "2026-08-01T10:00:00Z"})
+    add_card(
+        mid_a,
+        {
+            "tag": "UBI Pro",
+            "citation": "Yang 2020",
+            "text": "Poverty reduction",
+            "timestamp": "2026-08-01T10:00:00Z",
+        },
+    )
 
     db_b = create_test_db("p2p_b.db")
     os.environ["EVIDENCE_VAULT_DB"] = db_b
     mid_b = add_motion("Universal Basic Income")
-    add_card(mid_b, {"tag": "UBI Con", "citation": "Friedman 1980", "text": "Inflation risk", "timestamp": "2026-08-02T10:00:00Z"})
+    add_card(
+        mid_b,
+        {
+            "tag": "UBI Con",
+            "citation": "Friedman 1980",
+            "text": "Inflation risk",
+            "timestamp": "2026-08-02T10:00:00Z",
+        },
+    )
 
     result = sync_vault_databases(db_a, db_b)
 

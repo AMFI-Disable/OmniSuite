@@ -40,7 +40,9 @@ def running_server(test_db_path):
     server.stop()
 
 
-def _http_request(url: str, method: str = "GET", data: dict | None = None) -> tuple[int, dict | str]:
+def _http_request(
+    url: str, method: str = "GET", data: dict | None = None
+) -> tuple[int, dict | str]:
     headers = {}
     body = None
     if data is not None:

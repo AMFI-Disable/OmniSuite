@@ -126,13 +126,12 @@ def analyze_markdown(text: str) -> dict:
 
         # MD001: Heading levels should only increment by one level at a time
         prev_level = None
-        for level, content, line_idx in headings:
-            if prev_level is not None:
-                if level - prev_level > 1:
-                    heading_score = max(0, heading_score - 25)
-                    warnings.append(
-                        f"MD001 (Line {line_idx}): non-sequential heading level transition (H{prev_level} to H{level})"
-                    )
+        for level, _content, line_idx in headings:
+            if prev_level is not None and level - prev_level > 1:
+                heading_score = max(0, heading_score - 25)
+                warnings.append(
+                    f"MD001 (Line {line_idx}): non-sequential heading level transition (H{prev_level} to H{level})"
+                )
             prev_level = level
 
     # 3. STYLE CONSISTENCY SCORE
@@ -145,16 +144,14 @@ def analyze_markdown(text: str) -> dict:
     max_consecutive_blank = 0
     missing_code_lang = False
 
-    for line_idx, line in enumerate(lines, 1):
+    for _line_idx, line in enumerate(lines, 1):
         # MD010: Hard tabs
         if "\t" in line:
             has_tabs = True
 
         # MD009: Trailing spaces
-        if re.search(r"[ \t]+$", line):
-            # Exclude markdown trailing double-space linebreaks
-            if not line.endswith("  "):
-                has_trailing = True
+        if re.search(r"[ \t]+$", line) and not line.endswith("  "):
+            has_trailing = True
 
         # MD004: Unordered list styles
         if re.match(r"^\s*\*\s+", line):

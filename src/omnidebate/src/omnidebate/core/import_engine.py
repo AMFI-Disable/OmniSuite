@@ -420,6 +420,6 @@ def import_from_clipboard() -> str:
         raise RuntimeError(
             f"Clipboard tool '{tool}' not found. "
             f"{'It should be pre-installed on macOS.' if system == 'Darwin' else 'Install with: sudo apt install xclip'}"
-        )
+        ) from None
     except subprocess.TimeoutExpired:
-        raise RuntimeError("Clipboard access timed out.")
+        raise RuntimeError("Clipboard access timed out.") from None

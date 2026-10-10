@@ -152,6 +152,7 @@ class MultiLLMProvider:
         """Factory method to instantiate MultiLLMProvider from application configuration."""
         if config is None:
             from omnishared.config import load_config
+
             config = load_config()
 
         ai_cfg = config.get("ai", {})

@@ -17,9 +17,7 @@ class GeminiProvider(BaseLLMProvider):
         model: Optional[str] = None,
     ):
         self.api_key = (
-            api_key
-            or os.environ.get("GEMINI_API_KEY")
-            or os.environ.get("GOOGLE_API_KEY", "")
+            api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
         )
         self.model = model or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
@@ -45,17 +43,9 @@ class GeminiProvider(BaseLLMProvider):
         )
         headers = {"Content-Type": "application/json"}
 
-        payload = {
-            "contents": [
-                {
-                    "parts": [{"text": prompt}]
-                }
-            ]
-        }
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
         if system_prompt:
-            payload["systemInstruction"] = {
-                "parts": [{"text": system_prompt}]
-            }
+            payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
         gen_config = {}
         if "temperature" in kwargs:

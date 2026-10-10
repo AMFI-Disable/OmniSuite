@@ -23,9 +23,7 @@ from omnishared.ingest import (
 )
 
 
-def parse_citation(
-    text: str, fmt: Optional[Union[str, CitationFormat]] = None
-) -> dict[str, Any]:
+def parse_citation(text: str, fmt: Optional[Union[str, CitationFormat]] = None) -> dict[str, Any]:
     """Parse a raw citation string into a structured dictionary.
 
     Args:

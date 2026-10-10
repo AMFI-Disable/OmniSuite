@@ -84,9 +84,7 @@ def test_openai_provider_generate(mock_post):
 
     mock_resp = MagicMock()
     mock_resp.status_code = 200
-    mock_resp.json.return_value = {
-        "choices": [{"message": {"content": "OpenAI response"}}]
-    }
+    mock_resp.json.return_value = {"choices": [{"message": {"content": "OpenAI response"}}]}
     mock_post.return_value = mock_resp
 
     res = provider.generate("Hello OpenAI", system_prompt="Be concise")
@@ -123,13 +121,7 @@ def test_gemini_provider_generate(mock_post):
     mock_resp = MagicMock()
     mock_resp.status_code = 200
     mock_resp.json.return_value = {
-        "candidates": [
-            {
-                "content": {
-                    "parts": [{"text": "Gemini response"}]
-                }
-            }
-        ]
+        "candidates": [{"content": {"parts": [{"text": "Gemini response"}]}}]
     }
     mock_post.return_value = mock_resp
 
@@ -158,7 +150,9 @@ class MockFailingProvider(BaseLLMProvider):
     def is_available(self) -> bool:
         return True
 
-    def generate(self, prompt: str, system_prompt: str = None, timeout: float = 10.0, **kwargs) -> str:
+    def generate(
+        self, prompt: str, system_prompt: str = None, timeout: float = 10.0, **kwargs
+    ) -> str:
         raise LLMProviderError("Primary provider connection reset")
 
 
@@ -168,7 +162,9 @@ class MockSuccessProvider(BaseLLMProvider):
     def is_available(self) -> bool:
         return True
 
-    def generate(self, prompt: str, system_prompt: str = None, timeout: float = 10.0, **kwargs) -> str:
+    def generate(
+        self, prompt: str, system_prompt: str = None, timeout: float = 10.0, **kwargs
+    ) -> str:
         return "Success from fallback provider"
 
 
@@ -245,4 +241,3 @@ def test_generate_completion_wrapper(mock_post):
     res = generate_completion("Wrapper prompt")
     assert res == "Wrapped completion text"
     assert get_multi_provider() is not None
-

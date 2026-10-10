@@ -62,7 +62,7 @@ def compute_vault_checksum(db_path: str | None = None) -> str:
             "FROM cards ORDER BY id"
         )
         for row in c.fetchall():
-            rating = row["rating"] if "rating" in row.keys() else 0
+            rating = row["rating"] if "rating" in tuple(row.keys()) else 0
             hasher.update(
                 f"card:{row['id']}:{row['motion_id']}:{row['tag']}:{row['citation']}:{row['side']}:"
                 f"{row['text']}:{row['mastery']}:{row['tier']}:{row['timestamp']}:{rating}".encode()
@@ -91,7 +91,10 @@ def export_vault_changeset(
 
     try:
         if since_timestamp:
-            c.execute("SELECT * FROM motions WHERE id IN (SELECT motion_id FROM cards WHERE timestamp >= ?)", (since_timestamp,))
+            c.execute(
+                "SELECT * FROM motions WHERE id IN (SELECT motion_id FROM cards WHERE timestamp >= ?)",
+                (since_timestamp,),
+            )
             motions = [dict(row) for row in c.fetchall()]
             c.execute("SELECT * FROM cards WHERE timestamp >= ? ORDER BY id", (since_timestamp,))
             cards = [dict(row) for row in c.fetchall()]
@@ -128,9 +131,7 @@ def export_vault_changeset(
     }
 
 
-def calculate_vault_diff(
-    remote_changeset: dict[str, Any], db_path: str | None = None
-) -> SyncDiff:
+def calculate_vault_diff(remote_changeset: dict[str, Any], db_path: str | None = None) -> SyncDiff:
     """Calculates diff between local database state and a remote changeset."""
     conn = _get_db_connection(db_path)
     c = conn.cursor()
@@ -191,12 +192,25 @@ def calculate_vault_diff(
                 if remote_ts and remote_ts > local_ts:
                     diff.cards_to_update.append({"local": matching_local, "remote": r_card})
                 elif remote_ts and local_ts and remote_ts < local_ts:
-                    diff.conflicts.append({"local": matching_local, "remote": r_card, "reason": "local_newer"})
+                    diff.conflicts.append(
+                        {"local": matching_local, "remote": r_card, "reason": "local_newer"}
+                    )
                 else:
                     # Check field differences
                     differs = False
-                    for field_name in ("tag", "citation", "side", "text", "language", "mastery", "tier", "rating"):
-                        if field_name in r_card and r_card.get(field_name) != matching_local.get(field_name):
+                    for field_name in (
+                        "tag",
+                        "citation",
+                        "side",
+                        "text",
+                        "language",
+                        "mastery",
+                        "tier",
+                        "rating",
+                    ):
+                        if field_name in r_card and r_card.get(field_name) != matching_local.get(
+                            field_name
+                        ):
                             differs = True
                             break
                     if differs:
@@ -280,7 +294,9 @@ def apply_vault_changeset(
         remote_motion_by_id = {m.get("id"): m.get("name") for m in changeset.get("motions", [])}
 
         # Map local cards by signature: (motion_name, tag, citation, text) and tag: (motion_name, tag)
-        c.execute("SELECT c.*, m.name as motion_name FROM cards c LEFT JOIN motions m ON c.motion_id = m.id")
+        c.execute(
+            "SELECT c.*, m.name as motion_name FROM cards c LEFT JOIN motions m ON c.motion_id = m.id"
+        )
         local_cards_by_sig = {}
         local_cards_by_tag = {}
         for row in c.fetchall():
@@ -308,7 +324,9 @@ def apply_vault_changeset(
             if not target_motion_id:
                 # If motion wasn't found or mapped, default to inserting motion or assigning to first motion
                 if r_motion_name:
-                    c.execute("INSERT INTO motions (name, is_archived) VALUES (?, 0)", (r_motion_name,))
+                    c.execute(
+                        "INSERT INTO motions (name, is_archived) VALUES (?, 0)", (r_motion_name,)
+                    )
                     target_motion_id = c.lastrowid
                     motion_map[r_motion_name] = target_motion_id
                 else:
@@ -340,7 +358,10 @@ def apply_vault_changeset(
                             r_card.get("language", "EN"),
                             r_card.get("mastery", 0),
                             r_card.get("tier", 1),
-                            r_card.get("timestamp", datetime.datetime.now(datetime.timezone.utc).isoformat()),
+                            r_card.get(
+                                "timestamp",
+                                datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                            ),
                             r_card.get("rating", 0),
                         ),
                     )
@@ -359,7 +380,10 @@ def apply_vault_changeset(
                             r_card.get("language", "EN"),
                             r_card.get("mastery", 0),
                             r_card.get("tier", 1),
-                            r_card.get("timestamp", datetime.datetime.now(datetime.timezone.utc).isoformat()),
+                            r_card.get(
+                                "timestamp",
+                                datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                            ),
                         ),
                     )
                 stats["inserted_cards"] += 1
@@ -386,11 +410,19 @@ def apply_vault_changeset(
                     if has_history_table:
                         now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
                         for f_key in ("tag", "citation", "side", "text", "rating"):
-                            if f_key in r_card and str(r_card.get(f_key)) != str(matching_local.get(f_key)):
+                            if f_key in r_card and str(r_card.get(f_key)) != str(
+                                matching_local.get(f_key)
+                            ):
                                 c.execute(
                                     "INSERT INTO card_history (card_id, field, old_value, new_value, changed_at) "
                                     "VALUES (?, ?, ?, ?, ?)",
-                                    (card_id, f_key, str(matching_local.get(f_key)), str(r_card.get(f_key)), now_str),
+                                    (
+                                        card_id,
+                                        f_key,
+                                        str(matching_local.get(f_key)),
+                                        str(r_card.get(f_key)),
+                                        now_str,
+                                    ),
                                 )
 
                     if has_rating_col:

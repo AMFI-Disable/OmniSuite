@@ -65,11 +65,22 @@ class ResearchCardMetadata:
 # ---------------------------------------------------------------------------
 
 _QUALIFICATION_PATTERNS = [
-    re.compile(r"\b(Ph\.?D\.?|M\.?D\.?|J\.?D\.?|M\.?A\.?|M\.?S\.?|B\.?A\.?|B\.?S\.?)\b", re.IGNORECASE),
-    re.compile(r"\b(Professor|Prof\.|Associate Professor|Assistant Professor)\s+of\s+[A-Za-z\s]+", re.IGNORECASE),
-    re.compile(r"\b(Senior Fellow|Research Fellow|Fellow|Director|Senior Economist|Analyst)\s+at\s+[A-Za-z\s]+", re.IGNORECASE),
+    re.compile(
+        r"\b(Ph\.?D\.?|M\.?D\.?|J\.?D\.?|M\.?A\.?|M\.?S\.?|B\.?A\.?|B\.?S\.?)\b", re.IGNORECASE
+    ),
+    re.compile(
+        r"\b(Professor|Prof\.|Associate Professor|Assistant Professor)\s+of\s+[A-Za-z\s]+",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\b(Senior Fellow|Research Fellow|Fellow|Director|Senior Economist|Analyst)\s+at\s+[A-Za-z\s]+",
+        re.IGNORECASE,
+    ),
     re.compile(r"\b(Chair|Head|Dean)\s+of\s+[A-Za-z\s]+", re.IGNORECASE),
-    re.compile(r"\b(Nobel Laureate|Economist|Sociologist|Political Scientist|Juris Doctor)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(Nobel Laureate|Economist|Sociologist|Political Scientist|Juris Doctor)\b",
+        re.IGNORECASE,
+    ),
 ]
 
 
@@ -127,11 +138,31 @@ def calculate_credibility(
     container_lower = parsed_cite.container_title.lower()
     is_academic = any(
         kw in container_lower
-        for kw in ["journal", "press", "review", "quarterly", "university", "nature", "science", "ieee", "nber"]
+        for kw in [
+            "journal",
+            "press",
+            "review",
+            "quarterly",
+            "university",
+            "nature",
+            "science",
+            "ieee",
+            "nber",
+        ]
     )
     is_thinktank_or_gov = any(
         kw in container_lower
-        for kw in ["brookings", "rand", "imf", "oecd", "world bank", "csis", "un", "report", "working paper"]
+        for kw in [
+            "brookings",
+            "rand",
+            "imf",
+            "oecd",
+            "world bank",
+            "csis",
+            "un",
+            "report",
+            "working paper",
+        ]
     )
 
     if is_academic or parsed_cite.doi:

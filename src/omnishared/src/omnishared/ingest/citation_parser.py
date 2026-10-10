@@ -45,7 +45,9 @@ class ParsedCitation:
     def to_dict(self) -> dict[str, Any]:
         """Convert the ParsedCitation dataclass to a clean dictionary."""
         return {
-            "format": self.format.value if isinstance(self.format, CitationFormat) else str(self.format),
+            "format": self.format.value
+            if isinstance(self.format, CitationFormat)
+            else str(self.format),
             "raw_citation": self.raw_citation,
             "authors": list(self.authors),
             "primary_author_last_name": self.primary_author_last_name,
@@ -212,7 +214,11 @@ def _parse_bibtex(text: str) -> ParsedCitation:
     )
     for m in pattern.finditer(body):
         k = m.group(1).lower()
-        val = m.group(2) if m.group(2) is not None else (m.group(3) if m.group(3) is not None else m.group(4))
+        val = (
+            m.group(2)
+            if m.group(2) is not None
+            else (m.group(3) if m.group(3) is not None else m.group(4))
+        )
         if val is not None:
             # Clean inner linebreaks and spaces
             val_clean = re.sub(r"\s+", " ", val.strip())
@@ -224,7 +230,9 @@ def _parse_bibtex(text: str) -> ParsedCitation:
 
     year = fields.get("year", extract_year(text))
     title = fields.get("title", "").strip("{}")
-    container = fields.get("journal", fields.get("booktitle", fields.get("publisher", ""))).strip("{}")
+    container = fields.get("journal", fields.get("booktitle", fields.get("publisher", ""))).strip(
+        "{}"
+    )
     volume = fields.get("volume", "")
     issue = fields.get("number", fields.get("issue", ""))
     pages = fields.get("pages", "").replace("--", "-")
@@ -279,7 +287,9 @@ def _parse_apa(text: str) -> ParsedCitation:
 
     # Extract title, container, volume, issue, pages from remainder
     # Look for Volume(Issue), Pages pattern: e.g. 15(2), 45-67 or 15(2), pp. 45-67
-    vol_iss_match = re.search(r"(\d+)\s*\(([^)]+)\)\s*,\s*(?:pp?\.\s*)?(\d+(?:–|-)\d+|\d+)", remainder)
+    vol_iss_match = re.search(
+        r"(\d+)\s*\(([^)]+)\)\s*,\s*(?:pp?\.\s*)?(\d+(?:–|-)\d+|\d+)", remainder
+    )
     if vol_iss_match:
         volume = vol_iss_match.group(1)
         issue = vol_iss_match.group(2)
@@ -562,9 +572,7 @@ def _parse_fallback(text: str) -> ParsedCitation:
 # ---------------------------------------------------------------------------
 
 
-def parse_citation(
-    raw_citation: str, fmt: Optional[CitationFormat] = None
-) -> ParsedCitation:
+def parse_citation(raw_citation: str, fmt: Optional[CitationFormat] = None) -> ParsedCitation:
     """Parse a raw citation string into a structured ParsedCitation object.
 
     Args:
@@ -575,9 +583,7 @@ def parse_citation(
         ParsedCitation object with populated fields.
     """
     if not raw_citation or not raw_citation.strip():
-        return ParsedCitation(
-            format=CitationFormat.UNKNOWN, raw_citation="", confidence=0.0
-        )
+        return ParsedCitation(format=CitationFormat.UNKNOWN, raw_citation="", confidence=0.0)
 
     clean_text = raw_citation.strip()
 

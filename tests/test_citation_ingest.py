@@ -143,8 +143,16 @@ def test_parse_bibtex_citation():
 
 def test_citation_format_auto_detection():
     assert detect_citation_format("@article{key, title={Test}}") == CitationFormat.BIBTEX
-    assert detect_citation_format('Smith, J. "Title." Journal, vol. 1, no. 2, 2020, pp. 5-10.') == CitationFormat.MLA
-    assert detect_citation_format("Smith, J. (2020). Title. Journal, 1(2), 5-10. https://doi.org/10.1000/182") == CitationFormat.APA
+    assert (
+        detect_citation_format('Smith, J. "Title." Journal, vol. 1, no. 2, 2020, pp. 5-10.')
+        == CitationFormat.MLA
+    )
+    assert (
+        detect_citation_format(
+            "Smith, J. (2020). Title. Journal, 1(2), 5-10. https://doi.org/10.1000/182"
+        )
+        == CitationFormat.APA
+    )
 
 
 def test_fallback_junk_citation():
@@ -304,6 +312,7 @@ def test_parse_bibtex_file_multi_entry():
 def test_ingest_citation_to_vault():
     # Setup test motion in database
     from omnishared.database import add_motion
+
     motion_id = add_motion("Climate Change Policy")
 
     raw_cite = "Stiglitz, J. (2020). Carbon Economics. Brookings Review."

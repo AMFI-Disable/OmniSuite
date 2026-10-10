@@ -388,7 +388,9 @@ class VaultWebHandler(BaseHTTPRequestHandler):
                 return
             mid = add_motion(name)
             notify_subscribers("motion_created", {"id": mid, "name": name})
-            self._send_json({"status": "created", "id": mid, "name": name}, status=HTTPStatus.CREATED)
+            self._send_json(
+                {"status": "created", "id": mid, "name": name}, status=HTTPStatus.CREATED
+            )
             return
 
         if path == "/api/cards":
@@ -418,7 +420,9 @@ class VaultWebHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "ok", "id": cid, "rating": rating})
                 return
             except ValueError:
-                self._send_json({"error": "Invalid card ID or rating"}, status=HTTPStatus.BAD_REQUEST)
+                self._send_json(
+                    {"error": "Invalid card ID or rating"}, status=HTTPStatus.BAD_REQUEST
+                )
                 return
 
         self._send_json({"error": "Not Found"}, status=HTTPStatus.NOT_FOUND)
@@ -466,7 +470,9 @@ class VaultWebHandler(BaseHTTPRequestHandler):
 class OmniWebServer:
     """Encapsulates the OmniSuite lightweight web viewer HTTP server instance."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8080, db_path: str | None = None) -> None:
+    def __init__(
+        self, host: str = "127.0.0.1", port: int = 8080, db_path: str | None = None
+    ) -> None:
         self.host = host
         self.port = port
         self.db_path = db_path
@@ -512,7 +518,9 @@ class OmniWebServer:
         return self._server is not None and self._thread is not None and self._thread.is_alive()
 
 
-def run_web_server(host: str = "127.0.0.1", port: int = 8080, blocking: bool = True) -> OmniWebServer:
+def run_web_server(
+    host: str = "127.0.0.1", port: int = 8080, blocking: bool = True
+) -> OmniWebServer:
     """Launch and run the OmniSuite Web Viewer server."""
     server = OmniWebServer(host=host, port=port)
     server.start()

@@ -161,7 +161,7 @@ class TestURLImport:
 
         with patch("requests.get") as mock_get:
             mock_get.side_effect = _req.RequestException("Connection refused")
-            with pytest.raises(Exception):
+            with pytest.raises(ConnectionError):
                 import_from_url("https://unreachable.invalid/page")
 
 

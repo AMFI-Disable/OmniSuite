@@ -31,7 +31,8 @@ jobs:
           pip install -e "src/omnishared"
           pip install -e "src/omnidebate"
           pip install -e "src/omniformat"
-          pip install ruff
+          pip install -e .
+          pip install ruff pytest pytest-asyncio
 
       - name: lint with ruff
         run: |
@@ -59,6 +60,7 @@ jobs:
           pip install -e "src/omnishared"
           pip install -e "src/omnidebate"
           pip install -e "src/omniformat"
+          pip install -e .
           pip install mypy types-requests types-PyYAML types-beautifulsoup4
 
       - name: type check shared core
