@@ -1,6 +1,6 @@
 # 🏛️ OmniSuite
 
-[![Version](https://img.shields.io/badge/Version-V1.0.0-10b981?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-V1.0.0-10b981?style=for-the-badge)](https://github.com/AMFI-Disable/OmniSuite/releases)
 [![PyPI](https://img.shields.io/pypi/v/omnisuite?style=for-the-badge&color=3b82f6)](https://pypi.org/project/omnisuite/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/AMFI-Disable/OmniSuite/ci.yml?style=for-the-badge&label=tests)](https://github.com/AMFI-Disable/OmniSuite/actions)
 [![License](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge)](license)
@@ -43,6 +43,7 @@ omnisuite --app format
 A production-grade strategic research workstation. Transforms the terminal into a "Digital War Room" with real-time forensic auditing, AI-augmented synthesis, and zero-failure resilience for live tournament environments.
 
 **Features:**
+
 - **Evidence Vault** — SQLite-backed card management with FTS5 full-text search, boolean queries (AND/OR/NOT), and fuzzy matching
 - **OracleEngine** — 10-dimension heuristic analysis (impact, narrative, clash, synergy, rhetoric, and more)
 - **Debate Flow** — Multi-column argument tracking for live rounds — the only TUI flowing tool in existence
@@ -68,6 +69,7 @@ ollama pull llama3 && ollama serve
 ```
 
 **AI Tools:**
+
 - Auto-summarize cards
 - Generate counter-arguments
 - Analyze impact chains
@@ -82,7 +84,7 @@ ollama pull llama3 && ollama serve
 ## 🎨 Themes
 
 | Cyber Dark (Default) | Light | Nord | Solarized |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | Glassmorphic dark UI | Clean white interface | Arctic blue-gray | Warm solarized palette |
 
 Switch themes from Settings (`F5`).
@@ -92,7 +94,7 @@ Switch themes from Settings (`F5`).
 ## 🎯 Supported Debate Formats
 
 | Format | Speeches | Style |
-|--------|----------|-------|
+| :--- | :--- | :--- |
 | Public Forum | 4-min constructives, 2-min crossfire | PF |
 | Lincoln-Douglas | 6/4-min constructives, 3-min cross | LD |
 | Policy | 8-min constructives, 3-min cross | CX |
@@ -135,7 +137,7 @@ See [Architecture](docs/dev/architecture.md) and [Contributing](docs/dev/contrib
 
 ## ✦ Version Control (GitHub)
 
-OmniSuite is hosted at [`AMFI-Disable/OmniSuite`](https://github.com/AMFI-Disable/OmniSuite). Commit messages follow the **conventional commits** format (`type:summary`, all lowercase).
+OmniSuite is hosted at [`AMFI-Disable/OmniSuite`](https://github.com/AMFI-Disable/OmniSuite). Commit messages follow the strict workspace standard (`xxx: xxx xxx xxx`, all lowercase).
 
 ---
 
