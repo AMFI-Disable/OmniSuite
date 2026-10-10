@@ -13,7 +13,7 @@ pip install omnisuite
 ### From Source
 
 ```bash
-git clone https://github.com/amfi-disable/OmniSuite.git
+git clone https://github.com/AMFI-Disable/OmniSuite.git
 cd OmniSuite
 pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 ```

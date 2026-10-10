@@ -6,7 +6,7 @@ Thank you for your interest in contributing to OmniSuite!
 
 ```bash
 # Clone the repository
-git clone https://github.com/amfi-disable/OmniSuite.git
+git clone https://github.com/AMFI-Disable/OmniSuite.git
 cd OmniSuite
 
 # Create virtual environment

@@ -2,6 +2,14 @@
 
 All notable changes to OmniSuite will be documented in this file.
 
+## [V1.0.1] — 2026-10-10
+
+### 🔧 Repository & Metadata Alignment
+
+- Updated repository ownership and documentation endpoints to `AMFI-Disable/OmniSuite`.
+- Verified multi-platform CI matrix across Ubuntu and macOS runtimes.
+- Refreshed package URLs in `pyproject.toml` and documentation guides.
+
 ## [V1.0.0] — 2026-07-23
 
 ### 🏛️ Initial Public Release

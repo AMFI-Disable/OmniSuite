@@ -54,11 +54,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/amfi-disable/OmniSuite"
-Documentation = "https://github.com/amfi-disable/OmniSuite#readme"
-Repository = "https://github.com/amfi-disable/OmniSuite"
-Issues = "https://github.com/amfi-disable/OmniSuite/issues"
-Changelog = "https://github.com/amfi-disable/OmniSuite/blob/main/changelog.md"
+Homepage = "https://github.com/AMFI-Disable/OmniSuite"
+Documentation = "https://github.com/AMFI-Disable/OmniSuite#readme"
+Repository = "https://github.com/AMFI-Disable/OmniSuite"
+Issues = "https://github.com/AMFI-Disable/OmniSuite/issues"
+Changelog = "https://github.com/AMFI-Disable/OmniSuite/blob/main/changelog.md"
 
 [project.scripts]
 omnisuite = "omnisuite.cli:main"

@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/Version-V1.0.0-10b981?style=for-the-badge)](#)
 [![PyPI](https://img.shields.io/pypi/v/omnisuite?style=for-the-badge&color=3b82f6)](https://pypi.org/project/omnisuite/)
-[![Tests](https://img.shields.io/github/actions/workflow/status/amfi-disable/OmniSuite/ci.yml?style=for-the-badge&label=tests)](https://github.com/amfi-disable/OmniSuite/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/AMFI-Disable/OmniSuite/ci.yml?style=for-the-badge&label=tests)](https://github.com/AMFI-Disable/OmniSuite/actions)
 [![License](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge)](license)
 [![Python](https://img.shields.io/badge/Python-3.9+-8b5cf6?style=for-the-badge)](https://python.org)
 
@@ -19,7 +19,7 @@ pip install omnisuite
 Or from source:
 
 ```bash
-git clone https://github.com/amfi-disable/OmniSuite.git
+git clone https://github.com/AMFI-Disable/OmniSuite.git
 cd OmniSuite
 pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 ```
@@ -135,7 +135,7 @@ See [Architecture](docs/dev/architecture.md) and [Contributing](docs/dev/contrib
 
 ## ✦ Version Control (GitHub)
 
-OmniSuite is hosted at [`amfi-disable/OmniSuite`](https://github.com/amfi-disable/OmniSuite). Commit messages follow the **conventional commits** format (`type:summary`, all lowercase).
+OmniSuite is hosted at [`AMFI-Disable/OmniSuite`](https://github.com/AMFI-Disable/OmniSuite). Commit messages follow the **conventional commits** format (`type:summary`, all lowercase).
 
 ---
 
