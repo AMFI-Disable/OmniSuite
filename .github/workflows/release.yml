@@ -47,6 +47,7 @@ jobs:
 
       - name: publish to pypi
         uses: pypa/gh-action-pypi-publish@release/v1
+        continue-on-error: true
 
   github-release:
     needs: build
