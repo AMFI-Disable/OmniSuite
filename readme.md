@@ -14,6 +14,10 @@
 
 </div>
 
+> [!NOTE]
+> **Project Archived & Sunset Notice**
+> OmniSuite has reached end-of-life and is officially archived. The final stable release is [v1.0.0](https://github.com/AMFI-Disable/OmniSuite/releases/tag/v1.0.0). The repository remains available in read-only mode for historical reference. No further updates, issues, or pull requests will be accepted.
+
 ---
 
 ## ⚡ Quick Install
