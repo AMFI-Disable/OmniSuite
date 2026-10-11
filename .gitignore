@@ -1,38 +1,155 @@
-# Python
+# ==============================================================================
+# OmniSuite .gitignore
+# ==============================================================================
+# Controls file visibility and repository hygiene:
+# - Hides transient build artifacts, machine-specific caches, editor states, and secrets.
+# - Preserves active working files, configuration definitions, and distribution assets.
+# ==============================================================================
+
+# ==============================================================================
+# SECTION 1: WORKING & PRESERVED FILES (Explicit Whitelists)
+# (Guarantees vital project sources, configs, and assets are preserved)
+# ==============================================================================
+
+# Core Project Configuration & Dependencies
+!pyproject.toml
+!uv.lock
+!dockerfile
+!docker-compose.yml
+!.gitignore
+!.markdownlint.json
+
+# Documentation & Licensing
+!readme*.md
+!changelog.md
+!license
+
+# ==============================================================================
+# SECTION 2: HIDDEN & IGNORED ARTIFACTS
+# (Local caches, intermediate builds, user states, credentials, diagnostics)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 2.1 macOS System & Volume Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+.ds_store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+Icon?
+*.localized
+
+# ------------------------------------------------------------------------------
+# 2.2 Python Bytecode & Runtime Caches
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*$py.class
 
-# Virtual environment
+# ------------------------------------------------------------------------------
+# 2.3 Virtual Environments
+# ------------------------------------------------------------------------------
 .venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
-# Build & distribution
+# ------------------------------------------------------------------------------
+# 2.4 Build Products & Distribution Archives
+# ------------------------------------------------------------------------------
 build/
 dist/
 *.egg-info/
+*.egg
+*.whl
+*.tar.gz
 *.spec.log
 
-# Testing & caches
+# ------------------------------------------------------------------------------
+# 2.5 Testing, Linting & Type-Checking Caches
+# ------------------------------------------------------------------------------
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
 
-# Runtime data (local only, not for version control)
+# ------------------------------------------------------------------------------
+# 2.6 Local Runtime Data & Databases
+# (Local runtime state, not intended for version control)
+# ------------------------------------------------------------------------------
 data/debates/
 data/backups/
 data/exports/
 
-
-# Wrangler (Cloudflare)
+# ------------------------------------------------------------------------------
+# 2.7 Cloud Deployment & Serverless State
+# ------------------------------------------------------------------------------
 .wrangler/
+.vercel/
 
-# macOS metadata
-.DS_Store
-*.localized
+# ------------------------------------------------------------------------------
+# 2.8 Environment Secrets, Private Keys & Tokens
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.token
+*.pat
+.credentials
+credentials.json
+token.json
+*secret*
 
-# Editor
+# ------------------------------------------------------------------------------
+# 2.9 Diagnostics, Logs & Telemetry
+# ------------------------------------------------------------------------------
+*.log
+logs/
+crash_reports/
+*.crash
+
+# ------------------------------------------------------------------------------
+# 2.10 IDEs, Text Editors & AI Agent Working Contexts
+# ------------------------------------------------------------------------------
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+.gemini/
+.claude/
+.cursor/
+.windsurf/
+.codex/
+antigravity.json
+.nodeterm/
+
+# ------------------------------------------------------------------------------
+# 2.11 Temporary Files, Local Scratchpads & Local Internal Documents
+# ------------------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+tmp/
+temp/
+scratch/
+local/
+docs/internal/
+task.md
+todo.md
+plan.md
+report.md
+report_template.md
