@@ -6,7 +6,7 @@ The **Flow Screen** is a multi-column interface for tracking arguments during a 
 
 No other TUI tool offers debate flowing — this is unique to OmniSuite.
 
-## Launching the Flow
+## Launching The Flow
 
 From the main screen, press `f` to open the Flow Screen.
 
@@ -46,7 +46,7 @@ Columns are color-coded:
 
 When adding an entry, you can mark it as a response to an argument in another column. This creates a visual `←` indicator showing argument-response chains.
 
-## Linking to Cards
+## Linking To Cards
 
 Press `l` on any flow entry to link it to a card in your vault. Linked entries show a `🔗` icon and you can jump directly to the linked card.
 

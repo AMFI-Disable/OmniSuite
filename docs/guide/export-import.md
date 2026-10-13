@@ -13,7 +13,7 @@
 
 ## Exporting
 
-### From the Main Screen
+### From The Main Screen
 Press `x` to open the export dialog. Select:
 1. Target motion
 2. Export format

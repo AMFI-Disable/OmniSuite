@@ -16,13 +16,13 @@ curl -fsSL https://ollama.ai/install.sh | sh
 brew install ollama
 ```
 
-### Pull a Model
+### Pull A Model
 
 ```bash
 ollama pull llama3
 ```
 
-### Start the Server
+### Start The Server
 
 ```bash
 ollama serve

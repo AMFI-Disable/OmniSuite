@@ -1,4 +1,4 @@
-# Contributing to OmniSuite
+# Contributing To OmniSuite
 
 Thank you for your interest in contributing to OmniSuite!
 
@@ -63,7 +63,7 @@ See [Architecture](architecture.md) for the full codebase layout.
 6. Commit with conventional message: `git commit -m "feat:add my feature"`
 7. Push and open a PR
 
-## Adding a New Screen
+## Adding A New Screen
 
 1. Create `src/omnidebate/src/omnidebate/ui/screens/my_screen.py`
 2. Subclass `ModalScreen` or `Screen`
@@ -72,7 +72,7 @@ See [Architecture](architecture.md) for the full codebase layout.
 5. Wire it up in `app.py`
 6. Add tests in `tests/`
 
-## Adding a New Widget
+## Adding A New Widget
 
 1. Create `src/omnishared/src/omnishared/ui/widgets/my_widget.py`
 2. Subclass `Widget` or `Static`

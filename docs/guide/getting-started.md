@@ -1,4 +1,4 @@
-# Getting Started with OmniSuite
+# Getting Started With OmniSuite
 
 Welcome to **OmniSuite** — the Digital Grandmaster Ecosystem for competitive forensicians, debaters, and researchers.
 
