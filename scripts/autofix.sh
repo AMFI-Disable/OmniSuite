@@ -25,4 +25,5 @@ echo "📂 Changing directory: cd \"$ABS_DIR\""
 cd "$ABS_DIR" || exit 1
 
 # 2. Run the headless OmniFormat auto-fix command
-python3 "/Users/even/Desktop/Projects/OmniSuite/omnisuite" --app format --fix "$(basename "$ABS_FILE")"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+python3 "$PROJECT_DIR/omnisuite" --app format --fix "$(basename "$ABS_FILE")"
