@@ -20,12 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: set up python ${{ matrix.python-version }}
+      - name: Set Up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e "src/omnishared"
@@ -34,12 +34,12 @@ jobs:
           pip install -e .
           pip install ruff pytest pytest-asyncio
 
-      - name: lint with ruff
+      - name: Lint With Ruff
         run: |
           ruff check .
           ruff format --check .
 
-      - name: run tests
+      - name: Run Tests
         run: pytest --tb=short -q
         env:
           EVIDENCE_VAULT_DB: ":memory:"
@@ -49,12 +49,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: set up python
+      - name: Set Up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      - name: install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e "src/omnishared"
@@ -63,5 +63,6 @@ jobs:
           pip install -e .
           pip install mypy types-requests types-PyYAML types-beautifulsoup4
 
-      - name: type check shared core
-        run: mypy src/omnishared/src/omnishared --ignore-missing-imports --no-error-summary || true
+      - name: Type Check Shared Core
+        continue-on-error: true
+        run: mypy src/omnishared/src/omnishared --ignore-missing-imports --no-error-summary

@@ -15,18 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: set up python
+      - name: Set Up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      - name: install build tools
+      - name: Install Build Tools
         run: pip install build
 
-      - name: build package
+      - name: Build Package
         run: python -m build
 
-      - name: upload artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: dist
@@ -39,13 +39,13 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: download artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
 
-      - name: publish to pypi
+      - name: Publish To PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         continue-on-error: true
 
@@ -57,13 +57,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: download artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
 
-      - name: create github release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           files: dist/*
