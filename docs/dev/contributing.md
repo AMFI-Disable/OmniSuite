@@ -27,14 +27,13 @@ pytest --tb=short -q
 
 - **Formatter**: ruff format (double quotes, 100-char line length)
 - **Linter**: ruff check
-- **Commit messages**: Lowercase conventional commits — `type:summary`
-  - `feat:add debate flow screen`
-  - `fix:resolve timer reset bug`
-  - `refactor:extract card validation logic`
-  - `docs:update getting started guide`
-  - `test:add flow screen snapshot tests`
-  - `chore:update dependencies`
-  - `build:configure pyinstaller spec`
+- **Commit messages**: Rigid lowercase format `xxx: xxx xxx xxx` (prefix + exactly three lowercase words)
+  - `feat: add debate screen`
+  - `fix: resolve timer bug`
+  - `refactor: extract validation logic`
+  - `docs: update getting started`
+  - `test: add flow tests`
+  - `chore: update project dependencies`
 
 ## Running Tests
 
