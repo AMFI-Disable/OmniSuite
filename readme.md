@@ -7,19 +7,13 @@
 
 [![Platform: macOS & Linux](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-blue.svg?style=flat-square&logo=linux)](https://linux.org)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
-[![Status: Archived](https://img.shields.io/badge/Status-Archived%20%2F%20Read--Only-inactive.svg?style=flat-square)](https://github.com/AMFI-Disable/OmniSuite)
+[![Status: Active](https://img.shields.io/badge/Status-Active-success.svg?style=flat-square)](https://github.com/AMFI-Disable/OmniSuite)
 [![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=flat-square&logo=github)](https://github.com/AMFI-Disable/OmniSuite/releases)
 [![Tests: Passing](https://img.shields.io/badge/Tests-Passing%20(100%25)-success.svg?style=flat-square&logo=github-actions)](https://github.com/AMFI-Disable/OmniSuite/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](license)
 [![Privacy: Local Storage](https://img.shields.io/badge/Privacy-100%25%20Local%20SQLite-purple.svg?style=flat-square)](#privacy-and-storage)
 
 </div>
-
-> [!NOTE]
-> **Project Archived & Sunset Notice**
-> OmniSuite has reached end-of-life and is officially archived. The final stable release is [v1.0.0](https://github.com/AMFI-Disable/OmniSuite/releases/tag/v1.0.0). The repository remains available in read-only mode for historical reference. No further updates, issues, or pull requests will be accepted.
-
----
 
 ## ⚡ Quick Install
 
