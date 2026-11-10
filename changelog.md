@@ -4,6 +4,15 @@ All notable changes to OmniSuite will be documented in this file.
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- Restored active project maintenance status and badges in `readme.md`, removing repository archival and sunset notices.
+- Reinstated active security policy guidelines and private vulnerability reporting workflows in `security.md`.
+
+---
+
 ## [1.0.1] - 2026-10-10
 
 ### 🔧 Repository & Metadata Alignment
