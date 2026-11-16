@@ -15,7 +15,7 @@ All notable changes to OmniSuite will be documented in this file.
 
 ## [1.0.1] - 2026-10-10
 
-### 🔧 Repository & Metadata Alignment
+### Repository & Metadata Alignment
 
 - Updated repository ownership and documentation endpoints to `AMFI-Disable/OmniSuite`.
 - Verified multi-platform CI matrix across Ubuntu and macOS runtimes.
@@ -25,7 +25,7 @@ All notable changes to OmniSuite will be documented in this file.
 
 ## [1.0.0] - 2026-07-23
 
-### 🏛️ Initial Public Release
+### Initial Public Release
 
 The first production release of OmniSuite — the Digital Grandmaster Ecosystem for competitive forensicians, debaters, and researchers.
 

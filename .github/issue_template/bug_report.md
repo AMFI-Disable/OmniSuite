@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve the application
+about: Report a bug or unexpected behavior
 title: "[BUG] "
 labels: bug
 assignees: AMFI-Disable
@@ -12,22 +12,19 @@ A clear and concise description of what the bug is.
 
 ## Steps To Reproduce
 
-1. Launch application.
-2. Navigate to '...'
-3. Click on '....'
-4. Observe error behavior.
+1. Run command '...'
+2. Observe error output.
 
 ## Expected Behavior
 
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
 ## Environment Details
 
-- **App Version**: [e.g. 1.0.0]
-- **macOS Version**: [e.g. Sonoma 14.5 or Sequoia 15.0]
-- **Hardware Architecture**: [e.g. Apple Silicon M1/M2/M3 or Intel x86_64]
-- **Homebrew Version**: [e.g. 4.3.0]
+- **Tool Version**: [e.g. 1.0.0]
+- **Python Version**: [e.g. 3.12]
+- **Operating System**: [e.g. macOS 15, Ubuntu 24.04]
 
 ## Additional Context
 
-Add any other context, logs, or diagnostic exports here.
+Add tracebacks or logs here.

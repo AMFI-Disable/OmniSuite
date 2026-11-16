@@ -1,6 +1,6 @@
-# 🏛️ OmniSuite
-
 <div align="center">
+
+# OmniSuite
 
 **The High-Fidelity Terminal Workstation For Forensic Research & Case Compilation**  
 *Unified command-line and Textual interface engineered for competitive forensicians, debate research, and tournament strategy.*
@@ -15,7 +15,7 @@
 
 </div>
 
-## ⚡ Quick Install
+## Quick Install
 
 ```bash
 pip install omnisuite
@@ -31,7 +31,7 @@ pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 
 ---
 
-## 🚀 Key Commands
+## Key Commands
 
 ```bash
 # Launch forensic research workstation
@@ -43,9 +43,9 @@ omnisuite --app format
 
 ---
 
-## ✦ The Applications
+## The Applications
 
-### 🏛️ OmniDebate — Research Workstation
+### OmniDebate — Research Workstation
 
 A production-grade strategic research workstation. Transforms the terminal into a "Digital War Room" with real-time forensic auditing, AI-augmented synthesis, and zero-failure resilience for live tournament environments.
 
@@ -61,13 +61,13 @@ A production-grade strategic research workstation. Transforms the terminal into 
 - **Export** — Verbatim .docx, CaseXC .docx, Markdown, Interactive HTML, CSV, JSON
 - **Analytics Dashboard** — Research velocity graphs, contribution heatmaps, motion audits
 
-### 📄 OmniFormat — Document Compiler
+### OmniFormat — Document Compiler
 
 The automated document compilation and case formatting workstation. Interfaces directly with the shared debate database to assemble formatted briefs with strict Verbatim/CaseXC styling compliance.
 
 ---
 
-## 🤖 AI Integration
+## AI Integration
 
 OmniSuite integrates with [Ollama](https://ollama.ai) for local, privacy-preserving AI:
 
@@ -88,7 +88,7 @@ ollama pull llama3 && ollama serve
 
 ---
 
-## 🎨 Themes
+## Themes
 
 | Cyber Dark (Default) | Light | Nord | Solarized |
 | :--- | :--- | :--- | :--- |
@@ -98,7 +98,7 @@ Switch themes from Settings (`F5`).
 
 ---
 
-## 🎯 Supported Debate Formats
+## Supported Debate Formats
 
 | Format | Speeches | Style |
 | :--- | :--- | :--- |
@@ -114,7 +114,7 @@ Switch themes from Settings (`F5`).
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 docker compose up -d
@@ -123,7 +123,7 @@ docker compose run --rm omnisuite --app debate
 
 ---
 
-## 🧪 Automated Testing And Verification <a id="automated-testing"></a>
+## Automated Testing And Verification <a id="automated-testing"></a>
 
 ```bash
 # Setup virtual environment and test dependencies
@@ -140,7 +140,7 @@ ruff check . && ruff format --check .
 
 ---
 
-## 🛡️ Privacy And Storage Guarantees <a id="privacy-and-storage"></a>
+## Privacy And Storage Guarantees <a id="privacy-and-storage"></a>
 
 - **100% Local SQLite Storage**: All forensic research, cards, debate flows, and brief metadata are stored locally on device.
 - **Zero Telemetry**: No tracking cookies, third-party network pings, or telemetry reporting.
@@ -148,6 +148,6 @@ ruff check . && ruff format --check .
 
 ---
 
-## 📄 License And Terms <a id="license-and-terms"></a>
+## License And Terms <a id="license-and-terms"></a>
 
 Licensed under the [MIT License](license). Copyright (c) 2026 AMFI-Disable.

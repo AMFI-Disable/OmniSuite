@@ -8,10 +8,10 @@ Cards are the fundamental unit of evidence in OmniSuite. Each card represents a 
 
 | Field | Description | Required |
 |-------|-------------|----------|
-| **Tag** | Short claim or headline | ✅ |
+| **Tag**| Short claim or headline | |
 | **Citation** | Author, year, and source | No |
-| **Text** | Full evidence text | ✅ |
-| **Side** | AFF (Affirmative) or NEG (Negative) | ✅ |
+| **Text**| Full evidence text | |
+| **Side**| AFF (Affirmative) or NEG (Negative) | |
 | **Language** | Content language (EN, DE, ES) | No |
 | **Tier** | Priority level (1–3, where 3 = ⭐) | No |
 | **Rating** | Quality rating (1–5 stars) | No |
@@ -21,7 +21,7 @@ Cards are the fundamental unit of evidence in OmniSuite. Each card represents a 
 
 Press `a` on the main screen to open the card editor:
 
-- Use **Smart Cite** (`🔑` button) to auto-format citations from author + year fields
+- Use **Smart Cite**(`` button) to auto-format citations from author + year fields
 - Tags are auto-suggested from citation text as you type
 
 ## Searching

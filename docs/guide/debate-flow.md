@@ -48,7 +48,7 @@ When adding an entry, you can mark it as a response to an argument in another co
 
 ## Linking To Cards
 
-Press `l` on any flow entry to link it to a card in your vault. Linked entries show a `🔗` icon and you can jump directly to the linked card.
+Press `l` on any flow entry to link it to a card in your vault. Linked entries show a `` icon and you can jump directly to the linked card.
 
 ## Exporting
 
