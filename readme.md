@@ -5,6 +5,7 @@
 **The High-Fidelity Terminal Workstation For Forensic Research & Case Compilation**  
 *Unified command-line and Textual interface engineered for competitive forensicians, debate research, and tournament strategy.*
 
+[![Website: Live](https://img.shields.io/badge/Website-Live-FBC02D.svg?style=flat-square)](https://amfi-disable.github.io/OmniSuite/)
 [![Platform: macOS & Linux](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-blue.svg?style=flat-square&logo=linux)](https://linux.org)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
 [![Status: Active](https://img.shields.io/badge/Status-Active-success.svg?style=flat-square)](https://github.com/AMFI-Disable/OmniSuite)
