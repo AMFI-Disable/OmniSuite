@@ -13,7 +13,7 @@ Cards are the fundamental unit of evidence in OmniSuite. Each card represents a 
 | **Text**| Full evidence text | |
 | **Side**| AFF (Affirmative) or NEG (Negative) | |
 | **Language** | Content language (EN, DE, ES) | No |
-| **Tier** | Priority level (1–3, where 3 = ⭐) | No |
+| **Tier** | Priority level (1–3, where 3 = highest) | No |
 | **Rating** | Quality rating (1–5 stars) | No |
 | **Mastery** | Drill familiarity score (0–5) | Auto |
 
@@ -48,9 +48,9 @@ Cards support multiple custom tags for flexible organization:
 
 Rate cards 1–5 stars to mark evidence quality:
 
-- ⭐ = Weak evidence
-- ⭐⭐⭐ = Solid evidence
-- ⭐⭐⭐⭐⭐ = Tournament-ready
+- 1 Star = Weak evidence
+- 3 Stars = Solid evidence
+- 5 Stars = Tournament-ready
 
 ## Card History
 

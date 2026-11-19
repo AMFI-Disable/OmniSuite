@@ -13,6 +13,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](license)
 [![Privacy: Local Storage](https://img.shields.io/badge/Privacy-100%25%20Local%20SQLite-purple.svg?style=flat-square)](#privacy-and-storage)
 
+[Changelog](changelog.md) · [Security Policy](security.md) · [MIT License](license)
+
 </div>
 
 ## Quick Install
