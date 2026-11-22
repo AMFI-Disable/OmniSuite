@@ -59,5 +59,24 @@ export const siteConfig = {
     "Python 3.10+",
     "macOS or Linux (or Docker)",
     "uv package manager"
+  ],
+  "hubName": "AMFI Terminal",
+  "hubHash": "terminal",
+  "previewTabs": [
+    {
+      "tab": "OmniDebate TUI",
+      "title": "Crossfire Card Retrieval",
+      "body": "Keyboard-driven Textual interface backed by SQLite FTS for instant AFF/NEG evidence lookup."
+    },
+    {
+      "tab": "OmniFormat",
+      "title": "Automated Case Compiler",
+      "body": "Formats and compiles tournament-ready evidence packets and speech briefs automatically."
+    },
+    {
+      "tab": "SQLAlchemy + uv",
+      "title": "Portable Local Storage",
+      "body": "Runs cleanly on macOS, Linux, or Docker with Alembic schema migrations and custom TUI themes."
+    }
   ]
 } as const;
