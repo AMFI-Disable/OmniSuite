@@ -8,9 +8,14 @@ All notable changes to OmniSuite will be documented in this file.
 
 ### Changed
 
+- Bumped `certifi` from `2026.7.22` to `2026.10.18` in `uv.lock`.
 - Restored the Star History chart section and links in `readme.md` and `website/src/main.ts`.
 - Restored active project maintenance status and badges in `readme.md`, removing repository archival and sunset notices.
 - Reinstated active security policy guidelines and private vulnerability reporting workflows in `security.md`.
+
+### Fixed
+
+- Updated `dockerfile` base image to `python:3.10-slim` with `readme.md` and `uv.lock` copied into `/app/`, and updated `readme.md` editable install commands to include the workspace root package.
 
 ---
 
