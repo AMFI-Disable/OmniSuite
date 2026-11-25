@@ -43,7 +43,7 @@ Or install from source for development:
 ```bash
 git clone https://github.com/AMFI-Disable/OmniSuite.git
 cd OmniSuite
-pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
+pip install -e . -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 ```
 
 ---
@@ -145,7 +145,7 @@ docker compose run --rm omnisuite --app debate
 ```bash
 # Setup virtual environment and test dependencies
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
+pip install -e . -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 pip install ruff pytest pytest-asyncio
 
 # Run test suite

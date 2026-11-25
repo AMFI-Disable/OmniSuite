@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Copy uv package manager binaries from official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy uv workspace definitions and packages source
-COPY pyproject.toml /app/
+COPY pyproject.toml readme.md uv.lock /app/
 COPY src /app/src
 
 # Synchronize python virtualenv and dependencies using uv
