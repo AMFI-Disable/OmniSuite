@@ -8,6 +8,8 @@ All notable changes to OmniSuite will be documented in this file.
 
 ### Changed
 
+- Added Simplified Chinese usage and contribution guides and bilingual reporting and review templates.
+
 - Bumped `certifi` from `2026.7.22` to `2026.10.18` in `uv.lock`.
 - Restored the Star History chart section and links in `readme.md` and `website/src/main.ts`.
 - Restored active project maintenance status and badges in `readme.md`, removing repository archival and sunset notices.

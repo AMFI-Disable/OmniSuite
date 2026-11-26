@@ -10,11 +10,11 @@
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
 [![Status: Active](https://img.shields.io/badge/Status-Active-success.svg?style=flat-square)](https://github.com/AMFI-Disable/OmniSuite)
 [![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=flat-square&logo=github)](https://github.com/AMFI-Disable/OmniSuite/releases)
-[![Tests: Passing](https://img.shields.io/badge/Tests-Passing%20(100%25)-success.svg?style=flat-square&logo=github-actions)](https://github.com/AMFI-Disable/OmniSuite/actions)
+[![CI](https://github.com/AMFI-Disable/OmniSuite/actions/workflows/ci.yml/badge.svg)](https://github.com/AMFI-Disable/OmniSuite/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](license)
 [![Privacy: Local Storage](https://img.shields.io/badge/Privacy-100%25%20Local%20SQLite-purple.svg?style=flat-square)](#privacy-and-storage)
 
-[Changelog](changelog.md) · [Security Policy](security.md) · [MIT License](license)
+[中文文档](readme.zh-cn.md) · [Contributing](contributing.md) · [Changelog](changelog.md) · [Security Policy](security.md) · [MIT License](license)
 
 </div>
 
@@ -34,15 +34,13 @@
 
 ## Quick Install
 
-```bash
-pip install omnisuite
-```
-
-Or install from source for development:
+Install from the source checkout in a virtual environment:
 
 ```bash
 git clone https://github.com/AMFI-Disable/OmniSuite.git
 cd OmniSuite
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e . -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 ```
 
@@ -91,7 +89,10 @@ The automated document compilation and case formatting workstation. Interfaces d
 OmniSuite integrates with [Ollama](https://ollama.ai) for local, privacy-preserving AI:
 
 ```bash
-ollama pull llama3 && ollama serve
+# Start the service if needed
+ollama serve
+# In another terminal
+ollama pull llama3
 ```
 
 **AI Tools:**
