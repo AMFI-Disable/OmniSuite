@@ -15,6 +15,8 @@ All notable changes to OmniSuite will be documented in this file.
 
 ### Fixed
 
+- Made source-launcher shell shortcuts opt-in and kept the web viewer responsive to vault requests while an event stream is open.
+
 - Updated `dockerfile` base image to `python:3.10-slim` with `readme.md` and `uv.lock` copied into `/app/`, and updated `readme.md` editable install commands to include the workspace root package.
 
 ---

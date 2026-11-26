@@ -12,8 +12,9 @@ import queue
 import threading
 import time
 import urllib.parse
+from contextlib import suppress
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from omnishared.database import (
@@ -43,7 +44,7 @@ from omnishared.database.sync import (
 )
 
 # SSE Event Subscribers
-_EVENT_SUBSCRIBERS: list[queue.Queue] = []
+_EVENT_SUBSCRIBERS: dict[queue.Queue, ThreadingHTTPServer] = {}
 _SUBSCRIBERS_LOCK = threading.Lock()
 
 
@@ -56,9 +57,10 @@ def notify_subscribers(event_type: str, data: dict[str, Any]) -> None:
             try:
                 q.put_nowait(payload)
             except queue.Full:
+                _end_stream(q)
                 dead_subscribers.append(q)
         for dead in dead_subscribers:
-            _EVENT_SUBSCRIBERS.remove(dead)
+            del _EVENT_SUBSCRIBERS[dead]
 
 
 HTML_VIEWER = """<!DOCTYPE html>
@@ -215,10 +217,34 @@ HTML_VIEWER = """<!DOCTYPE html>
 """
 
 
+def _end_stream(events: queue.Queue) -> None:
+    """Wake the handler, discarding pending events if the client fell behind."""
+    try:
+        events.put_nowait(None)
+    except queue.Full:
+        # Callers hold the subscriber lock, so only the consumer can race this eviction.
+        with suppress(queue.Empty):
+            events.get_nowait()
+        events.put_nowait(None)
+
+
+class _ViewerHTTPServer(ThreadingHTTPServer):
+    closing = False
+
+    def server_close(self) -> None:
+        with _SUBSCRIBERS_LOCK:
+            self.closing = True
+            for events, server in _EVENT_SUBSCRIBERS.items():
+                if server is self:
+                    _end_stream(events)
+        super().server_close()
+
+
 class VaultWebHandler(BaseHTTPRequestHandler):
     """HTTP Request Handler for OmniSuite Web Viewer API & Frontend."""
 
     db_path: str | None = None
+    server: _ViewerHTTPServer
 
     def log_message(self, format: str, *args: Any) -> None:
         """Suppress noisy HTTP request logs unless running debug."""
@@ -266,13 +292,15 @@ class VaultWebHandler(BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
-            self.send_header("Connection", "keep-alive")
+            self.send_header("Connection", "close")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
 
-            q: queue.Queue[str] = queue.Queue(maxsize=100)
+            q: queue.Queue[str | None] = queue.Queue(maxsize=100)
             with _SUBSCRIBERS_LOCK:
-                _EVENT_SUBSCRIBERS.append(q)
+                if getattr(self.server, "closing", False):
+                    return
+                _EVENT_SUBSCRIBERS[q] = self.server
 
             try:
                 # Send initial ping event
@@ -283,6 +311,8 @@ class VaultWebHandler(BaseHTTPRequestHandler):
                 while True:
                     try:
                         msg = q.get(timeout=15.0)
+                        if msg is None:
+                            break
                         self.wfile.write(msg.encode("utf-8"))
                         self.wfile.flush()
                     except queue.Empty:
@@ -294,8 +324,7 @@ class VaultWebHandler(BaseHTTPRequestHandler):
                 pass
             finally:
                 with _SUBSCRIBERS_LOCK:
-                    if q in _EVENT_SUBSCRIBERS:
-                        _EVENT_SUBSCRIBERS.remove(q)
+                    _EVENT_SUBSCRIBERS.pop(q, None)
             return
 
         # API Endpoints
@@ -476,7 +505,7 @@ class OmniWebServer:
         self.host = host
         self.port = port
         self.db_path = db_path
-        self._server: HTTPServer | None = None
+        self._server: _ViewerHTTPServer | None = None
         self._thread: threading.Thread | None = None
 
         class BoundHandler(VaultWebHandler):
@@ -492,7 +521,7 @@ class OmniWebServer:
 
         setup_db()
 
-        self._server = HTTPServer((self.host, self.port), self.handler_class)
+        self._server = _ViewerHTTPServer((self.host, self.port), self.handler_class)
         # Update bound port if assigned dynamically (port 0)
         self.port = self._server.server_address[1]
 

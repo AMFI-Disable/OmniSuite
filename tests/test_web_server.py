@@ -81,6 +81,25 @@ def test_web_viewer_html(running_server):
     assert "<title>OmniSuite Web Viewer</title>" in body
 
 
+def test_stream_allows_vault_requests_and_closes_on_stop(running_server):
+    with urllib.request.urlopen(f"{running_server.url}/api/stream", timeout=5) as stream:
+        assert stream.readline() == b"event: ping\n"
+        assert json.loads(stream.readline().removeprefix(b"data: "))["status"] == "connected"
+        assert stream.readline() == b"\n"
+        status, motion = _http_request(
+            f"{running_server.url}/api/motions", "POST", {"name": "Stream Test"}
+        )
+        assert status == 201
+        assert stream.readline() == b"event: motion_created\n"
+        assert json.loads(stream.readline().removeprefix(b"data: "))["id"] == motion["id"]
+        assert stream.readline() == b"\n"
+        status, motions = _http_request(f"{running_server.url}/api/motions")
+        assert status == 200
+        assert any(item["id"] == motion["id"] for item in motions)
+        running_server.stop()
+        assert stream.read() == b""
+
+
 def test_api_status(running_server):
     status, body = _http_request(f"{running_server.url}/api/status")
     assert status == 200

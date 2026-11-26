@@ -9,66 +9,29 @@ import os
 import subprocess
 import argparse
 import shutil
+import shlex
 
 
 def install_aliases():
-    """Checks and automatically installs shell aliases for omnidebate and omniformat."""
-    is_frozen = getattr(sys, "frozen", False)
-    if is_frozen:
-        alias_debate = "alias omnidebate='omnisuite --app debate'"
-        alias_format = "alias omniformat='omnisuite --app format'"
-    else:
-        script_path = os.path.abspath(__file__)
-        alias_debate = f"alias omnidebate='python3 \"{script_path}\" --app debate'"
-        alias_format = f"alias omniformat='python3 \"{script_path}\" --app format'"
-    
-    home = os.path.expanduser("~")
-    profiles = [
-        os.path.join(home, ".zshrc"),
-        os.path.join(home, ".bashrc"),
-    ]
-    
-    modified = False
-    for profile in profiles:
-        # Create profile file if it doesn't exist
-        if not os.path.exists(profile):
-            try:
-                with open(profile, "w"): pass
-            except Exception:
-                continue
-                
-        try:
-            with open(profile, "r", encoding="utf-8") as f:
-                content = f.read()
-        except Exception:
-            continue
-            
-        needed_aliases = []
-        if "alias omnidebate=" not in content:
-            needed_aliases.append(alias_debate)
-        if "alias omniformat=" not in content:
-            needed_aliases.append(alias_format)
-            
-        if needed_aliases:
-            try:
-                with open(profile, "a", encoding="utf-8") as f:
-                    f.write("\n# OmniSuite CLI Workstation Aliases\n")
-                    for alias in needed_aliases:
-                        f.write(alias + "\n")
-                print(f"✅ Installed command shortcuts in {os.path.basename(profile)}")
-                modified = True
-            except Exception as e:
-                print(f"⚠️  Could not write to {profile}: {e}")
-                
-    if modified:
-        print("\n" + "="*60)
-        print("🎉 FIRST STARTUP INSTALLATION COMPLETE!")
-        print("Please reload your shell to activate the command shortcuts:")
-        print("   source ~/.zshrc    (or open a new terminal tab)")
-        print("Then you can run:")
-        print("   omnidebate")
-        print("   omniformat")
-        print("="*60 + "\n")
+    """Install shell shortcuts only when explicitly requested."""
+    command = "omnisuite" if getattr(sys, "frozen", False) else shlex.join(
+        [sys.executable, os.path.abspath(__file__)]
+    )
+    for filename in (".zshrc", ".bashrc"):
+        profile = os.path.expanduser(f"~/{filename}")
+        with open(profile, "a+", encoding="utf-8") as file:
+            file.seek(0)
+            content = file.read()
+            missing = [
+                app for app in ("debate", "format")
+                if f"alias omni{app}=" not in content
+            ]
+            if missing:
+                file.write("\n# OmniSuite CLI Workstation Aliases\n")
+                for app in missing:
+                    value = shlex.quote(f"{command} --app {app}")
+                    file.write(f"alias omni{app}={value}\n")
+                print(f"Installed command shortcuts in {profile}")
 
 
 def bootstrap():
@@ -146,9 +109,6 @@ def bootstrap():
 
 
 if __name__ == "__main__":
-    # Install aliases on startup if needed
-    install_aliases()
-
     parser = argparse.ArgumentParser(description="OmniSuite Launcher")
     parser.add_argument(
         "--app",
@@ -156,7 +116,17 @@ if __name__ == "__main__":
         default="debate",
         help="Launch 'debate' (OmniDebate) or 'format' (OmniFormat)",
     )
+    parser.add_argument(
+        "--install-aliases", action="store_true",
+        help="Add omnidebate and omniformat shortcuts to ~/.zshrc and ~/.bashrc and exit",
+    )
     args, unknown = parser.parse_known_args()
+    if args.install_aliases:
+        try:
+            install_aliases()
+        except (OSError, UnicodeError) as error:
+            parser.exit(1, f"Could not install shortcuts: {error}\n")
+        sys.exit(0)
 
     bootstrap()
 

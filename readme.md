@@ -48,6 +48,8 @@ pip install -e . -e "src/omnishared" -e "src/omnidebate" -e "src/omniformat"
 
 ---
 
+The source launcher can add `omnidebate` and `omniformat` shortcuts to `~/.zshrc` and `~/.bashrc`. Run `python3 ./omnisuite --install-aliases` and open a new shell to use them.
+
 ## Key Commands
 
 ```bash
