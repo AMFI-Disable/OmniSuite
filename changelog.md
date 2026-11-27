@@ -6,6 +6,8 @@ All notable changes to OmniSuite will be documented in this file.
 
 ## [Unreleased]
 
+- Switched article imports to the existing lxml parser dependency, removing Soup Sieve from all supported Python environments. Preserved article selection and citation metadata.
+
 ### Changed
 
 - Added Simplified Chinese usage and contribution guides and bilingual reporting and review templates.

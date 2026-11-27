@@ -48,7 +48,7 @@ Restore from a full vault backup. Imports all cards with metadata.
 ### URL Import
 Paste a URL to auto-extract article text:
 1. Fetches the page content
-2. Extracts article text via BeautifulSoup
+2. Extracts article text via lxml
 3. Auto-generates a citation from the page title and URL
 4. Creates a new card with the extracted text
 

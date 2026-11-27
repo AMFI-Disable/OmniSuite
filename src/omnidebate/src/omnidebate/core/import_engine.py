@@ -204,7 +204,7 @@ def export_to_json(cards: list[dict], filepath: str) -> str:
 def import_from_url(url: str) -> dict:
     """Fetch a URL and extract article text as a debate evidence card.
 
-    Uses requests + BeautifulSoup to scrape article content, then
+    Uses requests and lxml to scrape article content, then
     auto-generates a tag line and citation from the page metadata.
 
     Args:
@@ -219,11 +219,12 @@ def import_from_url(url: str) -> dict:
     """
     try:
         import requests
-        from bs4 import BeautifulSoup
+
+        from .article_html import article_document, visible_text
     except ImportError as exc:
         raise ImportError(
-            "URL import requires 'requests' and 'beautifulsoup4' packages. "
-            "Install them with: pip install requests beautifulsoup4"
+            "URL import requires 'requests' and 'lxml' packages. "
+            "Install them with: pip install requests lxml"
         ) from exc
 
     try:
@@ -239,40 +240,44 @@ def import_from_url(url: str) -> dict:
     except requests.RequestException as exc:
         raise ConnectionError(f"Failed to fetch URL '{url}': {exc}") from exc
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    document = article_document(response.text)
+    heading = document.find(".//title")
+    title = visible_text(heading) if heading is not None else "Imported Article"
 
-    # Extract title for tag
-    title_tag = soup.find("title")
-    title = title_tag.get_text(strip=True) if title_tag else "Imported Article"
+    def meta_content(primary: str, fallback: str) -> str:
+        for selector in (primary, fallback):
+            tag = document.find(selector)
+            if tag is not None:
+                return tag.get("content", "")
+        return ""
 
-    # Extract author / publication for citation
-    author_meta = soup.find("meta", attrs={"name": "author"}) or soup.find(
-        "meta", attrs={"property": "article:author"}
-    )
-    author = author_meta.get("content", "").strip() if author_meta else ""
-
-    date_meta = soup.find("meta", attrs={"property": "article:published_time"}) or soup.find(
-        "meta", attrs={"name": "date"}
-    )
-    pub_date = date_meta.get("content", "")[:10] if date_meta else ""
+    author = meta_content(".//meta[@name='author']", ".//meta[@property='article:author']").strip()
+    pub_date = meta_content(".//meta[@property='article:published_time']", ".//meta[@name='date']")[
+        :10
+    ]
 
     citation_parts = [p for p in [author, pub_date, url] if p]
     citation = " — ".join(citation_parts) if citation_parts else url
 
     # Extract article body text
     # Try common article containers first
-    article_el = (
-        soup.find("article")
-        or soup.find("div", class_="article-body")
-        or soup.find("div", class_="entry-content")
-        or soup.find("main")
-    )
+    container = document
+    for query in (
+        "//article",
+        "//div[contains(concat(' ', normalize-space(@class), ' '), ' article-body ')]",
+        "//div[contains(concat(' ', normalize-space(@class), ' '), ' entry-content ')]",
+        "//main",
+    ):
+        matches = document.xpath(query)
+        if matches:
+            container = matches[0]
+            break
 
-    paragraphs = article_el.find_all("p") if article_el else soup.find_all("p")
+    paragraphs = container.iter("p")
 
     body_parts = []
     for p in paragraphs:
-        text = p.get_text(strip=True)
+        text = visible_text(p)
         if len(text) > 30:  # Skip trivially short paragraphs
             body_parts.append(text)
 

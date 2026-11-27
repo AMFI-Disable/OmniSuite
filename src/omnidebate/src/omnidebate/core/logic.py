@@ -3,7 +3,8 @@ import re
 
 try:
     import requests
-    from bs4 import BeautifulSoup
+
+    from .article_html import article_document, visible_text
 
     WEB_INGEST_OK = True
 except ImportError:
@@ -132,13 +133,13 @@ def impact_tree(card: dict) -> str:
 def scrape_url(url: str) -> tuple[str, str]:
     """Returns (title, body_text). Raises on failure."""
     if not WEB_INGEST_OK:
-        raise RuntimeError("requests and beautifulsoup4 are not installed.")
+        raise RuntimeError("requests and lxml are not installed.")
     resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
-    title = soup.title.string.strip() if soup.title else url
-    # Get meaningful paragraphs
-    paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text()) > 60]
+    document = article_document(resp.text)
+    heading = document.find(".//title")
+    title = (visible_text(heading) if heading is not None else "") or url
+    paras = [visible_text(p, " ") for p in document.iter("p") if len("".join(p.itertext())) > 60]
     body = " ".join(paras[:8])  # First 8 paragraphs
     return title, body
 

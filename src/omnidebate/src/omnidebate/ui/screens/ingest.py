@@ -93,7 +93,7 @@ class WebIngestScreen(ModalScreen):
 
     def _fetch_core(self) -> bool:
         if not WEB_INGEST_OK:
-            self.app.notify("Install requests + beautifulsoup4 for web ingest.", severity="error")
+            self.app.notify("Install requests + lxml for web ingest.", severity="error")
             return False
         url = self.query_one("#wi-url", Input).value.strip()
         if not url:

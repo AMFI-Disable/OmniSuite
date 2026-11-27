@@ -156,6 +156,30 @@ class TestURLImport:
         assert isinstance(card, dict)
         assert "tag" in card or "text" in card or "citation" in card
 
+    def test_article_precedence_and_source_metadata(self):
+        response = MagicMock()
+        response.text = """<?xml version="1.0" encoding="utf-8"?>
+        <html><head><title>共享资料</title>
+        <meta name="author" content="Research group">
+        <meta property="article:published_time" content="2026-11-01T12:00:00Z">
+        </head><body><main>
+        <p>An unrelated introductory paragraph outside the preferred container.</p>
+        <div class="feature article-body"><p>The authors found a consistent result
+        across the sampled records.<script>hidden code</script></p></div></main></body></html>"""
+        with patch("requests.get", return_value=response):
+            card = import_from_url("https://example.com/study")
+        assert card["tag"] == "共享资料"
+        assert card["citation"] == "Research group — 2026-11-01 — https://example.com/study"
+        assert "consistent result" in card["text"]
+        assert "introductory" not in card["text"] and "hidden code" not in card["text"]
+
+    def test_empty_response_has_no_usable_text(self):
+        with (
+            patch("requests.get", return_value=MagicMock(text="")),
+            pytest.raises(ValueError, match="No usable article text"),
+        ):
+            import_from_url("https://example.com/empty")
+
     def test_import_from_url_network_error(self):
         import requests as _req
 
