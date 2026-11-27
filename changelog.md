@@ -6,6 +6,8 @@ All notable changes to OmniSuite will be documented in this file.
 
 ## [Unreleased]
 
+- Refreshed the dependency lock to match the declared Python 3.10 minimum. Python 3.11.5 and later resolve Soup Sieve 4.1.3. Earlier supported interpreters resolve 2.10.
+
 ### Changed
 
 - Added Simplified Chinese usage and contribution guides and bilingual reporting and review templates.
