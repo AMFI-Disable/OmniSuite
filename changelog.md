@@ -6,8 +6,6 @@ All notable changes to OmniSuite will be documented in this file.
 
 ## [Unreleased]
 
-- Refreshed the dependency lock to match the declared Python 3.10 minimum. Python 3.11.5 and later resolve Soup Sieve 4.1.3. Earlier supported interpreters resolve 2.10.
-
 ### Changed
 
 - Added Simplified Chinese usage and contribution guides and bilingual reporting and review templates.
@@ -19,6 +17,7 @@ All notable changes to OmniSuite will be documented in this file.
 
 ### Fixed
 
+- Refreshed the dependency lock to match the declared Python 3.10 minimum. Python 3.11.5 and later resolve Soup Sieve 4.1.3. Earlier supported interpreters resolve 2.10.
 - Made source-launcher shell shortcuts opt-in and kept the web viewer responsive to vault requests while an event stream is open.
 
 - Updated `dockerfile` base image to `python:3.10-slim` with `readme.md` and `uv.lock` copied into `/app/`, and updated `readme.md` editable install commands to include the workspace root package.
